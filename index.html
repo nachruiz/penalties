@@ -201,6 +201,12 @@
   /* Tirachinas (triangulo) */
   .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
   .drag-svg.show{display:block}
+  /* Zonas del portero (modo keeper) */
+  .keeper-zones{position:absolute;right:8px;top:46%;display:none;grid-template-columns:repeat(3,56px);gap:5px;z-index:10}
+  .keeper-zones.show{display:grid}
+  .keeper-zones button{width:56px;height:56px;background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#FFD700;font-size:1.5rem;border-radius:8px;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center}
+  .keeper-zones button:hover{background:rgba(255,215,0,0.2)}
+  .keeper-zones button.picked{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700}
   /* Shot type buttons (+60% total, centrados entre porteria y borde inferior) */
   .shot-types{position:absolute;right:4px;top:46%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;z-index:10;width:232px}
   .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:6px 9px;font-family:'Cinzel',serif;font-size:0.92rem;font-weight:700;letter-spacing:0.05em;border-radius:7px;cursor:pointer;text-align:center;transition:all 0.15s}
@@ -429,6 +435,17 @@
     <div class="match-hud">
       <div class="who"><div class="role">SHOOTER</div><div class="nm" id="match-shooter">--</div><div class="stats" id="match-shooter-stats"></div></div>
       <div class="who"><div class="role">KEEPER</div><div class="nm" id="match-keeper">--</div><div class="stats" id="match-keeper-stats"></div></div>
+    </div>
+    <div class="keeper-zones" id="keeper-zones">
+      <button data-zone="tl" onclick="keeperDive('tl')">↖</button>
+      <button data-zone="tc" onclick="keeperDive('tc')">↑</button>
+      <button data-zone="tr" onclick="keeperDive('tr')">↗</button>
+      <button data-zone="ml" onclick="keeperDive('ml')">←</button>
+      <button data-zone="mc" onclick="keeperDive('mc')">●</button>
+      <button data-zone="mr" onclick="keeperDive('mr')">→</button>
+      <button data-zone="bl" onclick="keeperDive('bl')">↙</button>
+      <button data-zone="bc" onclick="keeperDive('bc')">↓</button>
+      <button data-zone="br" onclick="keeperDive('br')">↘</button>
     </div>
     <div class="shot-types" id="shot-types">
       <button class="shot-btn" data-shot="pass" onclick="setShotType('pass')">PASS<span class="shot-sub">inside foot, low</span></button>
@@ -1066,17 +1083,13 @@
   function goToRolePick(){
     show('role-pick');
   }
+  let gameMode = 'shooter';   // 'shooter' | 'keeper'
   function pickRole(role){
-    if (role === 'keeper'){
-      alert('Keeper mode coming next iteration!');
-      return;
-    }
-    // shooter -> al sorteo
+    gameMode = role;
     renderLineup();
     document.getElementById('sorteo-result').style.display = 'none';
     document.getElementById('btn-roll').style.display = 'inline-block';
     document.getElementById('btn-play').style.display = 'none';
-    // Restaurar visibilidad de las galerias por si vuelves al sorteo
     document.querySelectorAll('#screen-sorteo .lineup-section').forEach(el => el.style.display = '');
     show('sorteo');
   }
@@ -1191,12 +1204,127 @@
     document.getElementById('match-keeper').textContent = selectedKeeper.name;
     document.getElementById('match-shooter-stats').textContent = 'Pwr ' + selectedShooter.power + ' · Prec ' + selectedShooter.precision;
     document.getElementById('match-keeper-stats').textContent = 'Reach ' + selectedKeeper.reach + ' · Reflex ' + selectedKeeper.reflex;
-    // Insertar SVG personalizado
     document.getElementById('player').innerHTML = buildPlayerSVG(selectedShooter);
     document.getElementById('keeper').innerHTML = buildKeeperSVG(selectedKeeper);
     updateHud();
     resetBall();
-    show('game');
+    if (gameMode === 'keeper'){
+      // Modo Keeper: ocultar shot-types y help, mostrar zone grid
+      document.getElementById('shot-types').style.display = 'none';
+      document.getElementById('keeper-zones').classList.add('show');
+      show('game');
+      setTimeout(triggerCpuShot, 1400);
+    } else {
+      document.getElementById('shot-types').style.display = '';
+      document.getElementById('keeper-zones').classList.remove('show');
+      show('game');
+    }
+  }
+
+  // ====== MODO KEEPER ======
+  let cpuShotPending = false;
+  let userPickedZone = null;
+  let cpuTargetZone = null;
+
+  const ZONE_POS = {
+    tl:{x:14, y:22}, tc:{x:50, y:22}, tr:{x:86, y:22},
+    ml:{x:14, y:28}, mc:{x:50, y:28}, mr:{x:86, y:28},
+    bl:{x:14, y:35}, bc:{x:50, y:35}, br:{x:86, y:35}
+  };
+  const KEEPER_DIVE_POS = {
+    tl:{left:'12%', tx:'rotate(-30deg) translateY(-30%)'},
+    tc:{left:'42%', tx:'translateY(-25%) scale(1.05)'},
+    tr:{left:'72%', tx:'rotate(30deg) translateY(-30%)'},
+    ml:{left:'12%', tx:'rotate(-22deg) translateY(-12%)'},
+    mc:{left:'42%', tx:'translateY(0)'},
+    mr:{left:'72%', tx:'rotate(22deg) translateY(-12%)'},
+    bl:{left:'12%', tx:'rotate(-50deg) translateY(8%)'},
+    bc:{left:'42%', tx:'translateY(8%) scale(0.92)'},
+    br:{left:'72%', tx:'rotate(50deg) translateY(8%)'}
+  };
+
+  function triggerCpuShot(){
+    if (shotsTaken >= TOTAL_SHOTS) return;
+    cpuShotPending = true;
+    userPickedZone = null;
+    document.querySelectorAll('.keeper-zones button').forEach(b => b.classList.remove('picked'));
+    // Reset keeper a posicion central
+    const keeper = document.getElementById('keeper');
+    keeper.style.transition = 'all 0.4s ease-out';
+    keeper.style.left = '43%';
+    keeper.style.transform = '';
+    keeper.classList.remove('k-cele','k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5','dive-l','dive-c','dive-r');
+    // CPU pick (random)
+    const zones = Object.keys(ZONE_POS);
+    cpuTargetZone = zones[Math.floor(Math.random() * zones.length)];
+    // Animar CPU shooter corriendo
+    const player = document.getElementById('player');
+    player.classList.add('running');
+    player.style.left = '38%';
+    player.style.bottom = '14%';
+    setTimeout(cpuKick, 1800);
+  }
+
+  function keeperDive(zone){
+    if (!cpuShotPending) return;
+    userPickedZone = zone;
+    document.querySelectorAll('.keeper-zones button').forEach(b => b.classList.toggle('picked', b.dataset.zone === zone));
+    // Mover el portero visualmente al instante
+    const keeper = document.getElementById('keeper');
+    const p = KEEPER_DIVE_POS[zone];
+    keeper.style.transition = 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+    keeper.style.left = p.left;
+    keeper.style.transform = p.tx;
+  }
+
+  function cpuKick(){
+    cpuShotPending = false;
+    const player = document.getElementById('player');
+    player.classList.remove('running');
+    player.classList.add('kicking');
+    // Si el usuario no elige, queda en centro
+    const userZone = userPickedZone || 'mc';
+    const cpuZone = cpuTargetZone;
+    // Determinar resultado: zona exacta o zona adyacente
+    let result;
+    if (userZone === cpuZone){
+      result = 'parada';
+    } else {
+      // Adyacente cuenta como despeje 30% del tiempo
+      const adjacent = areAdjacentZones(userZone, cpuZone);
+      if (adjacent && Math.random() < 0.3) result = 'parada';
+      else result = 'gol';
+    }
+    // Posicion final del balon
+    const target = ZONE_POS[cpuZone];
+    let ballEndX = target.x, ballEndY = target.y;
+    if (result === 'parada'){
+      // Balon va a las manos del portero
+      const kp = KEEPER_DIVE_POS[userZone];
+      ballEndX = parseFloat(kp.left) + 7;
+      ballEndY = ZONE_POS[userZone].y;
+    }
+    // Animar
+    const ball = document.getElementById('ball');
+    const endSize = ballSizeForY(ballEndY);
+    ball.style.transition = 'all 480ms cubic-bezier(0.5,0,0.75,0)';
+    ball.style.left = (ballEndX - endSize/2) + '%';
+    ball.style.top = (ballEndY - endSize/2) + '%';
+    ball.style.width = endSize + '%';
+    ball.style.transform = 'rotate(720deg)';
+    setTimeout(() => {
+      lastShotInfo = {finalX:ballEndX, finalY:ballEndY, sX:0, sY:0, power:0.7, strikeY:0, shotType:'cpu'};
+      showResult(result, ballEndX, 480);
+      setTimeout(() => {
+        if (shotsTaken < TOTAL_SHOTS) setTimeout(triggerCpuShot, 800);
+      }, 1500);
+    }, 520);
+  }
+  function areAdjacentZones(a, b){
+    const rows = ['t','m','b'], cols = ['l','c','r'];
+    const ar = rows.indexOf(a[0]), ac = cols.indexOf(a[1]);
+    const br = rows.indexOf(b[0]), bc = cols.indexOf(b[1]);
+    return Math.abs(ar - br) <= 1 && Math.abs(ac - bc) <= 1;
   }
 
   function updateHud(){
@@ -1862,7 +1990,8 @@
     }
     const player = document.getElementById('player');
     if (kind === 'gol'){
-      text.textContent = 'GOOOAL!'; score++;
+      text.textContent = 'GOOOAL!';
+      if (gameMode !== 'keeper') score++;   // en keeper mode, gol del CPU NO suma al usuario
       player.classList.remove('kicking','running','cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt');
       const celes = ['cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt'];
       const pick = celes[Math.floor(Math.random() * celes.length)];
@@ -1873,6 +2002,7 @@
     }
     else if (kind === 'parada'){
       text.textContent = 'SAVED!';
+      if (gameMode === 'keeper') score++;   // en keeper mode, cada parada suma
       speakRandomMiss();
       playWhistle();
       setTimeout(playApplause, 200);
