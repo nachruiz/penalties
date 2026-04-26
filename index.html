@@ -1906,8 +1906,11 @@
     }
     // 'instep' = sin modificaciones extra
 
-    // Ruido normal (panenka usa solo su propia logica)
-    if (shotType !== 'panenka'){
+    // Ruido normal (panenka y pass usan solo su propia logica)
+    if (shotType === 'pass'){
+      // PASS: solo pequeno ruido en X, NUNCA en Y para mantener raso siempre
+      finalX += (Math.random() - 0.5) * 4;
+    } else if (shotType !== 'panenka'){
       const extremeBonus = (Math.abs(sX) + Math.abs(sY)) * 3;
       const noise = power * 5 + extremeBonus;
       finalX += (Math.random() - 0.5) * noise * 2;
