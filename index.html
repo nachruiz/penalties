@@ -398,37 +398,37 @@
   </div>
   <div class="settings-modal" id="settings-modal">
     <div class="settings-content">
-      <h3>Settings</h3>
-      <label><input type="checkbox" id="sound-toggle" checked onchange="toggleSound()"> Sound effects</label>
-      <h4>Goal celebration (shooter)</h4>
+      <h3 data-i18n="settingsTitle">Settings</h3>
+      <label><input type="checkbox" id="sound-toggle" checked onchange="toggleSound()"> <span data-i18n="soundFx">Sound effects</span></label>
+      <h4 data-i18n="celeShooterH">Goal celebration (shooter)</h4>
       <div class="cele-grid" id="cele-shooter-grid">
-        <button data-cele="random" onclick="setCele('shooter','random')">RANDOM</button>
+        <button data-cele="random" onclick="setCele('shooter','random')" data-i18n="celeRandom">RANDOM</button>
         <button data-cele="cele-cr7" onclick="setCele('shooter','cele-cr7')">SIUUU</button>
         <button data-cele="cele-mortal" onclick="setCele('shooter','cele-mortal')">FLIP</button>
         <button data-cele="cele-arquero" onclick="setCele('shooter','cele-arquero')">ARMS UP</button>
         <button data-cele="cele-knee-slide" onclick="setCele('shooter','cele-knee-slide')">KNEE SLIDE</button>
         <button data-cele="cele-shirt" onclick="setCele('shooter','cele-shirt')">SHIRT OFF</button>
       </div>
-      <h4>Save celebration (keeper)</h4>
+      <h4 data-i18n="celeKeeperH">Save celebration (keeper)</h4>
       <div class="cele-grid" id="cele-keeper-grid">
-        <button data-cele="random" onclick="setCele('keeper','random')">RANDOM</button>
+        <button data-cele="random" onclick="setCele('keeper','random')" data-i18n="celeRandom">RANDOM</button>
         <button data-cele="k-cele-1" onclick="setCele('keeper','k-cele-1')">FISTS</button>
         <button data-cele="k-cele-2" onclick="setCele('keeper','k-cele-2')">ROAR</button>
         <button data-cele="k-cele-3" onclick="setCele('keeper','k-cele-3')">BOUNCE</button>
         <button data-cele="k-cele-4" onclick="setCele('keeper','k-cele-4')">CROSS</button>
         <button data-cele="k-cele-5" onclick="setCele('keeper','k-cele-5')">SALUTE</button>
       </div>
-      <h4>How to play</h4>
-      <p><strong>Touch the ball</strong> on the spot you want to strike (top, bottom, sides).</p>
-      <p><strong>Drag back</strong> like a slingshot. The triangle shows direction; longer drag = more power.</p>
-      <p><strong>Release</strong> to shoot. Striking the side of the ball aims wider but risks going out.</p>
-      <h4>Shot types (right column)</h4>
-      <p><strong>INSTEP</strong>: straight shot, default.</p>
-      <p><strong>CURL</strong>: curves toward the strike side.</p>
-      <p><strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.</p>
-      <p><strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.</p>
+      <h4 data-i18n="howToPlayH">How to play</h4>
+      <p data-i18n="hp1"><strong>Touch the ball</strong> on the spot you want to strike (top, bottom, sides).</p>
+      <p data-i18n="hp2"><strong>Drag back</strong> like a slingshot. The triangle shows direction; longer drag = more power.</p>
+      <p data-i18n="hp3"><strong>Release</strong> to shoot. Striking the side of the ball aims wider but risks going out.</p>
+      <h4 data-i18n="shotTypesH">Shot types (right column)</h4>
+      <p data-i18n="stInstep"><strong>INSTEP</strong>: straight shot, default.</p>
+      <p data-i18n="stCurl"><strong>CURL</strong>: curves toward the strike side.</p>
+      <p data-i18n="stPanenka"><strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.</p>
+      <p data-i18n="stParadinha"><strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.</p>
       <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="toggleSettings();showTutorial()" data-i18n="showTutorial">SHOW TUTORIAL</button>
-      <button class="btn close-btn" onclick="toggleSettings()">CLOSE</button>
+      <button class="btn close-btn" onclick="toggleSettings()" data-i18n="closeBtn">CLOSE</button>
     </div>
   </div>
 
@@ -441,7 +441,7 @@
       <button class="lang-flag" data-lang="de" onclick="setLang('de')" title="Deutsch">&#x1F1E9;&#x1F1EA;<span class="lcode">DE</span></button>
       <button class="lang-flag" data-lang="pt" onclick="setLang('pt')" title="Portugu&ecirc;s">&#x1F1F5;&#x1F1F9;<span class="lcode">PT</span></button>
     </div>
-    <h1>LEGENDS PENALTIES</h1>
+    <h1 data-i18n="appTitle">LEGENDS PENALTIES</h1>
     <div class="sub">Bernabeu 2026</div>
     <p style="margin-bottom:18px;font-size:1rem;opacity:0.9" data-i18n="enterName">Enter your player name:</p>
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
@@ -538,17 +538,17 @@
       <button data-zone="br" onclick="keeperDive('br')">↘</button>
     </div>
     <div class="shot-types" id="shot-types">
-      <button class="shot-btn" data-shot="pass" onclick="setShotType('pass')">PASS<span class="shot-sub">inside foot, low</span></button>
-      <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub">straight</span></button>
-      <button class="shot-btn" data-shot="curl" onclick="setShotType('curl')">CURL<span class="shot-sub">curve</span></button>
-      <button class="shot-btn" data-shot="trivela" onclick="setShotType('trivela')">TRIVELA<span class="shot-sub">outside foot</span></button>
-      <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub">chip shot</span></button>
-      <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">stutter step</span></button>
-      <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub">feint, no shot</span></button>
-      <button class="shot-btn" data-shot="jorginho" onclick="setShotType('jorginho')">JORGINHO<span class="shot-sub">stutter hop</span></button>
-      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()" style="display:none">BICYCLE<span class="shot-sub">overhead bonus</span></button>
-      <button class="shot-btn" data-shot="cr7" onclick="setShotType('cr7')" style="display:none">CR7<span class="shot-sub">side-step + instep</span></button>
-      <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')" style="display:none">NEYMAR<span class="shot-sub">side-step + crazy stutter</span></button>
+      <button class="shot-btn" data-shot="pass" onclick="setShotType('pass')">PASS<span class="shot-sub" data-i18n="subPass">inside foot, low</span></button>
+      <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub" data-i18n="subInstep">straight</span></button>
+      <button class="shot-btn" data-shot="curl" onclick="setShotType('curl')">CURL<span class="shot-sub" data-i18n="subCurl">curve</span></button>
+      <button class="shot-btn" data-shot="trivela" onclick="setShotType('trivela')">TRIVELA<span class="shot-sub" data-i18n="subTrivela">outside foot</span></button>
+      <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub" data-i18n="subPanenka">chip shot</span></button>
+      <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub" data-i18n="subParadinha">stutter step</span></button>
+      <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub" data-i18n="subFake">feint, no shot</span></button>
+      <button class="shot-btn" data-shot="jorginho" onclick="setShotType('jorginho')">JORGINHO<span class="shot-sub" data-i18n="subJorginho">stutter hop</span></button>
+      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()" style="display:none">BICYCLE<span class="shot-sub" data-i18n="subBicycle">overhead bonus</span></button>
+      <button class="shot-btn" data-shot="cr7" onclick="setShotType('cr7')" style="display:none">CR7<span class="shot-sub" data-i18n="subCr7">side-step + instep</span></button>
+      <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')" style="display:none">NEYMAR<span class="shot-sub" data-i18n="subNeymar">side-step + crazy stutter</span></button>
     </div>
     <div class="crossbar"></div>
     <div class="goal" id="goal"></div>
@@ -816,6 +816,7 @@
   // ====== I18N (5 idiomas) ======
   const I18N = {
     en: {
+      appTitle:'LEGENDS PENALTIES',
       enterName:'Enter your player name:', difficulty:'DIFFICULTY',
       beginner:'BEGINNER', intermediate:'INTERMEDIATE', expert:'EXPERT', next:'NEXT',
       keepers:'KEEPERS', shooters:'SHOOTERS', top10:'Top 10 in play tonight',
@@ -828,9 +829,33 @@
       draw:'DRAW', play:'PLAY', penalty:'Penalty',
       jump:'JUMP!', kick:'KICK!', jumpInstr:'Ball coming &mdash; time your jump',
       kickInstr:'Ball reaching head &mdash; time the kick', tapToLock:'TAP TO LOCK',
-      showTutorial:'SHOW TUTORIAL'
+      showTutorial:'SHOW TUTORIAL',
+      goal:'GOOOAL!', saved:'SAVED!', out:'OUT!',
+      tutSkip:'SKIP', tutNext:'NEXT', tutGotIt:'GOT IT',
+      settingsTitle:'Settings', soundFx:'Sound effects', closeBtn:'CLOSE',
+      celeShooterH:'Goal celebration (shooter)', celeKeeperH:'Save celebration (keeper)',
+      howToPlayH:'How to play', shotTypesH:'Shot types (right column)',
+      hp1:'<strong>Touch the ball</strong> on the spot you want to strike (top, bottom, sides).',
+      hp2:'<strong>Drag back</strong> like a slingshot. The triangle shows direction; longer drag = more power.',
+      hp3:'<strong>Release</strong> to shoot. Striking the side of the ball aims wider but risks going out.',
+      stInstep:'<strong>INSTEP</strong>: straight shot, default.',
+      stCurl:'<strong>CURL</strong>: curves toward the strike side.',
+      stPanenka:'<strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.',
+      stParadinha:'<strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.',
+      celeRandom:'RANDOM', whyLabel:'Why?',
+      subPass:'inside foot, low', subInstep:'straight', subCurl:'curve', subTrivela:'outside foot',
+      subPanenka:'chip shot', subParadinha:'stutter step', subFake:'feint, no shot',
+      subJorginho:'stutter hop', subBicycle:'overhead bonus', subCr7:'side-step + instep', subNeymar:'side-step + crazy stutter',
+      tutorial: [
+        {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>LEGENDS PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — pick a zone to dive when the CPU shoots.</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
+        {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where it goes — like billiards.</p><p>Want it to fly RIGHT? Touch the LEFT of the ball. Want it LOW? Touch the TOP. Touching BOTTOM lifts it (chip).</p>'},
+        {icon:'🎯💪', title:'SLINGSHOT &amp; POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your aim. The <strong>length of the drag</strong> is power, slightly modulated by shot type.</p>'},
+        {icon:'🚲⏱️', title:'BICYCLE KICK (BONUS)', body:'<p><strong>How to unlock:</strong> score with at least one shot from <strong>each of the 5 rows</strong> within a single match.</p><p>Then you get <strong>3 bonus bicycle attempts</strong>. Each goal adds a top-20 player <strong>card</strong> to your profile.</p><p>Time the JUMP and the KICK in slow motion. Miss either and no goal.</p>'},
+        {icon:'🧲🔓', title:'DRAG TO UNLOCK', body:'<p><strong>Drag the player</strong> to reposition them. Drop in the <strong>center of the field</strong> and two new shot types unlock:</p><p><strong>CR7</strong> — side-step + classic instep.<br><strong>NEYMAR</strong> — side-step + crazy stutter steps.</p>'}
+      ]
     },
     es: {
+      appTitle:'LOS PENALTIS DE LAS LEYENDAS',
       enterName:'Escribe tu nombre:', difficulty:'DIFICULTAD',
       beginner:'PRINCIPIANTE', intermediate:'INTERMEDIO', expert:'EXPERTO', next:'SIGUIENTE',
       keepers:'PORTEROS', shooters:'LANZADORES', top10:'Top 10 en juego esta noche',
@@ -843,9 +868,33 @@
       draw:'SORTEO', play:'JUGAR', penalty:'Penalti',
       jump:'&iexcl;SALTA!', kick:'&iexcl;CHUTA!', jumpInstr:'El bal&oacute;n llega &mdash; ajusta tu salto',
       kickInstr:'El bal&oacute;n llega a la cabeza &mdash; chuta', tapToLock:'TOCA PARA FIJAR',
-      showTutorial:'VER TUTORIAL'
+      showTutorial:'VER TUTORIAL',
+      goal:'&iexcl;GOOOL!', saved:'&iexcl;PARADA!', out:'&iexcl;FUERA!',
+      tutSkip:'SALTAR', tutNext:'SIGUIENTE', tutGotIt:'ENTENDIDO',
+      settingsTitle:'Ajustes', soundFx:'Efectos de sonido', closeBtn:'CERRAR',
+      celeShooterH:'Celebraci&oacute;n de gol (lanzador)', celeKeeperH:'Celebraci&oacute;n de parada (portero)',
+      howToPlayH:'C&oacute;mo jugar', shotTypesH:'Tipos de disparo (columna dcha.)',
+      hp1:'<strong>Toca el bal&oacute;n</strong> en el punto donde quieres golpear (arriba, abajo, lados).',
+      hp2:'<strong>Arrastra hacia atr&aacute;s</strong> como un tirachinas. El tri&aacute;ngulo marca la direcci&oacute;n; m&aacute;s largo = m&aacute;s potencia.',
+      hp3:'<strong>Suelta</strong> para chutar. Tocar el lateral del bal&oacute;n abre el ángulo pero arriesga m&aacute;s irte fuera.',
+      stInstep:'<strong>INSTEP</strong>: tiro recto, por defecto.',
+      stCurl:'<strong>CURL</strong>: rosca hacia el lado del toque.',
+      stPanenka:'<strong>PANENKA</strong>: vaselina, lenta y alta. Se va fuera si pasas de potencia.',
+      stParadinha:'<strong>PARADINHA</strong>: el portero se compromete antes. Apunta al lado contrario.',
+      celeRandom:'AZAR', whyLabel:'&iquest;Por qu&eacute;?',
+      subPass:'interior, raso', subInstep:'recto', subCurl:'rosca', subTrivela:'con el exterior',
+      subPanenka:'vaselina', subParadinha:'parada antes', subFake:'amago, sin tiro',
+      subJorginho:'saltito previo', subBicycle:'chilena bonus', subCr7:'paso lateral + zurriagazo', subNeymar:'paso lateral + tartamudeo',
+      tutorial: [
+        {icon:'⚽🥅', title:'BIENVENIDO', body:'<p>Esto es <strong>LOS PENALTIS DE LAS LEYENDAS</strong>. Elige un rol en la pantalla inicial:</p><p><strong>LANZADOR</strong> — chuta contra los porteros.<br><strong>PORTERO</strong> — elige una zona para tirarte cuando dispare la CPU.</p><p>Elige dificultad: Principiante (25% paradas), Intermedio (45%), Experto (80%).</p>'},
+        {icon:'⚽👆', title:'PUNTO DE GOLPEO', body:'<p>El <strong>punto donde tocas el bal&oacute;n</strong> manda la trayectoria — como en el billar.</p><p>&iquest;Quieres que vaya a la DERECHA? Toca la IZQUIERDA del bal&oacute;n. &iquest;Que vaya BAJA? Toca ARRIBA. Tocar ABAJO la levanta (vaselina).</p>'},
+        {icon:'🎯💪', title:'TIRACHINAS &amp; POTENCIA', body:'<p>Tras tocar el bal&oacute;n, arrastra hacia atr&aacute;s como un tirachinas.</p><p>La <strong>direcci&oacute;n de la flecha</strong> es tu intenci&oacute;n. El <strong>largo del arrastre</strong> es la potencia, modulada por el tipo de disparo.</p>'},
+        {icon:'🚲⏱️', title:'CHILENA (BONUS)', body:'<p><strong>C&oacute;mo se desbloquea:</strong> mete gol con al menos un disparo de <strong>cada una de las 5 filas</strong> en la misma partida.</p><p>Te dar&aacute;n <strong>3 chilenas extra</strong>. Cada gol a&ntilde;ade una <strong>tarjeta</strong> top-20 a tu perfil.</p><p>Temporiza el SALTO y el REMATE en c&aacute;mara lenta. Si fallas alguno, no es gol.</p>'},
+        {icon:'🧲🔓', title:'ARRASTRA PARA DESBLOQUEAR', body:'<p><strong>Arrastra al jugador</strong> para reposicionarlo. Su&eacute;ltalo en el <strong>centro del campo</strong> y se desbloquean dos disparos:</p><p><strong>CR7</strong> — paso lateral + zurriagazo.<br><strong>NEYMAR</strong> — paso lateral + carrera tartamuda loca.</p>'}
+      ]
     },
     fr: {
+      appTitle:'LES PENALTYS DES L&Eacute;GENDES',
       enterName:'Entre ton pseudo&nbsp;:', difficulty:'DIFFICULT&Eacute;',
       beginner:'D&Eacute;BUTANT', intermediate:'INTERM&Eacute;DIAIRE', expert:'EXPERT', next:'SUIVANT',
       keepers:'GARDIENS', shooters:'TIREURS', top10:'Top 10 ce soir',
@@ -858,9 +907,33 @@
       draw:'TIRAGE', play:'JOUER', penalty:'Penalty',
       jump:'SAUTE&nbsp;!', kick:'TIRE&nbsp;!', jumpInstr:'Le ballon arrive &mdash; minute ton saut',
       kickInstr:'Le ballon arrive &agrave; la t&ecirc;te &mdash; tire', tapToLock:'TAPE POUR VALIDER',
-      showTutorial:'VOIR TUTO'
+      showTutorial:'VOIR TUTO',
+      goal:'BUUUT&nbsp;!', saved:'ARR&Ecirc;T&nbsp;!', out:'DEHORS&nbsp;!',
+      tutSkip:'PASSER', tutNext:'SUIVANT', tutGotIt:'COMPRIS',
+      settingsTitle:'R&eacute;glages', soundFx:'Effets sonores', closeBtn:'FERMER',
+      celeShooterH:'C&eacute;l&eacute;bration but (tireur)', celeKeeperH:'C&eacute;l&eacute;bration arr&ecirc;t (gardien)',
+      howToPlayH:'Comment jouer', shotTypesH:'Types de tir (colonne droite)',
+      hp1:'<strong>Touche le ballon</strong> &agrave; l\'endroit que tu veux frapper (haut, bas, c&ocirc;t&eacute;s).',
+      hp2:'<strong>Tire en arri&egrave;re</strong> comme un lance-pierre. Le triangle indique la direction&nbsp;; plus long = plus puissant.',
+      hp3:'<strong>Rel&acirc;che</strong> pour tirer. Frapper le c&ocirc;t&eacute; ouvre l\'angle mais risque le hors-cadre.',
+      stInstep:'<strong>INSTEP</strong>&nbsp;: tir droit, par d&eacute;faut.',
+      stCurl:'<strong>CURL</strong>&nbsp;: enroule du c&ocirc;t&eacute; touch&eacute;.',
+      stPanenka:'<strong>PANENKA</strong>&nbsp;: piqu&eacute;e, lente et haute. Sort si trop forte.',
+      stParadinha:'<strong>PARADINHA</strong>&nbsp;: le gardien plonge avant. Vise &agrave; l\'oppos&eacute;.',
+      celeRandom:'AL&Eacute;A', whyLabel:'Pourquoi&nbsp;?',
+      subPass:'int&eacute;rieur, ras', subInstep:'droit', subCurl:'enroul&eacute;', subTrivela:'ext&eacute;rieur',
+      subPanenka:'piqu&eacute;e', subParadinha:'arr&ecirc;t-relance', subFake:'feinte, sans tir',
+      subJorginho:'petit saut', subBicycle:'bicyclette bonus', subCr7:'pas de c&ocirc;t&eacute; + frappe', subNeymar:'pas de c&ocirc;t&eacute; + course folle',
+      tutorial: [
+        {icon:'⚽🥅', title:'BIENVENUE', body:'<p>Voici <strong>LES PENALTYS DES L&Eacute;GENDES</strong>. Choisis un r&ocirc;le sur l\'&eacute;cran de d&eacute;part&nbsp;:</p><p><strong>TIREUR</strong> — tire contre les gardiens.<br><strong>GARDIEN</strong> — choisis une zone pour plonger quand la CPU tire.</p><p>Difficult&eacute;&nbsp;: D&eacute;butant (25% d\'arr&ecirc;ts), Interm&eacute;diaire (45%), Expert (80%).</p>'},
+        {icon:'⚽👆', title:'POINT D\'IMPACT', body:'<p>L\'<strong>endroit o&ugrave; tu touches le ballon</strong> d&eacute;termine la trajectoire — comme au billard.</p><p>Tu veux qu\'il parte &agrave; DROITE&nbsp;? Touche la GAUCHE. Bas&nbsp;? Touche le HAUT. Toucher le BAS le l&egrave;ve (piqu&eacute;e).</p>'},
+        {icon:'🎯💪', title:'LANCE-PIERRE &amp; PUISSANCE', body:'<p>Apr&egrave;s avoir touch&eacute;, tire vers l\'arri&egrave;re comme un lance-pierre.</p><p>La <strong>fl&egrave;che</strong> donne la direction. La <strong>longueur</strong> donne la puissance, modul&eacute;e par le type de tir.</p>'},
+        {icon:'🚲⏱️', title:'BICYCLETTE (BONUS)', body:'<p><strong>D&eacute;blocage&nbsp;:</strong> marque au moins un but de <strong>chaque ligne (5 lignes)</strong> dans un m&ecirc;me match.</p><p>Tu obtiens <strong>3 bicyclettes bonus</strong>. Chaque but ajoute une <strong>carte</strong> top-20 &agrave; ton profil.</p><p>Minute le SAUT et le TIR au ralenti. Rate l\'un des deux et c\'est manqu&eacute;.</p>'},
+        {icon:'🧲🔓', title:'GLISSE POUR D&Eacute;BLOQUER', body:'<p><strong>Glisse le joueur</strong> pour le repositionner. L&acirc;che-le au <strong>centre du terrain</strong> et deux tirs se d&eacute;bloquent&nbsp;:</p><p><strong>CR7</strong> — pas de c&ocirc;t&eacute; + frappe class.<br><strong>NEYMAR</strong> — pas de c&ocirc;t&eacute; + course folle.</p>'}
+      ]
     },
     de: {
+      appTitle:'ELFMETER DER LEGENDEN',
       enterName:'Gib deinen Namen ein:', difficulty:'SCHWIERIGKEIT',
       beginner:'ANF&Auml;NGER', intermediate:'MITTEL', expert:'EXPERTE', next:'WEITER',
       keepers:'TORW&Auml;RTE', shooters:'SCH&Uuml;TZEN', top10:'Top 10 heute Abend',
@@ -873,9 +946,33 @@
       draw:'AUSLOSEN', play:'SPIELEN', penalty:'Elfmeter',
       jump:'SPRING!', kick:'SCHIESS!', jumpInstr:'Ball kommt &mdash; pass deinen Sprung an',
       kickInstr:'Ball trifft den Kopf &mdash; schie&szlig;', tapToLock:'TIPPEN ZUM FIXIEREN',
-      showTutorial:'TUTORIAL ZEIGEN'
+      showTutorial:'TUTORIAL ZEIGEN',
+      goal:'TOOOR!', saved:'GEHALTEN!', out:'DANEBEN!',
+      tutSkip:'&Uuml;BERSPRINGEN', tutNext:'WEITER', tutGotIt:'VERSTANDEN',
+      settingsTitle:'Einstellungen', soundFx:'Soundeffekte', closeBtn:'SCHLIESSEN',
+      celeShooterH:'Torjubel (Sch&uuml;tze)', celeKeeperH:'Paradenjubel (Torwart)',
+      howToPlayH:'Spielanleitung', shotTypesH:'Schussarten (rechte Spalte)',
+      hp1:'<strong>Tippe den Ball</strong> an der Stelle, die du treffen willst (oben, unten, seitlich).',
+      hp2:'<strong>Ziehe zur&uuml;ck</strong> wie eine Schleuder. Das Dreieck zeigt die Richtung; l&auml;nger = mehr Power.',
+      hp3:'<strong>Loslassen</strong> zum Schie&szlig;en. Die Seite des Balls treffen &ouml;ffnet den Winkel, aber riskiert daneben.',
+      stInstep:'<strong>INSTEP</strong>: gerader Schuss, Standard.',
+      stCurl:'<strong>CURL</strong>: zieht zur Trefferseite hin.',
+      stPanenka:'<strong>PANENKA</strong>: Heber, langsam und hoch. Geht raus bei zu viel Power.',
+      stParadinha:'<strong>PARADINHA</strong>: Torwart legt sich vorher fest. Ziele entgegengesetzt.',
+      celeRandom:'ZUFALL', whyLabel:'Warum?',
+      subPass:'Innenseite, flach', subInstep:'gerade', subCurl:'angeschnitten', subTrivela:'Au&szlig;enrist',
+      subPanenka:'Heber', subParadinha:'Stop &amp; Schuss', subFake:'Finte, kein Schuss',
+      subJorginho:'kleiner H&uuml;pfer', subBicycle:'Fallr&uuml;ckzieher Bonus', subCr7:'Seitschritt + Vollspann', subNeymar:'Seitschritt + verr&uuml;ckte Schritte',
+      tutorial: [
+        {icon:'⚽🥅', title:'WILLKOMMEN', body:'<p>Das ist <strong>ELFMETER DER LEGENDEN</strong>. W&auml;hle eine Rolle:</p><p><strong>SCH&Uuml;TZE</strong> — schie&szlig;e gegen Torw&auml;rte.<br><strong>TORWART</strong> — w&auml;hle eine Zone zum Hechten, wenn die CPU schie&szlig;t.</p><p>Schwierigkeit: Anf&auml;nger (25% Paraden), Mittel (45%), Experte (80%).</p>'},
+        {icon:'⚽👆', title:'TREFFPUNKT', body:'<p>Wo du <strong>den Ball ber&uuml;hrst</strong>, bestimmt die Flugbahn — wie beim Billard.</p><p>Soll er nach RECHTS? Tippe LINKS am Ball. TIEF? Tippe OBEN. Tippe UNTEN, hebt sich der Ball (Heber).</p>'},
+        {icon:'🎯💪', title:'SCHLEUDER &amp; KRAFT', body:'<p>Nach dem Tippen, ziehe zur&uuml;ck wie eine Schleuder.</p><p>Die <strong>Pfeilrichtung</strong> ist dein Ziel. Die <strong>Zugl&auml;nge</strong> ist die Power, je nach Schussart variiert.</p>'},
+        {icon:'🚲⏱️', title:'FALLR&Uuml;CKZIEHER (BONUS)', body:'<p><strong>Freischalten:</strong> erziele in einem Spiel mindestens ein Tor aus <strong>jeder der 5 Reihen</strong>.</p><p>Du erh&auml;ltst <strong>3 Bonus-Versuche</strong>. Jedes Tor bringt eine Top-20-<strong>Karte</strong> in dein Profil.</p><p>Time SPRUNG und SCHUSS in Zeitlupe. Verfehlst du eines, kein Tor.</p>'},
+        {icon:'🧲🔓', title:'ZIEHEN ZUM FREISCHALTEN', body:'<p><strong>Ziehe den Spieler</strong>, um ihn zu repositionieren. Lass ihn in der <strong>Spielfeldmitte</strong> los, und zwei neue Sch&uuml;sse werden frei:</p><p><strong>CR7</strong> — Seitschritt + Vollspann.<br><strong>NEYMAR</strong> — Seitschritt + verr&uuml;ckte Stotterschritte.</p>'}
+      ]
     },
     pt: {
+      appTitle:'OS PEN&Aacute;LTIS DAS LENDAS',
       enterName:'Insere o teu nome:', difficulty:'DIFICULDADE',
       beginner:'PRINCIPIANTE', intermediate:'INTERM&Eacute;DIO', expert:'PERITO', next:'SEGUINTE',
       keepers:'GUARDA-REDES', shooters:'REMATADORES', top10:'Top 10 em jogo esta noite',
@@ -888,7 +985,30 @@
       draw:'SORTEIO', play:'JOGAR', penalty:'Pen&aacute;lti',
       jump:'SALTA!', kick:'REMATA!', jumpInstr:'A bola chega &mdash; ajusta o salto',
       kickInstr:'A bola chega &agrave; cabe&ccedil;a &mdash; remata', tapToLock:'TOCA PARA FIXAR',
-      showTutorial:'VER TUTORIAL'
+      showTutorial:'VER TUTORIAL',
+      goal:'GOOOLO!', saved:'DEFESA!', out:'FORA!',
+      tutSkip:'SALTAR', tutNext:'SEGUINTE', tutGotIt:'PERCEBI',
+      settingsTitle:'Defini&ccedil;&otilde;es', soundFx:'Efeitos sonoros', closeBtn:'FECHAR',
+      celeShooterH:'Festejo de golo (rematador)', celeKeeperH:'Festejo de defesa (guarda-redes)',
+      howToPlayH:'Como jogar', shotTypesH:'Tipos de remate (coluna direita)',
+      hp1:'<strong>Toca a bola</strong> no s&iacute;tio onde queres golpear (cima, baixo, lados).',
+      hp2:'<strong>Arrasta para tr&aacute;s</strong> como uma fisga. O tri&acirc;ngulo marca a dire&ccedil;&atilde;o; mais longo = mais pot&ecirc;ncia.',
+      hp3:'<strong>Larga</strong> para rematar. Tocar no lado da bola abre o &acirc;ngulo mas arrisca ir fora.',
+      stInstep:'<strong>INSTEP</strong>: remate direito, padr&atilde;o.',
+      stCurl:'<strong>CURL</strong>: rosca para o lado tocado.',
+      stPanenka:'<strong>PANENKA</strong>: cavadinha, lenta e alta. Vai fora com pot&ecirc;ncia a mais.',
+      stParadinha:'<strong>PARADINHA</strong>: o GR compromete-se antes. Aponta ao lado contr&aacute;rio.',
+      celeRandom:'ALEAT&Oacute;RIO', whyLabel:'Porqu&ecirc;?',
+      subPass:'interior, rasteiro', subInstep:'reto', subCurl:'efeito', subTrivela:'com o exterior',
+      subPanenka:'cavadinha', subParadinha:'paragem antes', subFake:'finta, sem remate',
+      subJorginho:'saltinho', subBicycle:'bicicleta b&oacute;nus', subCr7:'passo lateral + chuto', subNeymar:'passo lateral + tartamudez',
+      tutorial: [
+        {icon:'⚽🥅', title:'BEM-VINDO', body:'<p>Isto &eacute; <strong>OS PEN&Aacute;LTIS DAS LENDAS</strong>. Escolhe um papel:</p><p><strong>REMATADOR</strong> — remata contra os GR.<br><strong>GUARDA-REDES</strong> — escolhe a zona para te atirares quando a CPU remata.</p><p>Dificuldade: Principiante (25% defesas), Interm&eacute;dio (45%), Perito (80%).</p>'},
+        {icon:'⚽👆', title:'PONTO DE IMPACTO', body:'<p>Onde <strong>tocas a bola</strong> determina para onde vai — como no bilhar.</p><p>Queres que v&aacute; &agrave; DIREITA? Toca &agrave; ESQUERDA. BAIXA? Toca em CIMA. Tocar EM BAIXO eleva-a (cavadinha).</p>'},
+        {icon:'🎯💪', title:'FISGA &amp; POT&Ecirc;NCIA', body:'<p>Depois de tocares na bola, arrasta para tr&aacute;s como uma fisga.</p><p>A <strong>seta</strong> &eacute; a inten&ccedil;&atilde;o. O <strong>tamanho</strong> &eacute; a pot&ecirc;ncia, modulada pelo tipo de remate.</p>'},
+        {icon:'🚲⏱️', title:'BICICLETA (B&Oacute;NUS)', body:'<p><strong>Como desbloquear:</strong> marca golo com pelo menos um remate de <strong>cada uma das 5 linhas</strong> num &uacute;nico jogo.</p><p>Recebes <strong>3 bicicletas extra</strong>. Cada golo adiciona uma <strong>carta</strong> top-20 ao teu perfil.</p><p>Cronometra o SALTO e o REMATE em c&acirc;mara lenta. Falha um e n&atilde;o &eacute; golo.</p>'},
+        {icon:'🧲🔓', title:'ARRASTA PARA DESBLOQUEAR', body:'<p><strong>Arrasta o jogador</strong> para o reposicionar. Larga-o no <strong>centro do campo</strong> e desbloqueias dois remates:</p><p><strong>CR7</strong> — passo lateral + pontap&eacute; cl&aacute;ssico.<br><strong>NEYMAR</strong> — passo lateral + corrida tartamuda.</p>'}
+      ]
     }
   };
   let currentLang = 'en';
@@ -932,36 +1052,31 @@
     stage.classList.add(who === 'keeper' ? 'zoom-keeper' : 'zoom-shooter');
     setTimeout(() => stage.classList.remove('zoom-shooter','zoom-keeper'), ms || 1800);
   }
-  // ====== TUTORIAL (primera vez) ======
-  const TUTORIAL_SLIDES = [
-    {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — pick a zone to dive when the CPU shoots.</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
-    {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where the ball will go — like billiards.</p><p>If you want the ball to fly RIGHT, touch the LEFT of the ball. If you want it LOW, touch the TOP. Touching BOTTOM lifts it (chip).</p><p>This is independent of your aim intent: the contact point overrides everything.</p>'},
-    {icon:'🎯💪', title:'SLINGSHOT: ARROW + POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your INTENT (combine with strike point for perfect execution).</p><p>The <strong>length of the drag</strong> is real shot power — but slightly modulated by shot type (panenka is always slow, instep is direct, etc).</p>'},
-    {icon:'🚲⏱️', title:'BICYCLE KICK (BONUS)', body:'<p><strong>How to unlock:</strong> score with at least one shot from <strong>each of the 5 rows</strong> (Pass/Instep, Curl/Trivela, Panenka/Paradinha, Fake/Jorginho, CR7/Neymar) within a single match.</p><p>When unlocked you get <strong>3 bonus bicycle-kick attempts</strong>. Each successful bicycle kick adds a top-20 player <strong>card</strong> to your profile (starting from #20 and going up).</p><p>The bicycle is a 2-step timing mini-game in slow motion: time the JUMP (3s) and the KICK (2s). Miss either and no goal.</p>'},
-    {icon:'🧲🔓', title:'DRAG TO UNLOCK', body:'<p>You can <strong>drag the player</strong> with your mouse/finger to reposition them.</p><p>If you drop the player in the <strong>center of the field</strong>, two new shot types unlock:</p><p><strong>CR7</strong> — side-step back to corner + classic instep.<br><strong>NEYMAR</strong> — side-step + 8 weird stutter steps before kicking.</p><p>Move the player back to the side and they hide again.</p>'}
-  ];
+  // ====== TUTORIAL (primera vez, traducido) ======
   let tutorialIdx = 0;
+  function getTutorialSlides(){ return (I18N[currentLang] && I18N[currentLang].tutorial) || I18N.en.tutorial; }
   function showTutorial(){
     tutorialIdx = 0;
     document.getElementById('tutorial-modal').classList.add('show');
     renderTutorialSlide();
   }
   function renderTutorialSlide(){
-    const s = TUTORIAL_SLIDES[tutorialIdx];
-    const last = tutorialIdx === TUTORIAL_SLIDES.length - 1;
+    const slides = getTutorialSlides();
+    const s = slides[tutorialIdx];
+    const last = tutorialIdx === slides.length - 1;
     document.getElementById('tutorial-content').innerHTML =
       '<div class="tutorial-icon">'+s.icon+'</div>'+
       '<h2>'+s.title+'</h2>'+
       s.body+
       '<div class="tutorial-nav">'+
-        '<button class="skip" onclick="endTutorial()">SKIP</button>'+
-        '<span class="pages">'+(tutorialIdx+1)+' / '+TUTORIAL_SLIDES.length+'</span>'+
-        '<button onclick="'+(last?'endTutorial()':'nextTutorialSlide()')+'">'+(last?'GOT IT':'NEXT')+'</button>'+
+        '<button class="skip" onclick="endTutorial()">'+t('tutSkip')+'</button>'+
+        '<span class="pages">'+(tutorialIdx+1)+' / '+slides.length+'</span>'+
+        '<button onclick="'+(last?'endTutorial()':'nextTutorialSlide()')+'">'+(last?t('tutGotIt'):t('tutNext'))+'</button>'+
       '</div>';
   }
   function nextTutorialSlide(){
     tutorialIdx++;
-    if (tutorialIdx >= TUTORIAL_SLIDES.length) endTutorial();
+    if (tutorialIdx >= getTutorialSlides().length) endTutorial();
     else renderTutorialSlide();
   }
   function endTutorial(){
@@ -1322,8 +1437,16 @@
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
     try { localStorage.setItem('penalties_name', playerName); } catch(e){}
-    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);   // 3x2 simetrico
-    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);    // 3x2 simetrico
+    // Tutorial: la primera vez que sales de la portada, abrir el popup ANTES de seguir
+    let seenTut = false;
+    try { seenTut = !!localStorage.getItem('penalties_tutorial_seen'); } catch(e){}
+    if (!seenTut){
+      showTutorial();
+      // Marcar como visto al cerrar; cuando lo cierre, el usuario tendra que pulsar NEXT de nuevo
+      return;
+    }
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
     renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
     show('keepers-gallery');
   }
@@ -2427,7 +2550,7 @@
     }
     const player = document.getElementById('player');
     if (kind === 'gol'){
-      text.textContent = 'GOOOAL!';
+      text.textContent = t('goal');
       if (gameMode !== 'keeper') score++;   // en keeper mode, gol del CPU NO suma al usuario
       // Track row scored para bonus
       if (gameMode === 'shooter' && shotType in ROW_OF){
@@ -2452,7 +2575,7 @@
       playApplause(2200);
     }
     else if (kind === 'parada'){
-      text.textContent = 'SAVED!';
+      text.textContent = t('saved');
       if (gameMode === 'keeper') score++;   // en keeper mode, cada parada suma
       speakRandomMiss();
       playWhistle();
@@ -2474,13 +2597,13 @@
       }, 350);
     }
     else {
-      text.textContent = 'OUT!';
+      text.textContent = t('out');
       speakRandomMiss();
       playWhistle();
       setTimeout(()=>playApplause(600), 200);
       const why = explainOut(lastShotInfo);
       const whyEl = document.getElementById('result-why');
-      whyEl.innerHTML = '<div class="why-title">Why?</div>' + why;
+      whyEl.innerHTML = '<div class="why-title">' + t('whyLabel') + '</div>' + why;
       whyEl.style.animation = 'none'; void whyEl.offsetWidth; whyEl.style.animation = '';
       whyEl.classList.add('show');
     }
@@ -2571,14 +2694,12 @@
   document.getElementById('player-name').addEventListener('keydown', e => {
     if (e.key === 'Enter') goToKeepersGallery();
   });
-  // Cargar nombre y dificultad guardados, y mostrar tutorial la primera vez
+  // Cargar nombre y dificultad guardados (el tutorial se dispara al pulsar NEXT en la portada)
   try {
     const savedName = localStorage.getItem('penalties_name');
     if (savedName) document.getElementById('player-name').value = savedName;
     const savedDiff = localStorage.getItem('penalties_diff');
     if (savedDiff) setDifficulty(savedDiff);
-    const seenTut = localStorage.getItem('penalties_tutorial_seen');
-    if (!seenTut) setTimeout(showTutorial, 400);
   } catch(e){}
   // Aplicar idioma guardado (o EN por defecto) y marcar bandera activa
   document.querySelectorAll('.lang-flag').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
