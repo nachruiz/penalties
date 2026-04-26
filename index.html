@@ -53,7 +53,7 @@
   .settings-content p{font-size:0.82rem;line-height:1.4;color:#ddd;margin:6px 0}
   .settings-content p strong{color:#FFD700}
   .settings-content .close-btn{margin-top:14px;width:100%}
-  /* Lineup screen */
+  /* Lineup screen (mini cards en sorteo) */
   .lineup-section{width:100%;max-width:480px;margin:6px 0}
   .lineup-section .lh{color:#FFD700;font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;margin-bottom:6px;text-align:center;text-transform:uppercase}
   .lineup-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
@@ -63,6 +63,25 @@
   .lineup-card.chosen{background:linear-gradient(135deg,#FFD700,#c9a000);border-color:#FFD700;box-shadow:0 0 12px rgba(255,215,0,0.7);transform:scale(1.06)}
   .lineup-card.chosen .ln,.lineup-card.chosen .lm{color:#001f3f}
   .lineup-card.dimmed{opacity:0.35}
+  /* Countdown del sorteo */
+  .draw-countdown{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);font-family:'Cinzel',serif;color:#FFD700;font-size:2.4rem;font-weight:900;text-shadow:0 4px 16px rgba(0,0,0,0.6);display:none;z-index:14;letter-spacing:0.05em}
+  .draw-countdown.show{display:block}
+  /* Galeria GRANDE (pantalla previa con avatares) */
+  .gallery-screen{padding:14px 14px 24px;overflow-y:auto;max-height:100%}
+  .gallery-screen h1{font-size:1.5rem;text-align:center;margin-bottom:4px}
+  .gallery-screen .gallery-sub{color:#FFD700;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.12em;text-align:center;margin-bottom:14px}
+  .legend-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;max-width:460px;margin:0 auto}
+  .legend-card{background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.4);border-radius:10px;padding:8px 6px 10px;display:flex;flex-direction:column;align-items:center;text-align:center}
+  .legend-card svg{width:50%;max-width:60px;height:auto;display:block;margin:2px auto 4px}
+  .legend-card .lname{font-family:'Cinzel',serif;color:#FFD700;font-size:0.85rem;font-weight:700;line-height:1.1}
+  .legend-card .lmeta{color:#fff;font-size:0.62rem;opacity:0.85;margin-top:1px}
+  .legend-card .lalias{color:rgba(255,255,255,0.55);font-size:0.55rem;font-style:italic;margin-top:1px}
+  /* Role pick */
+  .role-pick-card{background:rgba(0,31,63,0.85);border:2px solid #FFD700;border-radius:14px;padding:24px 20px;cursor:pointer;transition:all 0.2s;text-align:center;min-width:140px}
+  .role-pick-card:hover{transform:translateY(-3px);box-shadow:0 6px 20px rgba(255,215,0,0.4)}
+  .role-pick-card .ricon{font-size:2.8rem;margin-bottom:6px}
+  .role-pick-card .rname{font-family:'Cinzel',serif;color:#FFD700;font-size:1.1rem;letter-spacing:0.1em;font-weight:900}
+  .role-pick-card .rdesc{color:#fff;opacity:0.75;font-size:0.7rem;margin-top:6px;letter-spacing:0.05em}
   /* Ball (svg) */
   .ball{position:absolute;width:9%;aspect-ratio:1;left:45.5%;top:60%;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);z-index:11;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.4))}
   .ball svg{width:100%;height:100%;display:block;transition:transform 0.3s}
@@ -99,9 +118,9 @@
   .result-text.gol{color:#FFD700}
   .result-text.parada{color:#fff}
   .result-text.fuera{color:#ff6b6b}
-  .result-speed{color:#FFD700;font-family:'Cinzel',serif;font-size:0.95rem;letter-spacing:0.08em;margin-top:14px;opacity:0;text-align:center;animation:fade-up 0.5s 0.25s forwards}
-  .result-speed .num{color:#fff;font-weight:900;font-size:1.15rem}
-  .result-speed .unit{opacity:0.7;font-size:0.75rem;margin-left:2px}
+  .result-speed{color:#FFD700;font-family:'Cinzel',serif;font-size:1.6rem;letter-spacing:0.08em;margin-top:22px;opacity:0;text-align:center;animation:fade-up 0.5s 0.25s forwards;line-height:1.3}
+  .result-speed .num{color:#fff;font-weight:900;font-size:2.4rem;text-shadow:0 4px 14px rgba(0,0,0,0.7)}
+  .result-speed .unit{opacity:0.85;font-size:1rem;margin-left:3px;color:#FFD700}
   @keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
   @keyframes flash{from{background:rgba(0,0,0,0.8)}to{background:rgba(0,0,0,0.5)}}
   @keyframes pop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
@@ -186,16 +205,49 @@
   <div id="screen-intro" class="screen active">
     <h1>PENALTIES</h1>
     <div class="sub">Bernabeu 2026</div>
-    <p style="margin-bottom:14px;font-size:1rem;opacity:0.9">Enter your player name:</p>
+    <p style="margin-bottom:18px;font-size:1rem;opacity:0.9">Enter your player name:</p>
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
-    <p style="margin:18px 0 8px;font-size:0.85rem;opacity:0.85;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.1em">PICK YOUR ROLE</p>
-    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
-      <button class="btn" onclick="goToSorteo('shooter')">SHOOTER</button>
-      <button class="btn btn-secondary" onclick="alert('Keeper mode coming soon!')">KEEPER</button>
+    <button class="btn" onclick="goToKeepersGallery()">NEXT</button>
+  </div>
+
+  <!-- Galeria 1: KEEPERS in play (avatares grandes) -->
+  <div id="screen-keepers-gallery" class="screen gallery-screen">
+    <h1>KEEPERS</h1>
+    <div class="gallery-sub">Top 10 in play tonight</div>
+    <div class="legend-grid" id="grid-k-gallery"></div>
+    <div class="btn-row"><button class="btn" onclick="goToShootersGallery()">SEE SHOOTERS &rarr;</button></div>
+  </div>
+
+  <!-- Galeria 2: SHOOTERS in play (avatares grandes) -->
+  <div id="screen-shooters-gallery" class="screen gallery-screen">
+    <h1>SHOOTERS</h1>
+    <div class="gallery-sub">Top 10 in play tonight</div>
+    <div class="legend-grid" id="grid-s-gallery"></div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="show('keepers-gallery')">&larr; KEEPERS</button>
+      <button class="btn" onclick="goToRolePick()">PICK ROLE &rarr;</button>
     </div>
   </div>
 
-  <!-- Pantalla 1b: Lineup (10 atacantes y 10 porteros en liza) -->
+  <!-- Pantalla role pick -->
+  <div id="screen-role-pick" class="screen"><div class="center-col">
+    <h1 style="font-size:1.8rem">PICK YOUR ROLE</h1>
+    <div class="sub">You'll face one random opponent</div>
+    <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:20px">
+      <div class="role-pick-card" onclick="pickRole('shooter')">
+        <div class="ricon">&#9917;</div>
+        <div class="rname">SHOOTER</div>
+        <div class="rdesc">Strike the ball<br/>against a keeper</div>
+      </div>
+      <div class="role-pick-card" onclick="pickRole('keeper')">
+        <div class="ricon">&#129303;</div>
+        <div class="rname">KEEPER</div>
+        <div class="rdesc">Save shots<br/>(coming soon)</div>
+      </div>
+    </div>
+  </div></div>
+
+  <!-- Pantalla 1b: Sorteo final (eligen los dos chosen ones) -->
   <div id="screen-sorteo" class="screen">
     <h1 style="font-size:1.8rem">Tonight's Lineup</h1>
     <div class="sub">Random 10 of each. Fate picks one.</div>
@@ -216,6 +268,7 @@
       <button class="btn" id="btn-roll" onclick="rollMatch()">DRAW</button>
       <button class="btn" id="btn-play" style="display:none" onclick="startMatch()">PLAY</button>
     </div>
+    <div class="draw-countdown" id="draw-countdown"></div>
   </div>
 
   <!-- Pantalla 2: Juego -->
@@ -233,7 +286,9 @@
       <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub">straight</span></button>
       <button class="shot-btn" data-shot="curl" onclick="setShotType('curl')">CURL<span class="shot-sub">curve</span></button>
       <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub">chip shot</span></button>
-      <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">fake out keeper</span></button>
+      <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">stutter step</span></button>
+      <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub">feint, no shot</span></button>
+      <button class="shot-btn" data-shot="bicycle" onclick="alert('Bicycle kick: timing mini-game coming next iteration')">BICYCLE<span class="shot-sub">overhead</span></button>
     </div>
     <div class="crossbar"></div>
     <div class="goal" id="goal"></div>
@@ -337,53 +392,54 @@
     document.getElementById('screen-'+id).classList.add('active');
   }
 
-  // ====== TOP 20 SHOOTERS (essence names + estilo visual) ======
+  // ====== TOP 20 SHOOTERS (essence names + estilo visual + career stats) ======
+  // games / goals son aprox de la carrera real
   // hair: bald | short | long | curly | mohawk
   // skin: light | medium | dark
   const SHOOTERS = [
-    {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
-    {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a'},
-    {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914'},
-    {name:'Tornado',   dorsal:7,  power:9,  precision:8,  nation:'Portugal', alias:'Goal machine',   hair:'short', skin:'medium', hairColor:'#3d2914'},
-    {name:'Vision',    dorsal:14, power:7,  precision:10, nation:'Holland',  alias:'Total football', hair:'curly', skin:'light',  hairColor:'#5d3a1f'},
-    {name:'Architect', dorsal:9,  power:8,  precision:9,  nation:'Argentina',alias:'Blond Arrow',    hair:'short', skin:'light',  hairColor:'#cda86d'},
-    {name:'Kaiser',    dorsal:5,  power:8,  precision:9,  nation:'Germany',  alias:'The Emperor',    hair:'short', skin:'light',  hairColor:'#3d2914'},
-    {name:'Elegance',  dorsal:10, power:7,  precision:10, nation:'France',   alias:'French maestro', hair:'bald',  skin:'light',  hairColor:'#3d2914'},
-    {name:'Phenomenon',dorsal:9,  power:9,  precision:8,  nation:'Brazil',   alias:'O Fenomeno',     hair:'mohawk',skin:'medium', hairColor:'#0a0a0a'},
-    {name:'Joy',       dorsal:7,  power:7,  precision:9,  nation:'Brazil',   alias:'Joy of people',  hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
-    {name:'Panther',   dorsal:10, power:9,  precision:8,  nation:'Portugal', alias:'Black Panther',  hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
-    {name:'Cannon',    dorsal:10, power:10, precision:8,  nation:'Hungary',  alias:'Galloping Major',hair:'short', skin:'light',  hairColor:'#3d2914'},
-    {name:'Maestro',   dorsal:10, power:8,  precision:10, nation:'France',   alias:'Le Roi',         hair:'curly', skin:'light',  hairColor:'#3d2914'},
-    {name:'Dazzle',    dorsal:7,  power:7,  precision:10, nation:'N.Ireland',alias:'5th Beatle',     hair:'long',  skin:'light',  hairColor:'#3d2914'},
-    {name:'Artist',    dorsal:10, power:8,  precision:9,  nation:'Brazil',   alias:'Brazilian magic',hair:'long',  skin:'medium', hairColor:'#3d2914'},
-    {name:'Brain',     dorsal:6,  power:6,  precision:10, nation:'Spain',    alias:'Tiki-taka',      hair:'bald',  skin:'light',  hairColor:'#3d2914'},
-    {name:'Whisper',   dorsal:8,  power:6,  precision:10, nation:'Spain',    alias:'Don Andres',     hair:'bald',  skin:'light',  hairColor:'#cda86d'},
-    {name:'Bomber',    dorsal:13, power:9,  precision:9,  nation:'Germany',  alias:'Der Bomber',     hair:'short', skin:'light',  hairColor:'#3d2914'},
-    {name:'Beast',     dorsal:7,  power:9,  precision:8,  nation:'France',   alias:'Speed beast',    hair:'short', skin:'medium', hairColor:'#0a0a0a'},
-    {name:'Power',     dorsal:3,  power:10, precision:6,  nation:'Brazil',   alias:'Free-kick gun',  hair:'short', skin:'medium', hairColor:'#0a0a0a'}
+    {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'short', skin:'dark',   hairColor:'#0a0a0a', foot:'R', games:1363, goals:1281},
+    {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a', games:692,  goals:312},
+    {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914', games:1100, goals:850},
+    {name:'Tornado',   dorsal:7,  power:9,  precision:8,  nation:'Portugal', alias:'Goal machine',   hair:'short', skin:'medium', hairColor:'#3d2914', games:1230, goals:920},
+    {name:'Vision',    dorsal:14, power:7,  precision:10, nation:'Holland',  alias:'Total football', hair:'curly', skin:'light',  hairColor:'#5d3a1f', games:698,  goals:401},
+    {name:'Architect', dorsal:9,  power:8,  precision:9,  nation:'Argentina',alias:'Blond Arrow',    hair:'short', skin:'light',  hairColor:'#cda86d', games:709,  goals:511},
+    {name:'Kaiser',    dorsal:5,  power:8,  precision:9,  nation:'Germany',  alias:'The Emperor',    hair:'short', skin:'light',  hairColor:'#3d2914', games:659,  goals:80},
+    {name:'Elegance',  dorsal:10, power:7,  precision:10, nation:'France',   alias:'French maestro', hair:'bald',  skin:'light',  hairColor:'#3d2914', games:712,  goals:159},
+    {name:'Phenomenon',dorsal:9,  power:9,  precision:8,  nation:'Brazil',   alias:'O Fenomeno',     hair:'mohawk',skin:'medium', hairColor:'#0a0a0a', games:616,  goals:414},
+    {name:'Joy',       dorsal:7,  power:7,  precision:9,  nation:'Brazil',   alias:'Joy of people',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:669,  goals:232},
+    {name:'Panther',   dorsal:10, power:9,  precision:8,  nation:'Portugal', alias:'Black Panther',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:745,  goals:733},
+    {name:'Cannon',    dorsal:10, power:10, precision:8,  nation:'Hungary',  alias:'Galloping Major',hair:'short', skin:'light',  hairColor:'#3d2914', games:754,  goals:745},
+    {name:'Maestro',   dorsal:10, power:8,  precision:10, nation:'France',   alias:'Le Roi',         hair:'curly', skin:'light',  hairColor:'#3d2914', games:580,  goals:312},
+    {name:'Dazzle',    dorsal:7,  power:7,  precision:10, nation:'N.Ireland',alias:'5th Beatle',     hair:'long',  skin:'light',  hairColor:'#3d2914', games:597,  goals:207},
+    {name:'Artist',    dorsal:10, power:8,  precision:9,  nation:'Brazil',   alias:'Brazilian magic',hair:'long',  skin:'medium', hairColor:'#3d2914', games:618,  goals:268},
+    {name:'Brain',     dorsal:6,  power:6,  precision:10, nation:'Spain',    alias:'Tiki-taka',      hair:'bald',  skin:'light',  hairColor:'#3d2914', games:929,  goals:84},
+    {name:'Whisper',   dorsal:8,  power:6,  precision:10, nation:'Spain',    alias:'Don Andres',     hair:'bald',  skin:'light',  hairColor:'#cda86d', games:880,  goals:95},
+    {name:'Bomber',    dorsal:13, power:9,  precision:9,  nation:'Germany',  alias:'Der Bomber',     hair:'short', skin:'light',  hairColor:'#3d2914', games:742,  goals:575},
+    {name:'Beast',     dorsal:7,  power:9,  precision:8,  nation:'France',   alias:'Speed beast',    hair:'short', skin:'medium', hairColor:'#0a0a0a', games:440,  goals:280},
+    {name:'Power',     dorsal:3,  power:10, precision:6,  nation:'Brazil',   alias:'Free-kick gun',  hair:'short', skin:'medium', hairColor:'#0a0a0a', games:937,  goals:70}
   ];
   // ====== TOP 20 KEEPERS (con estilo visual) ======
   const KEEPERS = [
-    {name:'Cat',       dorsal:1,  reach:8,  reflex:10, intuition:9,  nation:'USSR',    alias:'Black Spider',   hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#0a0a0a'},
-    {name:'Wall',      dorsal:1,  reach:9,  reflex:9,  intuition:9,  nation:'Italy',   alias:'Gigi forever',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FF6B00'},
-    {name:'Saint',     dorsal:1,  reach:7,  reflex:10, intuition:10, nation:'Spain',   alias:'San Iker',       hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#FFD700'},
-    {name:'Sweeper',   dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Libero modern',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
-    {name:'Storm',     dorsal:1,  reach:9,  reflex:8,  intuition:8,  nation:'Denmark', alias:'Great Dane',     hair:'curly',skin:'light', hairColor:'#cda86d',jersey:'#5fa8d3'},
-    {name:'Hero',      dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'England', alias:'1966 legend',    hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700'},
-    {name:'Iron',      dorsal:1,  reach:8,  reflex:9,  intuition:10, nation:'Italy',   alias:'Captain',        hair:'curly',skin:'light', hairColor:'#cccccc',jersey:'#1a3a8a'},
-    {name:'Titan',     dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Der Titan',      hair:'short',skin:'light', hairColor:'#cda86d',jersey:'#777777'},
-    {name:'Hands',     dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'Germany', alias:'Hands Cologne',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
-    {name:'Tower',     dorsal:1,  reach:10, reflex:8,  intuition:8,  nation:'Holland', alias:'Tall tower',     hair:'bald', skin:'light', hairColor:'#3d2914',jersey:'#cc4400'},
-    {name:'Bunker',    dorsal:13, reach:9,  reflex:8,  intuition:9,  nation:'Slovenia',alias:'Slovenian wall', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#1a8a3a'},
-    {name:'Helmet',    dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Czech',   alias:'The Helmet',     hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
-    {name:'Giant',     dorsal:21, reach:10, reflex:8,  intuition:7,  nation:'Italy',   alias:'Young giant',    hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#1a3a8a'},
-    {name:'Fox',       dorsal:1,  reach:7,  reflex:9,  intuition:9,  nation:'France',  alias:'Cunning capt',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a3a8a'},
-    {name:'Reach',     dorsal:1,  reach:10, reflex:9,  intuition:8,  nation:'Belgium', alias:'Wingspan',       hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700'},
-    {name:'Eagle',     dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Spain',   alias:'Basque eagle',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
-    {name:'Origin',    dorsal:1,  reach:7,  reflex:8,  intuition:10, nation:'Spain',   alias:'The original',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#777777'},
-    {name:'Curtain',   dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'USSR',    alias:'Iron curtain',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
-    {name:'Fortress',  dorsal:1,  reach:9,  reflex:9,  intuition:7,  nation:'Germany', alias:'Wall Cologne',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
-    {name:'Spider',    dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'Italy',   alias:'Italian spider', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#7d7d7d'}
+    {name:'Cat',       dorsal:1,  reach:8,  reflex:10, intuition:9,  nation:'USSR',    alias:'Black Spider',   hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#0a0a0a', games:326,  gpg:0.94},
+    {name:'Wall',      dorsal:1,  reach:9,  reflex:9,  intuition:9,  nation:'Italy',   alias:'Gigi forever',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FF6B00', games:1100, gpg:0.95},
+    {name:'Saint',     dorsal:1,  reach:7,  reflex:10, intuition:10, nation:'Spain',   alias:'San Iker',       hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#FFD700', games:1000, gpg:0.93},
+    {name:'Sweeper',   dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Libero modern',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a', games:700,  gpg:0.85},
+    {name:'Storm',     dorsal:1,  reach:9,  reflex:8,  intuition:8,  nation:'Denmark', alias:'Great Dane',     hair:'curly',skin:'light', hairColor:'#cda86d',jersey:'#5fa8d3', games:775,  gpg:1.05},
+    {name:'Hero',      dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'England', alias:'1966 legend',    hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700', games:679,  gpg:0.90},
+    {name:'Iron',      dorsal:1,  reach:8,  reflex:9,  intuition:10, nation:'Italy',   alias:'Captain',        hair:'curly',skin:'light', hairColor:'#cccccc',jersey:'#1a3a8a', games:644,  gpg:0.92},
+    {name:'Titan',     dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Der Titan',      hair:'short',skin:'light', hairColor:'#cda86d',jersey:'#777777', games:787,  gpg:1.10},
+    {name:'Hands',     dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'Germany', alias:'Hands Cologne',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a', games:706,  gpg:0.94},
+    {name:'Tower',     dorsal:1,  reach:10, reflex:8,  intuition:8,  nation:'Holland', alias:'Tall tower',     hair:'bald', skin:'light', hairColor:'#3d2914',jersey:'#cc4400', games:947,  gpg:0.96},
+    {name:'Bunker',    dorsal:13, reach:9,  reflex:8,  intuition:9,  nation:'Slovenia',alias:'Slovenian wall', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#1a8a3a', games:500,  gpg:0.88},
+    {name:'Helmet',    dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Czech',   alias:'The Helmet',     hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#cc0000', games:1000, gpg:0.90},
+    {name:'Giant',     dorsal:21, reach:10, reflex:8,  intuition:7,  nation:'Italy',   alias:'Young giant',    hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#1a3a8a', games:400,  gpg:1.05},
+    {name:'Fox',       dorsal:1,  reach:7,  reflex:9,  intuition:9,  nation:'France',  alias:'Cunning capt',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a3a8a', games:900,  gpg:1.10},
+    {name:'Reach',     dorsal:1,  reach:10, reflex:9,  intuition:8,  nation:'Belgium', alias:'Wingspan',       hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700', games:600,  gpg:0.90},
+    {name:'Eagle',     dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Spain',   alias:'Basque eagle',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a', games:948,  gpg:1.10},
+    {name:'Origin',    dorsal:1,  reach:7,  reflex:8,  intuition:10, nation:'Spain',   alias:'The original',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#777777', games:250,  gpg:0.95},
+    {name:'Curtain',   dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'USSR',    alias:'Iron curtain',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000', games:500,  gpg:0.93},
+    {name:'Fortress',  dorsal:1,  reach:9,  reflex:9,  intuition:7,  nation:'Germany', alias:'Wall Cologne',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000', games:712,  gpg:1.05},
+    {name:'Spider',    dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'Italy',   alias:'Italian spider', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#7d7d7d', games:561,  gpg:1.05}
   ];
 
   // Colores de seleccion (camiseta, acento, pantalon)
@@ -478,19 +534,132 @@
       window.speechSynthesis.speak(u);
     } catch(e){}
   }
+  function speakCrowd(text, count){
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+    count = count || 4;
+    try { window.speechSynthesis.cancel(); } catch(e){}
+    for (let i = 0; i < count; i++){
+      setTimeout(() => {
+        try {
+          const u = new SpeechSynthesisUtterance(text);
+          u.lang = 'es-ES';
+          u.rate = 0.7 + Math.random() * 0.4;
+          u.pitch = 0.5 + Math.random() * 1.2;
+          u.volume = 0.7;
+          window.speechSynthesis.speak(u);
+        } catch(e){}
+      }, i * 70);
+    }
+  }
+  // Web Audio: crowd, whistle, applause
+  let audioCtx = null;
+  function getAudio(){
+    if (!audioCtx && (window.AudioContext || window.webkitAudioContext)){
+      try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e){ return null; }
+    }
+    if (audioCtx && audioCtx.state === 'suspended'){ audioCtx.resume().catch(()=>{}); }
+    return audioCtx;
+  }
+  function playCrowdCheer(durationMs, vol){
+    if (!soundEnabled) return;
+    const ac = getAudio(); if (!ac) return;
+    durationMs = durationMs || 2500;
+    vol = vol || 0.35;
+    const bs = Math.floor(ac.sampleRate * durationMs / 1000);
+    const buf = ac.createBuffer(1, bs, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < bs; i++){
+      const w = Math.random() * 2 - 1;
+      d[i] = (last + 0.02 * w) / 1.02; last = d[i]; d[i] *= 4;
+    }
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 700; f.Q.value = 0.6;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, ac.currentTime);
+    g.gain.linearRampToValueAtTime(vol, ac.currentTime + 0.15);
+    g.gain.linearRampToValueAtTime(vol * 0.65, ac.currentTime + durationMs/1000 - 0.5);
+    g.gain.linearRampToValueAtTime(0, ac.currentTime + durationMs/1000);
+    src.connect(f); f.connect(g); g.connect(ac.destination);
+    src.start(); src.stop(ac.currentTime + durationMs/1000);
+  }
+  function playWhistle(){
+    if (!soundEnabled) return;
+    const ac = getAudio(); if (!ac) return;
+    const o = ac.createOscillator(); o.type = 'square'; o.frequency.value = 2400;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0, ac.currentTime);
+    g.gain.linearRampToValueAtTime(0.2, ac.currentTime + 0.05);
+    g.gain.linearRampToValueAtTime(0, ac.currentTime + 0.55);
+    o.connect(g); g.connect(ac.destination);
+    o.start(); o.stop(ac.currentTime + 0.6);
+  }
+  function playApplause(durationMs){
+    if (!soundEnabled) return;
+    const ac = getAudio(); if (!ac) return;
+    durationMs = durationMs || 1500;
+    const bs = Math.floor(ac.sampleRate * durationMs / 1000);
+    const buf = ac.createBuffer(1, bs, ac.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < bs; i++){
+      const bf = 0.04 + Math.random() * 0.025;
+      d[i] = (Math.random() * 2 - 1) * (Math.sin(i * bf) + 1) * 0.35;
+    }
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
+    const g = ac.createGain();
+    g.gain.setValueAtTime(0.18, ac.currentTime);
+    g.gain.linearRampToValueAtTime(0, ac.currentTime + durationMs/1000);
+    src.connect(f); f.connect(g); g.connect(ac.destination);
+    src.start(); src.stop(ac.currentTime + durationMs/1000);
+  }
   function shuffleArr(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 
-  function goToSorteo(){
+  function goToKeepersGallery(){
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
-    // Pick 10 random shooters + 10 random keepers para esta partida
-    poolShooters = shuffleArr(SHOOTERS).slice(0, 10);
-    poolKeepers  = shuffleArr(KEEPERS).slice(0, 10);
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
+    renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
+    show('keepers-gallery');
+  }
+  function goToShootersGallery(){
+    renderGalleryCards('grid-s-gallery', poolShooters, 'shooter');
+    show('shooters-gallery');
+  }
+  function goToRolePick(){
+    show('role-pick');
+  }
+  function pickRole(role){
+    if (role === 'keeper'){
+      alert('Keeper mode coming next iteration!');
+      return;
+    }
+    // shooter -> al sorteo
     renderLineup();
     document.getElementById('sorteo-result').style.display = 'none';
     document.getElementById('btn-roll').style.display = 'inline-block';
     document.getElementById('btn-play').style.display = 'none';
     show('sorteo');
+  }
+  function renderGalleryCards(gridId, list, type){
+    const grid = document.getElementById(gridId);
+    grid.innerHTML = list.map(it => {
+      const svg = (type === 'keeper') ? buildKeeperSVG(it) : buildPlayerSVG(it);
+      let stats = '';
+      if (type === 'shooter'){
+        stats = '<div class="lmeta">'+(it.games||'-')+' games &middot; '+(it.goals||'-')+' goals</div>';
+      } else {
+        stats = '<div class="lmeta">'+(it.games||'-')+' games &middot; '+(it.gpg||'-')+' g/g</div>';
+      }
+      return '<div class="legend-card">'+
+        svg +
+        '<div class="lname">'+it.name+'</div>'+
+        '<div class="lmeta">'+(it.dorsal?'#'+it.dorsal+' &middot; ':'')+it.nation+'</div>'+
+        stats +
+        '<div class="lalias">'+it.alias+'</div>'+
+      '</div>';
+    }).join('');
   }
 
   function renderLineup(){
@@ -506,7 +675,6 @@
 
   function rollMatch(){
     document.getElementById('btn-roll').style.display = 'none';
-    // Animacion: parpadear cards aleatoriamente, luego destacar la elegida
     const sIdx = Math.floor(Math.random() * poolShooters.length);
     const kIdx = Math.floor(Math.random() * poolKeepers.length);
     selectedShooter = poolShooters[sIdx];
@@ -514,29 +682,50 @@
 
     const sCards = document.querySelectorAll('#grid-shooters .lineup-card');
     const kCards = document.querySelectorAll('#grid-keepers .lineup-card');
+    const cd = document.getElementById('draw-countdown');
+    cd.classList.add('show');
 
-    let frame = 0;
-    const flicker = setInterval(() => {
+    const totalMs = 10000;
+    const startInt = 50;
+    const endInt = 700;
+    let elapsed = 0;
+    const startTime = Date.now();
+
+    function tick(){
+      // Parpadeo aleatorio
       sCards.forEach(c => c.classList.remove('chosen'));
       kCards.forEach(c => c.classList.remove('chosen'));
       sCards[Math.floor(Math.random()*sCards.length)].classList.add('chosen');
       kCards[Math.floor(Math.random()*kCards.length)].classList.add('chosen');
-      frame++;
-      if (frame > 10){
-        clearInterval(flicker);
+
+      const now = Date.now() - startTime;
+      const remaining = Math.max(0, Math.ceil((totalMs - now) / 1000));
+      cd.textContent = remaining;
+
+      if (now >= totalMs){
+        // Parar y revelar el elegido
         sCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
         kCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
         sCards[sIdx].classList.add('chosen'); sCards[sIdx].classList.remove('dimmed');
         kCards[kIdx].classList.add('chosen'); kCards[kIdx].classList.remove('dimmed');
-        // Mostrar cards detalladas
+        cd.classList.remove('show');
+        // Mostrar tarjetas grandes con detalle
         const cardS = document.getElementById('card-shooter');
         const cardK = document.getElementById('card-keeper');
         cardS.innerHTML = renderShooterCard(selectedShooter);
         cardK.innerHTML = renderKeeperCard(selectedKeeper);
         document.getElementById('sorteo-result').style.display = 'flex';
         document.getElementById('btn-play').style.display = 'inline-block';
+        return;
       }
-    }, 90);
+      // Easing: empieza rapido, termina lento (interval crece quadratically)
+      const progress = Math.min(1, now / totalMs);
+      const eased = progress * progress;  // 0->0, 0.5->0.25, 1->1
+      const interval = startInt + eased * (endInt - startInt);
+      elapsed += interval;
+      setTimeout(tick, interval);
+    }
+    tick();
   }
 
   function statBar(label, val){
@@ -752,6 +941,35 @@
     if (shooting) return;
     shooting = true;
 
+    // FAKE: el jugador corre y finge chutar pero NO lanza el balon. El portero se lanza igual.
+    if (shotType === 'fake'){
+      const player = document.getElementById('player');
+      player.classList.add('running');
+      player.style.left = '38%';
+      setTimeout(() => {
+        player.classList.remove('running');
+        player.classList.add('kicking');
+        // Portero se compromete (random)
+        const keeper = document.getElementById('keeper');
+        const dive = Math.floor(Math.random() * 3);
+        const kLeft = ['12%','42%','72%'][dive];
+        keeper.style.left = kLeft;
+        keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
+        keeper.classList.remove('dive-l','dive-c','dive-r');
+        keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+      }, 520);
+      setTimeout(() => {
+        // Reset jugador, dejar el balon en su sitio. Cambia a INSTEP para chute real.
+        const player = document.getElementById('player');
+        player.classList.remove('kicking');
+        player.style.left = '24%';
+        shooting = false;
+        shotType = 'instep';
+        document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+      }, 1500);
+      return;
+    }
+
     // ---- Mapeo base ----
     // Coords del nuevo gol rectangular (top:14% height:22% -> 14..36)
     const goalLeft = 3, goalRight = 97, goalTop = 14, goalBottom = 36;
@@ -772,12 +990,11 @@
       saveModifier -= 0.10;        // mas dificil de parar
     }
     else if (shotType === 'panenka'){
-      // Vaselina: balon va al centro, lento, altura segun potencia (puede ir fuera por arriba)
+      // Vaselina: balon va al centro, SIEMPRE muy suave (~60% mas lento), altura segun potencia
       finalX = 50 + (Math.random() - 0.5) * 10;
-      finalY = 19 - power * 17;    // potencia alta -> sale por arriba
-      ballSpeedMs = 900;
+      finalY = 19 - power * 17;    // potencia alta -> sale por arriba (over the bar)
+      ballSpeedMs = Math.min(1300, Math.round(ballSpeedMs * 1.6));
       spinDeg = 360;
-      saveModifier += 0.00;
     }
     else if (shotType === 'paradinha'){
       // El portero ya se ha lanzado en startAim. Resultado se calcula con paradinhaDive.
@@ -814,12 +1031,17 @@
     let result;
     if (!insideGoal){
       result = 'fuera';
-    } else if (shotType === 'paradinha'){
-      const inZone = (finalX >= zone[0] && finalX <= zone[1]);
-      result = (Math.random() < (inZone ? 0.7 : 0.05)) ? 'parada' : 'gol';
     } else {
-      let saveChance = 0.5 + saveModifier;
-      saveChance = Math.max(0.10, Math.min(0.90, saveChance));
+      // Probabilidad de parada depende de si el portero esta en la zona del chute
+      const inZone = (finalX >= zone[0] && finalX <= zone[1]);
+      let saveChance;
+      if (shotType === 'paradinha'){
+        saveChance = inZone ? 0.70 : 0.05;
+      } else {
+        saveChance = inZone ? 0.75 : 0.10;
+        saveChance += saveModifier;
+      }
+      saveChance = Math.max(0.05, Math.min(0.90, saveChance));
       result = (Math.random() < saveChance) ? 'parada' : 'gol';
     }
 
@@ -827,26 +1049,43 @@
     let ballEndX = finalX, ballEndY = finalY;
     if (result === 'parada'){
       ballEndX = parseFloat(kLeft) + 8;   // centro del portero (width 16% / 2)
-      ballEndY = 36 + (Math.random()-0.5) * 4; // a la altura de las manos
+      ballEndY = 26 + (Math.random()-0.5) * 4; // a la altura de las manos del portero
+    } else if (result === 'fuera'){
+      // Forzar visualmente fuera del marco para que se vea fuera
+      const overTop  = (finalY < goalTop + ballR);
+      const overLeft = (finalX < goalLeft + ballR);
+      const overRight= (finalX > goalRight - ballR);
+      if (overTop)   ballEndY = goalTop - 5;
+      if (overLeft)  ballEndX = goalLeft - 5;
+      else if (overRight) ballEndX = goalRight + 5;
+      // Si no estaba cerca de ningun lado pero aun asi salio (raro), empujarlo al lado mas cercano
+      if (!overTop && !overLeft && !overRight){
+        if (finalX < goalCx) ballEndX = goalLeft - 5;
+        else ballEndX = goalRight + 5;
+      }
     }
 
     // ---- 1) CARRERA del jugador ----
     const player = document.getElementById('player');
     player.classList.add('running');
-    player.style.left = '38%';
 
     let kickDelay = 520;
     if (shotType === 'paradinha'){
-      // PARADINHA: stop a mitad de la carrera
-      kickDelay = 900;
+      // PARADINHA: arranca -> casi se para a mitad -> coge carrerilla -> chuta
+      player.style.left = '30%';   // primera fase: solo medio camino
       setTimeout(() => {
         player.classList.remove('running');
         player.classList.add('pausing');
-      }, 280);
+        // se queda detenido en ~30%
+      }, 380);
       setTimeout(() => {
         player.classList.remove('pausing');
         player.classList.add('running');
-      }, 650);
+        player.style.left = '38%'; // carrerilla final hacia el balon
+      }, 880);
+      kickDelay = 1250;
+    } else {
+      player.style.left = '38%';
     }
 
     setTimeout(() => {
@@ -942,11 +1181,15 @@
       const celes = ['cele-cr7','cele-mortal','cele-arquero'];
       const pick = celes[Math.floor(Math.random() * celes.length)];
       player.classList.add(pick);
-      speak('Goool!', {rate:0.85, pitch:1.3});
+      speak('Goooooooooool', {rate:0.55, pitch:1.2});
+      playCrowdCheer(2400, 0.4);
+      playApplause(2200);
     }
     else if (kind === 'parada'){
       text.textContent = 'SAVED!';
-      speak('Uuuy!', {rate:0.9, pitch:1.4});
+      speakCrowd('Uy', 3);
+      playWhistle();
+      setTimeout(playApplause, 200);
       // Portero celebra: levanta el brazo, scale up y dispara el balon al aire
       setTimeout(() => {
         const keeper = document.getElementById('keeper');
@@ -961,7 +1204,7 @@
         ball.style.transform = 'rotate(900deg)';
       }, 350);
     }
-    else { text.textContent = 'OUT!'; speak('Uuuy!', {rate:0.9, pitch:1.4}); }
+    else { text.textContent = 'OUT!'; speakCrowd('Uy', 3); playWhistle(); setTimeout(()=>playApplause(800), 200); }
     overlay.classList.add('show');
     shotsTaken++;
     updateHud();
@@ -1001,11 +1244,20 @@
   }
 
   function goHome(){
+    // Reset todo el estado por si se quedo a medias
+    shooting = false;
+    aiming = false;
+    paradinhaDive = null;
+    lastTapTime = 0;
+    shotType = 'instep';
+    document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+    document.getElementById('strike-marker').classList.remove('show');
+    document.getElementById('drag-svg').classList.remove('show');
     show('intro');
   }
 
   document.getElementById('player-name').addEventListener('keydown', e => {
-    if (e.key === 'Enter') goToSorteo();
+    if (e.key === 'Enter') goToKeepersGallery();
   });
 </script>
 </body>
