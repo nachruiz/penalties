@@ -134,8 +134,8 @@
   /* Ball (svg) - encima del punto de penalti, asomando justo por debajo */
   .ball{position:absolute;width:9%;aspect-ratio:1;left:45.5%;top:67%;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);z-index:11}
   .ball svg{width:100%;height:100%;display:block;transition:transform 0.3s}
-  /* Sombra del balon en el suelo - como una linterna desde arriba */
-  .ball-shadow{position:absolute;background:radial-gradient(ellipse,rgba(0,0,0,0.55) 0%,rgba(0,0,0,0.25) 50%,transparent 75%);border-radius:50%;pointer-events:none;z-index:8;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);width:8%;height:2%;top:88%;left:46%}
+  /* Sombra del balon (deshabilitada — no se renderizaba bien) */
+  .ball-shadow{display:none}
   /* Penalty spot */
   .spot{position:absolute;width:4%;aspect-ratio:1;left:48%;top:72%;background:#fff;border-radius:50%;opacity:0.4;z-index:5}
   /* Player (tirador svg) - empieza fuera, a la izquierda del balon. Se mueve en diagonal hacia el balon. Arrastrable. */
