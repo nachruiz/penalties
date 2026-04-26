@@ -146,6 +146,9 @@
   .result-speed .num{color:#fff;font-weight:900;font-size:2.4rem;text-shadow:0 4px 14px rgba(0,0,0,0.7)}
   .result-speed .unit{opacity:0.85;font-size:1rem;margin-left:3px;color:#FFD700}
   @keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .result-why{color:#fff;background:rgba(0,31,63,0.92);border:1.5px solid #FFD700;border-radius:10px;padding:12px 16px;margin-top:14px;font-size:0.9rem;max-width:300px;text-align:center;line-height:1.4;opacity:0;animation:fade-up 0.5s 0.4s forwards;display:none}
+  .result-why.show{display:block}
+  .result-why .why-title{color:#FFD700;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.12em;margin-bottom:4px;text-transform:uppercase}
   @keyframes flash{from{background:rgba(0,0,0,0.8)}to{background:rgba(0,0,0,0.5)}}
   @keyframes pop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
   /* Hint */
@@ -315,6 +318,7 @@
       <div class="who"><div class="role">KEEPER</div><div class="nm" id="match-keeper">--</div><div class="stats" id="match-keeper-stats"></div></div>
     </div>
     <div class="shot-types" id="shot-types">
+      <button class="shot-btn" data-shot="pass" onclick="setShotType('pass')">PASS<span class="shot-sub">inside foot, low</span></button>
       <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub">straight</span></button>
       <button class="shot-btn" data-shot="curl" onclick="setShotType('curl')">CURL<span class="shot-sub">curve</span></button>
       <button class="shot-btn" data-shot="trivela" onclick="setShotType('trivela')">TRIVELA<span class="shot-sub">outside foot</span></button>
@@ -379,6 +383,7 @@
     <div class="result-overlay" id="result-overlay">
       <div class="result-text" id="result-text">GOL!</div>
       <div class="result-speed" id="result-speed"></div>
+      <div class="result-why" id="result-why"></div>
     </div>
   </div>
 
@@ -415,6 +420,7 @@
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
   let paradinhaDive = null;
   let lastTapTime = 0;       // para detectar doble tap (tiro billar)
+  let lastShotInfo = {};     // detalles del ultimo chute para explicar fueras
 
   function setShotType(t){
     if (shooting) return;
@@ -1214,7 +1220,14 @@
     let saveModifier = 0;          // ajuste adicional a la prob de parada
 
     // ---- Efectos por tipo de chute ----
-    if (shotType === 'curl'){
+    if (shotType === 'pass'){
+      // PASS con el interior del pie: tiro raso, lateral o medio. Velocidad media-baja.
+      finalY = 33 + (Math.random() - 0.5) * 4;  // raso (33-35 cerca del suelo del gol)
+      ballSpeedMs = Math.round(ballSpeedMs * 1.15);
+      saveModifier += 0.05;  // un raso al portero es facil de parar si esta en zona
+      spinDeg = Math.round(spinDeg * 0.8);
+    }
+    else if (shotType === 'curl'){
       // CURL (interior del pie): hacia adentro/centro.
       // Lefty: curva izda -> dcha (+X). Righty: dcha -> izda (-X).
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
@@ -1408,9 +1421,36 @@
       // ---- 4) RESULTADO ----
       setTimeout(() => {
         paradinhaDive = null;
+        lastShotInfo = {finalX, finalY, sX, sY, power, strikeY: strikeRelY, shotType};
         showResult(result, finalX, ballSpeedMs);
       }, ballSpeedMs + 20);
     }, kickDelay);
+  }
+
+  function explainOut(info){
+    if (!info || info.finalY === undefined) return 'Just wide of the goal';
+    const {finalX, finalY, sX, sY, power, strikeY, shotType} = info;
+    // Por encima del larguero
+    if (finalY < 19){
+      if (shotType === 'panenka' && power > 0.7) return 'Panenka with too much power — over the bar';
+      if (strikeY > 0.4) return 'You struck too low on the ball — lifted too much';
+      if (sY < -0.7 && power > 0.6) return 'Aimed too high with too much power';
+      return 'Sailed over the crossbar';
+    }
+    // Por debajo (raro)
+    if (finalY > 40){
+      return 'Too low — hit the ground past the goal';
+    }
+    // Lateral fuera
+    if (finalX < 3){
+      if (Math.abs(sX) > 0.85) return 'Aimed too close to the left post';
+      return 'Drifted wide on the left';
+    }
+    if (finalX > 97){
+      if (Math.abs(sX) > 0.85) return 'Aimed too close to the right post';
+      return 'Drifted wide on the right';
+    }
+    return 'Just wide of the goal — check your direction';
   }
 
   function showResult(kind, finalX, ballSpeedMs){
@@ -1461,7 +1501,21 @@
         ball.style.transform = 'rotate(900deg)';
       }, 350);
     }
-    else { text.textContent = 'OUT!'; speak('Oooooooooh', {rate:0.55, pitch:0.85}); playWhistle(); setTimeout(()=>playApplause(800), 200); }
+    else {
+      text.textContent = 'OUT!';
+      speak('Oooooooooh', {rate:0.55, pitch:0.85});
+      playWhistle();
+      setTimeout(()=>playApplause(600), 200);
+      const why = explainOut(lastShotInfo);
+      const whyEl = document.getElementById('result-why');
+      whyEl.innerHTML = '<div class="why-title">Why?</div>' + why;
+      whyEl.style.animation = 'none'; void whyEl.offsetWidth; whyEl.style.animation = '';
+      whyEl.classList.add('show');
+    }
+    if (kind !== 'fuera'){
+      const whyEl = document.getElementById('result-why');
+      if (whyEl) whyEl.classList.remove('show');
+    }
     overlay.classList.add('show');
     shotsTaken++;
     updateHud();
