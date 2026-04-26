@@ -20,6 +20,20 @@
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
   .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
   .diff-btn.active-diff{background:linear-gradient(135deg,#FFD700,#c9a000)!important;color:#001f3f!important;border-color:#FFD700!important;box-shadow:0 0 12px rgba(255,215,0,0.5)}
+  /* Language picker */
+  .lang-picker{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:30}
+  .lang-flag{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);border-radius:6px;padding:3px 7px;font-size:1.15rem;cursor:pointer;line-height:1;transition:all 0.15s}
+  .lang-flag:hover{background:rgba(255,255,255,0.22)}
+  .lang-flag.active{background:rgba(255,215,0,0.25);border-color:#FFD700;box-shadow:0 0 8px rgba(255,215,0,0.4)}
+  /* Celebration picker (en settings) */
+  .cele-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 4px}
+  .cele-grid button{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,215,0,0.35);color:#fff;border-radius:7px;padding:6px 4px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s}
+  .cele-grid button:hover{background:rgba(255,215,0,0.18)}
+  .cele-grid button.active{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700;font-weight:900}
+  /* Zoom on celebration: el stage hace un peque&ntilde;o zoom y centra en el actor */
+  .stage{transition:transform 0.5s cubic-bezier(0.34,1.4,0.64,1)}
+  .stage.zoom-shooter{transform:scale(1.35);transform-origin:30% 80%}
+  .stage.zoom-keeper{transform:scale(1.4);transform-origin:50% 28%}
   /* HUD */
   .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(0,31,63,0.7);font-weight:900;letter-spacing:0.05em;z-index:10}
   .hud .name{font-size:1.05rem;color:#fff}
@@ -336,16 +350,34 @@
   <div class="bicycle-modal" id="bicycle-modal" onclick="bicycleTap()">
     <div class="bicycle-cd" id="bicycle-cd"></div>
     <div class="bicycle-content">
-      <h3 id="bicycle-stage">JUMP!</h3>
-      <p id="bicycle-instr">Tap when the indicator hits the green zone</p>
+      <h3 id="bicycle-stage" data-i18n="jump">JUMP!</h3>
+      <p id="bicycle-instr" data-i18n="jumpInstr">Ball coming &mdash; time your jump</p>
       <div class="bicycle-bar"><div class="bicycle-zone"></div><div class="bicycle-indicator" id="bicycle-indicator"></div></div>
-      <div class="bicycle-hint">TAP TO LOCK</div>
+      <div class="bicycle-hint" data-i18n="tapToLock">TAP TO LOCK</div>
     </div>
   </div>
   <div class="settings-modal" id="settings-modal">
     <div class="settings-content">
       <h3>Settings</h3>
       <label><input type="checkbox" id="sound-toggle" checked onchange="toggleSound()"> Sound effects</label>
+      <h4>Goal celebration (shooter)</h4>
+      <div class="cele-grid" id="cele-shooter-grid">
+        <button data-cele="random" onclick="setCele('shooter','random')">RANDOM</button>
+        <button data-cele="cele-cr7" onclick="setCele('shooter','cele-cr7')">SIUUU</button>
+        <button data-cele="cele-mortal" onclick="setCele('shooter','cele-mortal')">FLIP</button>
+        <button data-cele="cele-arquero" onclick="setCele('shooter','cele-arquero')">ARMS UP</button>
+        <button data-cele="cele-knee-slide" onclick="setCele('shooter','cele-knee-slide')">KNEE SLIDE</button>
+        <button data-cele="cele-shirt" onclick="setCele('shooter','cele-shirt')">SHIRT OFF</button>
+      </div>
+      <h4>Save celebration (keeper)</h4>
+      <div class="cele-grid" id="cele-keeper-grid">
+        <button data-cele="random" onclick="setCele('keeper','random')">RANDOM</button>
+        <button data-cele="k-cele-1" onclick="setCele('keeper','k-cele-1')">FISTS</button>
+        <button data-cele="k-cele-2" onclick="setCele('keeper','k-cele-2')">ROAR</button>
+        <button data-cele="k-cele-3" onclick="setCele('keeper','k-cele-3')">BOUNCE</button>
+        <button data-cele="k-cele-4" onclick="setCele('keeper','k-cele-4')">CROSS</button>
+        <button data-cele="k-cele-5" onclick="setCele('keeper','k-cele-5')">SALUTE</button>
+      </div>
       <h4>How to play</h4>
       <p><strong>Touch the ball</strong> on the spot you want to strike (top, bottom, sides).</p>
       <p><strong>Drag back</strong> like a slingshot. The triangle shows direction; longer drag = more power.</p>
@@ -355,73 +387,80 @@
       <p><strong>CURL</strong>: curves toward the strike side.</p>
       <p><strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.</p>
       <p><strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.</p>
-      <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="toggleSettings();showTutorial()">SHOW TUTORIAL</button>
+      <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="toggleSettings();showTutorial()" data-i18n="showTutorial">SHOW TUTORIAL</button>
       <button class="btn close-btn" onclick="toggleSettings()">CLOSE</button>
     </div>
   </div>
 
   <!-- Pantalla 1: Inicio -->
   <div id="screen-intro" class="screen active">
+    <div class="lang-picker" id="lang-picker">
+      <button class="lang-flag active" data-lang="en" onclick="setLang('en')" title="English">&#x1F1EC;&#x1F1E7;</button>
+      <button class="lang-flag" data-lang="es" onclick="setLang('es')" title="Espa&ntilde;ol">&#x1F1EA;&#x1F1F8;</button>
+      <button class="lang-flag" data-lang="fr" onclick="setLang('fr')" title="Fran&ccedil;ais">&#x1F1EB;&#x1F1F7;</button>
+      <button class="lang-flag" data-lang="de" onclick="setLang('de')" title="Deutsch">&#x1F1E9;&#x1F1EA;</button>
+      <button class="lang-flag" data-lang="pt" onclick="setLang('pt')" title="Portugu&ecirc;s">&#x1F1F5;&#x1F1F9;</button>
+    </div>
     <h1>PENALTIES</h1>
     <div class="sub">Bernabeu 2026</div>
-    <p style="margin-bottom:18px;font-size:1rem;opacity:0.9">Enter your player name:</p>
+    <p style="margin-bottom:18px;font-size:1rem;opacity:0.9" data-i18n="enterName">Enter your player name:</p>
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
-    <p style="margin:20px 0 6px;font-size:0.78rem;opacity:0.85;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.1em">DIFFICULTY</p>
+    <p style="margin:20px 0 6px;font-size:0.78rem;opacity:0.85;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.1em" data-i18n="difficulty">DIFFICULTY</p>
     <div id="diff-buttons" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px">
-      <button class="btn-secondary diff-btn" data-diff="beginner" onclick="setDifficulty('beginner')">BEGINNER</button>
-      <button class="btn-secondary diff-btn active-diff" data-diff="intermediate" onclick="setDifficulty('intermediate')">INTERMEDIATE</button>
-      <button class="btn-secondary diff-btn" data-diff="expert" onclick="setDifficulty('expert')">EXPERT</button>
+      <button class="btn-secondary diff-btn" data-diff="beginner" onclick="setDifficulty('beginner')" data-i18n="beginner">BEGINNER</button>
+      <button class="btn-secondary diff-btn active-diff" data-diff="intermediate" onclick="setDifficulty('intermediate')" data-i18n="intermediate">INTERMEDIATE</button>
+      <button class="btn-secondary diff-btn" data-diff="expert" onclick="setDifficulty('expert')" data-i18n="expert">EXPERT</button>
     </div>
-    <button class="btn" onclick="goToKeepersGallery()">NEXT</button>
+    <button class="btn" onclick="goToKeepersGallery()" data-i18n="next">NEXT</button>
   </div>
 
   <!-- Galeria 1: KEEPERS in play (avatares grandes) -->
   <div id="screen-keepers-gallery" class="screen gallery-screen">
-    <h1>KEEPERS</h1>
-    <div class="gallery-sub">Top 10 in play tonight</div>
+    <h1 data-i18n="keepers">KEEPERS</h1>
+    <div class="gallery-sub" data-i18n="top10">Top 10 in play tonight</div>
     <div class="legend-grid" id="grid-k-gallery"></div>
-    <div class="btn-row"><button class="btn" onclick="goToShootersGallery()">SEE SHOOTERS &rarr;</button></div>
+    <div class="btn-row"><button class="btn" onclick="goToShootersGallery()" data-i18n="seeShooters">SEE SHOOTERS &rarr;</button></div>
   </div>
 
   <!-- Galeria 2: SHOOTERS in play (avatares grandes) -->
   <div id="screen-shooters-gallery" class="screen gallery-screen">
-    <h1>SHOOTERS</h1>
-    <div class="gallery-sub">Top 10 in play tonight</div>
+    <h1 data-i18n="shooters">SHOOTERS</h1>
+    <div class="gallery-sub" data-i18n="top10">Top 10 in play tonight</div>
     <div class="legend-grid" id="grid-s-gallery"></div>
     <div class="btn-row">
-      <button class="btn-secondary" onclick="show('keepers-gallery')">&larr; KEEPERS</button>
-      <button class="btn" onclick="goToRolePick()">PICK ROLE &rarr;</button>
+      <button class="btn-secondary" onclick="show('keepers-gallery')" data-i18n="backKeepers">&larr; KEEPERS</button>
+      <button class="btn" onclick="goToRolePick()" data-i18n="pickRoleBtn">PICK ROLE &rarr;</button>
     </div>
   </div>
 
   <!-- Pantalla role pick -->
   <div id="screen-role-pick" class="screen"><div class="center-col">
-    <h1 style="font-size:1.8rem">PICK YOUR ROLE</h1>
-    <div class="sub">You'll face one random opponent</div>
+    <h1 style="font-size:1.8rem" data-i18n="pickYourRole">PICK YOUR ROLE</h1>
+    <div class="sub" data-i18n="faceOpponent">You'll face one random opponent</div>
     <div style="display:flex;gap:20px;flex-wrap:wrap;justify-content:center;margin-top:20px">
       <div class="role-pick-card" onclick="pickRole('shooter')">
         <div class="ricon">&#9917;</div>
-        <div class="rname">SHOOTER</div>
-        <div class="rdesc">Strike the ball<br/>against a keeper</div>
+        <div class="rname" data-i18n="shooter">SHOOTER</div>
+        <div class="rdesc" data-i18n="shooterDesc">Strike the ball<br/>against a keeper</div>
       </div>
       <div class="role-pick-card" onclick="pickRole('keeper')">
         <div class="ricon">&#129303;</div>
-        <div class="rname">KEEPER</div>
-        <div class="rdesc">Save shots<br/>(coming soon)</div>
+        <div class="rname" data-i18n="keeper">KEEPER</div>
+        <div class="rdesc" data-i18n="keeperDesc">Save shots<br/>(coming soon)</div>
       </div>
     </div>
   </div></div>
 
   <!-- Pantalla 1b: Sorteo final (eligen los dos chosen ones) -->
   <div id="screen-sorteo" class="screen">
-    <h1 style="font-size:1.8rem">Tonight's Lineup</h1>
-    <div class="sub">Random 10 of each. Fate picks one.</div>
+    <h1 style="font-size:1.8rem" data-i18n="tonightsLineup">Tonight's Lineup</h1>
+    <div class="sub" data-i18n="randomFatePicks">Random 10 of each. Fate picks one.</div>
     <div class="lineup-section">
-      <div class="lh">Keepers in play</div>
+      <div class="lh" data-i18n="keepersInPlay">Keepers in play</div>
       <div class="lineup-grid" id="grid-keepers"></div>
     </div>
     <div class="lineup-section">
-      <div class="lh">Shooters in play</div>
+      <div class="lh" data-i18n="shootersInPlay">Shooters in play</div>
       <div class="lineup-grid" id="grid-shooters"></div>
     </div>
     <div id="sorteo-result" style="display:none;width:100%;align-items:center;flex-direction:column">
@@ -430,8 +469,8 @@
       <div class="sorteo-card" id="card-keeper"></div>
     </div>
     <div class="btn-row">
-      <button class="btn" id="btn-roll" onclick="rollMatch()">DRAW</button>
-      <button class="btn" id="btn-play" style="display:none" onclick="startMatch()">PLAY</button>
+      <button class="btn" id="btn-roll" onclick="rollMatch()" data-i18n="draw">DRAW</button>
+      <button class="btn" id="btn-play" style="display:none" onclick="startMatch()" data-i18n="play">PLAY</button>
     </div>
     <div class="draw-countdown" id="draw-countdown"></div>
   </div>
@@ -444,8 +483,8 @@
       <div class="score" id="hud-score">0</div>
     </div>
     <div class="match-hud">
-      <div class="who"><div class="role">SHOOTER</div><div class="nm" id="match-shooter">--</div><div class="stats" id="match-shooter-stats"></div></div>
-      <div class="who"><div class="role">KEEPER</div><div class="nm" id="match-keeper">--</div><div class="stats" id="match-keeper-stats"></div></div>
+      <div class="who"><div class="role" data-i18n="shooter">SHOOTER</div><div class="nm" id="match-shooter">--</div><div class="stats" id="match-shooter-stats"></div></div>
+      <div class="who"><div class="role" data-i18n="keeper">KEEPER</div><div class="nm" id="match-keeper">--</div><div class="stats" id="match-keeper-stats"></div></div>
     </div>
     <div class="keeper-zones" id="keeper-zones">
       <button data-zone="tl" onclick="keeperDive('tl')">↖</button>
@@ -734,9 +773,128 @@
   function toggleHelp(){
     document.getElementById('help-tooltip').classList.toggle('show');
   }
+  // ====== I18N (5 idiomas) ======
+  const I18N = {
+    en: {
+      enterName:'Enter your player name:', difficulty:'DIFFICULTY',
+      beginner:'BEGINNER', intermediate:'INTERMEDIATE', expert:'EXPERT', next:'NEXT',
+      keepers:'KEEPERS', shooters:'SHOOTERS', top10:'Top 10 in play tonight',
+      seeShooters:'SEE SHOOTERS &rarr;', backKeepers:'&larr; KEEPERS', pickRoleBtn:'PICK ROLE &rarr;',
+      pickYourRole:'PICK YOUR ROLE', faceOpponent:"You'll face one random opponent",
+      shooter:'SHOOTER', keeper:'KEEPER',
+      shooterDesc:'Strike the ball<br/>against a keeper', keeperDesc:'Save shots<br/>against a striker',
+      tonightsLineup:"Tonight's Lineup", randomFatePicks:'Random 10 of each. Fate picks one.',
+      keepersInPlay:'Keepers in play', shootersInPlay:'Shooters in play',
+      draw:'DRAW', play:'PLAY', penalty:'Penalty',
+      jump:'JUMP!', kick:'KICK!', jumpInstr:'Ball coming &mdash; time your jump',
+      kickInstr:'Ball reaching head &mdash; time the kick', tapToLock:'TAP TO LOCK',
+      showTutorial:'SHOW TUTORIAL'
+    },
+    es: {
+      enterName:'Escribe tu nombre:', difficulty:'DIFICULTAD',
+      beginner:'PRINCIPIANTE', intermediate:'INTERMEDIO', expert:'EXPERTO', next:'SIGUIENTE',
+      keepers:'PORTEROS', shooters:'LANZADORES', top10:'Top 10 en juego esta noche',
+      seeShooters:'VER LANZADORES &rarr;', backKeepers:'&larr; PORTEROS', pickRoleBtn:'ELEGIR ROL &rarr;',
+      pickYourRole:'ELIGE TU ROL', faceOpponent:'Te enfrentar&aacute;s a un rival al azar',
+      shooter:'LANZADOR', keeper:'PORTERO',
+      shooterDesc:'Chuta el bal&oacute;n<br/>contra un portero', keeperDesc:'Para los disparos<br/>de un lanzador',
+      tonightsLineup:'Alineaci&oacute;n de hoy', randomFatePicks:'10 al azar de cada uno. El destino elige.',
+      keepersInPlay:'Porteros en juego', shootersInPlay:'Lanzadores en juego',
+      draw:'SORTEO', play:'JUGAR', penalty:'Penalti',
+      jump:'&iexcl;SALTA!', kick:'&iexcl;CHUTA!', jumpInstr:'El bal&oacute;n llega &mdash; ajusta tu salto',
+      kickInstr:'El bal&oacute;n llega a la cabeza &mdash; chuta', tapToLock:'TOCA PARA FIJAR',
+      showTutorial:'VER TUTORIAL'
+    },
+    fr: {
+      enterName:'Entre ton pseudo&nbsp;:', difficulty:'DIFFICULT&Eacute;',
+      beginner:'D&Eacute;BUTANT', intermediate:'INTERM&Eacute;DIAIRE', expert:'EXPERT', next:'SUIVANT',
+      keepers:'GARDIENS', shooters:'TIREURS', top10:'Top 10 ce soir',
+      seeShooters:'VOIR TIREURS &rarr;', backKeepers:'&larr; GARDIENS', pickRoleBtn:'CHOISIR R&Ocirc;LE &rarr;',
+      pickYourRole:'CHOISIS TON R&Ocirc;LE', faceOpponent:'Tu affronteras un adversaire al&eacute;atoire',
+      shooter:'TIREUR', keeper:'GARDIEN',
+      shooterDesc:'Tire le ballon<br/>contre un gardien', keeperDesc:'Arr&ecirc;te les tirs<br/>d\'un tireur',
+      tonightsLineup:'Composition du soir', randomFatePicks:'10 au hasard de chaque. Le destin choisit.',
+      keepersInPlay:'Gardiens en jeu', shootersInPlay:'Tireurs en jeu',
+      draw:'TIRAGE', play:'JOUER', penalty:'Penalty',
+      jump:'SAUTE&nbsp;!', kick:'TIRE&nbsp;!', jumpInstr:'Le ballon arrive &mdash; minute ton saut',
+      kickInstr:'Le ballon arrive &agrave; la t&ecirc;te &mdash; tire', tapToLock:'TAPE POUR VALIDER',
+      showTutorial:'VOIR TUTO'
+    },
+    de: {
+      enterName:'Gib deinen Namen ein:', difficulty:'SCHWIERIGKEIT',
+      beginner:'ANF&Auml;NGER', intermediate:'MITTEL', expert:'EXPERTE', next:'WEITER',
+      keepers:'TORW&Auml;RTE', shooters:'SCH&Uuml;TZEN', top10:'Top 10 heute Abend',
+      seeShooters:'SCH&Uuml;TZEN ANSEHEN &rarr;', backKeepers:'&larr; TORW&Auml;RTE', pickRoleBtn:'ROLLE W&Auml;HLEN &rarr;',
+      pickYourRole:'W&Auml;HLE DEINE ROLLE', faceOpponent:'Du trittst gegen einen zuf&auml;lligen Gegner an',
+      shooter:'SCH&Uuml;TZE', keeper:'TORWART',
+      shooterDesc:'Schie&szlig;e den Ball<br/>gegen einen Torwart', keeperDesc:'Halte Sch&uuml;sse<br/>eines Sch&uuml;tzen',
+      tonightsLineup:'Aufstellung heute', randomFatePicks:'10 zuf&auml;llige je Seite. Das Schicksal w&auml;hlt.',
+      keepersInPlay:'Torw&auml;rte im Spiel', shootersInPlay:'Sch&uuml;tzen im Spiel',
+      draw:'AUSLOSEN', play:'SPIELEN', penalty:'Elfmeter',
+      jump:'SPRING!', kick:'SCHIESS!', jumpInstr:'Ball kommt &mdash; pass deinen Sprung an',
+      kickInstr:'Ball trifft den Kopf &mdash; schie&szlig;', tapToLock:'TIPPEN ZUM FIXIEREN',
+      showTutorial:'TUTORIAL ZEIGEN'
+    },
+    pt: {
+      enterName:'Insere o teu nome:', difficulty:'DIFICULDADE',
+      beginner:'PRINCIPIANTE', intermediate:'INTERM&Eacute;DIO', expert:'PERITO', next:'SEGUINTE',
+      keepers:'GUARDA-REDES', shooters:'REMATADORES', top10:'Top 10 em jogo esta noite',
+      seeShooters:'VER REMATADORES &rarr;', backKeepers:'&larr; GUARDA-REDES', pickRoleBtn:'ESCOLHER PAPEL &rarr;',
+      pickYourRole:'ESCOLHE O TEU PAPEL', faceOpponent:'Vais enfrentar um advers&aacute;rio aleat&oacute;rio',
+      shooter:'REMATADOR', keeper:'GUARDA-REDES',
+      shooterDesc:'Remata a bola<br/>contra um guarda-redes', keeperDesc:'Defende remates<br/>de um rematador',
+      tonightsLineup:'Onze de hoje', randomFatePicks:'10 ao acaso de cada. O destino decide.',
+      keepersInPlay:'Guarda-redes em jogo', shootersInPlay:'Rematadores em jogo',
+      draw:'SORTEIO', play:'JOGAR', penalty:'Pen&aacute;lti',
+      jump:'SALTA!', kick:'REMATA!', jumpInstr:'A bola chega &mdash; ajusta o salto',
+      kickInstr:'A bola chega &agrave; cabe&ccedil;a &mdash; remata', tapToLock:'TOCA PARA FIXAR',
+      showTutorial:'VER TUTORIAL'
+    }
+  };
+  let currentLang = 'en';
+  try { const sv = localStorage.getItem('penalties_lang'); if (sv && I18N[sv]) currentLang = sv; } catch(e){}
+  function t(k){ return (I18N[currentLang] && I18N[currentLang][k]) || I18N.en[k] || k; }
+  function setLang(lang){
+    if (!I18N[lang]) return;
+    currentLang = lang;
+    try { localStorage.setItem('penalties_lang', lang); } catch(e){}
+    document.querySelectorAll('.lang-flag').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    applyLang();
+  }
+  function applyLang(){
+    document.querySelectorAll('[data-i18n]').forEach(el => { el.innerHTML = t(el.getAttribute('data-i18n')); });
+  }
+  // ====== Celebraciones elegidas por el usuario (con fallback random) ======
+  const SHOOTER_CELES = ['cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt'];
+  const KEEPER_CELES  = ['k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5'];
+  let celeShooter = 'random';
+  let celeKeeper = 'random';
+  try { celeShooter = localStorage.getItem('penalties_cele_shooter') || 'random'; } catch(e){}
+  try { celeKeeper  = localStorage.getItem('penalties_cele_keeper')  || 'random'; } catch(e){}
+  function setCele(who, value){
+    if (who === 'shooter'){
+      celeShooter = value;
+      try { localStorage.setItem('penalties_cele_shooter', value); } catch(e){}
+      document.querySelectorAll('#cele-shooter-grid button').forEach(b => b.classList.toggle('active', b.dataset.cele === value));
+    } else {
+      celeKeeper = value;
+      try { localStorage.setItem('penalties_cele_keeper', value); } catch(e){}
+      document.querySelectorAll('#cele-keeper-grid button').forEach(b => b.classList.toggle('active', b.dataset.cele === value));
+    }
+  }
+  function pickShooterCele(){ return celeShooter !== 'random' ? celeShooter : SHOOTER_CELES[Math.floor(Math.random() * SHOOTER_CELES.length)]; }
+  function pickKeeperCele(){  return celeKeeper  !== 'random' ? celeKeeper  : KEEPER_CELES[Math.floor(Math.random() * KEEPER_CELES.length)]; }
+  // Zoom transitorio durante celebracion
+  function zoomOnCele(who, ms){
+    const stage = document.querySelector('.stage');
+    if (!stage) return;
+    stage.classList.remove('zoom-shooter','zoom-keeper');
+    stage.classList.add(who === 'keeper' ? 'zoom-keeper' : 'zoom-shooter');
+    setTimeout(() => stage.classList.remove('zoom-shooter','zoom-keeper'), ms || 1800);
+  }
   // ====== TUTORIAL (primera vez) ======
   const TUTORIAL_SLIDES = [
-    {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — save shots (coming soon).</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
+    {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — pick a zone to dive when the CPU shoots.</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
     {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where the ball will go — like billiards.</p><p>If you want the ball to fly RIGHT, touch the LEFT of the ball. If you want it LOW, touch the TOP. Touching BOTTOM lifts it (chip).</p><p>This is independent of your aim intent: the contact point overrides everything.</p>'},
     {icon:'🎯💪', title:'SLINGSHOT: ARROW + POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your INTENT (combine with strike point for perfect execution).</p><p>The <strong>length of the drag</strong> is real shot power — but slightly modulated by shot type (panenka is always slow, instep is direct, etc).</p>'},
     {icon:'🚲⏱️', title:'BICYCLE KICK (BONUS)', body:'<p><strong>How to unlock:</strong> score with at least one shot from <strong>each of the 5 rows</strong> (Pass/Instep, Curl/Trivela, Panenka/Paradinha, Fake/Jorginho, CR7/Neymar) within a single match.</p><p>When unlocked you get <strong>3 bonus bicycle-kick attempts</strong>. Each successful bicycle kick adds a top-20 player <strong>card</strong> to your profile (starting from #20 and going up).</p><p>The bicycle is a 2-step timing mini-game in slow motion: time the JUMP (3s) and the KICK (2s). Miss either and no goal.</p>'},
@@ -1428,7 +1586,7 @@
 
   function updateHud(){
     document.getElementById('hud-score').textContent = score;
-    document.getElementById('hud-shots').textContent = 'Penalti ' + Math.min(shotsTaken+1, TOTAL_SHOTS) + ' / ' + TOTAL_SHOTS;
+    document.getElementById('hud-shots').textContent = t('penalty') + ' ' + Math.min(shotsTaken+1, TOTAL_SHOTS) + ' / ' + TOTAL_SHOTS;
   }
 
   function resetBall(){
@@ -2214,9 +2372,10 @@
         }
       }
       player.classList.remove('kicking','running','cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt');
-      const celes = ['cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt'];
-      const pick = celes[Math.floor(Math.random() * celes.length)];
+      const pick = pickShooterCele();
       player.classList.add(pick);
+      // Zoom solo si el GOL es del jugador-shooter (no del CPU en modo keeper)
+      if (gameMode === 'shooter') zoomOnCele('shooter', 2000);
       speakRandomGoal();
       playCrowdCheer(2400, 0.4);
       playApplause(2200);
@@ -2227,12 +2386,13 @@
       speakRandomMiss();
       playWhistle();
       setTimeout(playApplause, 200);
-      // Celebracion aleatoria del portero (1 de 5)
+      // Celebracion del portero (elegida o random)
       setTimeout(() => {
         const keeper = document.getElementById('keeper');
         keeper.classList.remove('k-cele','k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5');
-        const keles = ['k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5'];
-        keeper.classList.add(keles[Math.floor(Math.random() * keles.length)]);
+        keeper.classList.add(pickKeeperCele());
+        // Zoom solo si la parada es tuya (modo keeper)
+        if (gameMode === 'keeper') zoomOnCele('keeper', 2000);
         keeper.style.transition = 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)';
         // Balon al aire (kicked up)
         const ball = document.getElementById('ball');
@@ -2349,6 +2509,12 @@
     const seenTut = localStorage.getItem('penalties_tutorial_seen');
     if (!seenTut) setTimeout(showTutorial, 400);
   } catch(e){}
+  // Aplicar idioma guardado (o EN por defecto) y marcar bandera activa
+  document.querySelectorAll('.lang-flag').forEach(b => b.classList.toggle('active', b.dataset.lang === currentLang));
+  applyLang();
+  // Marcar celebraciones guardadas
+  document.querySelectorAll('#cele-shooter-grid button').forEach(b => b.classList.toggle('active', b.dataset.cele === celeShooter));
+  document.querySelectorAll('#cele-keeper-grid button').forEach(b => b.classList.toggle('active', b.dataset.cele === celeKeeper));
 
   // ====== Sombra del balon (perspectiva con linterna desde arriba) ======
   function updateBallShadow(){
