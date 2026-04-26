@@ -18,6 +18,8 @@
   .btn{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border:none;padding:18px 48px;font-size:1.2rem;font-weight:900;letter-spacing:0.1em;border-radius:10px;cursor:pointer;margin-top:24px;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
   .btn:active{transform:translateY(2px)}
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
+  .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
+  .diff-btn.active-diff{background:linear-gradient(135deg,#FFD700,#c9a000)!important;color:#001f3f!important;border-color:#FFD700!important;box-shadow:0 0 12px rgba(255,215,0,0.5)}
   /* HUD */
   .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(0,31,63,0.7);font-weight:900;letter-spacing:0.05em;z-index:10}
   .hud .name{font-size:1.05rem;color:#fff}
@@ -52,7 +54,8 @@
   .fake-picker-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
   .fake-picker-buttons button{background:rgba(0,31,63,0.9);border:1.5px solid rgba(255,215,0,0.5);color:#fff;padding:8px 5px;font-family:'Cinzel',serif;font-size:0.78rem;font-weight:700;letter-spacing:0.05em;border-radius:6px;cursor:pointer}
   .fake-picker-buttons button:hover{background:rgba(255,215,0,0.2)}
-  .fake-cd{position:absolute;top:-22px;right:8px;color:#FF3030;font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;text-shadow:0 0 12px #FF3030,0 2px 4px rgba(0,0,0,0.6)}
+  .fake-cd{position:fixed;top:30%;left:50%;transform:translateX(-50%);color:#FFD700;font-family:'Cinzel',serif;font-size:6rem;font-weight:900;text-shadow:0 0 24px #FF3030,0 0 50px #FF3030,0 6px 12px rgba(0,0,0,0.8);z-index:70;pointer-events:none;line-height:1;animation:cd-pulse 0.5s ease-out}
+  @keyframes cd-pulse{from{transform:translateX(-50%) scale(1.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
   /* Bicycle kick mini-game (barra abajo, fuera del balon, con countdown) */
   .bicycle-modal{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:2px solid #FFD700;border-radius:14px;display:none;z-index:60;cursor:pointer;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
   .bicycle-modal.show{display:block;animation:bm-pop 0.25s ease-out}
@@ -458,7 +461,8 @@
       <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub">chip shot</span></button>
       <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">stutter step</span></button>
       <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub">feint, no shot</span></button>
-      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()">BICYCLE<span class="shot-sub">overhead</span></button>
+      <button class="shot-btn" data-shot="jorginho" onclick="setShotType('jorginho')">JORGINHO<span class="shot-sub">stutter hop</span></button>
+      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()" style="display:none">BICYCLE<span class="shot-sub">overhead bonus</span></button>
       <button class="shot-btn" data-shot="cr7" onclick="setShotType('cr7')" style="display:none">CR7<span class="shot-sub">side-step + instep</span></button>
       <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')" style="display:none">NEYMAR<span class="shot-sub">side-step + crazy stutter</span></button>
     </div>
@@ -670,7 +674,7 @@
     else if (s.hair === 'curly') hairPath = '<g fill="'+hairColor+'"><circle cx="36" cy="12" r="7"/><circle cx="50" cy="4" r="8"/><circle cx="64" cy="12" r="7"/><circle cx="32" cy="22" r="6"/><circle cx="68" cy="22" r="6"/></g>';
     else if (s.hair === 'mohawk')hairPath = '<path d="M44 0 L56 0 L56 22 L44 22 Z" fill="'+hairColor+'"/>';
     else if (s.hair === 'afro')  hairPath = '<g fill="'+hairColor+'"><circle cx="32" cy="14" r="9"/><circle cx="42" cy="4" r="9"/><circle cx="50" cy="0" r="9"/><circle cx="58" cy="4" r="9"/><circle cx="68" cy="14" r="9"/><circle cx="30" cy="22" r="7"/><circle cx="70" cy="22" r="7"/></g>';
-    else if (s.hair === 'horseshoe') hairPath = '<g fill="'+hairColor+'"><ellipse cx="34" cy="24" rx="6" ry="9"/><ellipse cx="66" cy="24" rx="6" ry="9"/><ellipse cx="50" cy="32" rx="15" ry="3"/></g>';
+    else if (s.hair === 'horseshoe') hairPath = '<path d="M26 22 Q18 8 32 4 Q50 -2 68 4 Q82 8 74 22 L76 32 Q50 38 24 32 Z" fill="'+hairColor+'"/><ellipse cx="50" cy="10" rx="14" ry="8" fill="'+skin+'"/>';
     // bald: nada
     const txtColor = (c.jersey === '#fff' || c.jersey === '#ffe600' || c.jersey === '#FFD700') ? '#001f3f' : '#fff';
     return '<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">'+
@@ -730,7 +734,7 @@
     {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — save shots (coming soon).</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
     {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where the ball will go — like billiards.</p><p>If you want the ball to fly RIGHT, touch the LEFT of the ball. If you want it LOW, touch the TOP. Touching BOTTOM lifts it (chip).</p><p>This is independent of your aim intent: the contact point overrides everything.</p>'},
     {icon:'🎯💪', title:'SLINGSHOT: ARROW + POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your INTENT (combine with strike point for perfect execution).</p><p>The <strong>length of the drag</strong> is real shot power — but slightly modulated by shot type (panenka is always slow, instep is direct, etc).</p>'},
-    {icon:'🚲⏱️', title:'BICYCLE KICK', body:'<p>The bicycle kick is a <strong>2-step timing mini-game</strong> in slow motion:</p><p>1. <strong>JUMP</strong>: time your jump as the ball rebounds off the crossbar (3s countdown — miss it and the ball drops past you).</p><p>2. <strong>KICK</strong>: time the bicycle kick when the ball reaches your head (2s countdown).</p><p>Hit both perfectly = goal at the corner. Miss either = no goal.</p>'},
+    {icon:'🚲⏱️', title:'BICYCLE KICK (BONUS)', body:'<p><strong>How to unlock:</strong> score with at least one shot from <strong>each of the 5 rows</strong> (Pass/Instep, Curl/Trivela, Panenka/Paradinha, Fake/Jorginho, CR7/Neymar) within a single match.</p><p>When unlocked you get <strong>3 bonus bicycle-kick attempts</strong>. Each successful bicycle kick adds a top-20 player <strong>card</strong> to your profile (starting from #20 and going up).</p><p>The bicycle is a 2-step timing mini-game in slow motion: time the JUMP (3s) and the KICK (2s). Miss either and no goal.</p>'},
     {icon:'🧲🔓', title:'DRAG TO UNLOCK', body:'<p>You can <strong>drag the player</strong> with your mouse/finger to reposition them.</p><p>If you drop the player in the <strong>center of the field</strong>, two new shot types unlock:</p><p><strong>CR7</strong> — side-step back to corner + classic instep.<br><strong>NEYMAR</strong> — side-step + 8 weird stutter steps before kicking.</p><p>Move the player back to the side and they hide again.</p>'}
   ];
   let tutorialIdx = 0;
@@ -1087,6 +1091,32 @@
     show('role-pick');
   }
   let gameMode = 'shooter';   // 'shooter' | 'keeper'
+  // Row tracking para desbloquear bicycle kick bonus
+  const ROW_OF = {
+    pass:'r1', instep:'r1',
+    curl:'r2', trivela:'r2',
+    panenka:'r3', paradinha:'r3',
+    fake:'r4', jorginho:'r4',
+    cr7:'r5', neymar:'r5'
+  };
+  let scoredRows = new Set();
+  let bonusMode = false;
+  let bonusAttempts = 0;
+  const BONUS_TOTAL = 3;
+
+  function awardBicycleCard(){
+    let profile = {};
+    try { profile = JSON.parse(localStorage.getItem('penalties_profile') || '{}'); } catch(e){}
+    profile.cards = profile.cards || [];
+    // Empezamos por el final del top 20 (ultimo shooter)
+    const idx = SHOOTERS.length - 1 - profile.cards.length;
+    if (idx < 0) return null;
+    const card = SHOOTERS[idx];
+    if (profile.cards.indexOf(card.name) >= 0) return null;
+    profile.cards.push(card.name);
+    try { localStorage.setItem('penalties_profile', JSON.stringify(profile)); } catch(e){}
+    return card;
+  }
   function pickRole(role){
     gameMode = role;
     renderLineup();
@@ -1202,6 +1232,17 @@
   function startMatch(){
     score = 0;
     shotsTaken = 0;
+    scoredRows = new Set();
+    bonusMode = false;
+    bonusAttempts = 0;
+    // Restaurar visibilidad shot-types
+    document.querySelectorAll('.shot-btn').forEach(b => {
+      if (b.dataset.shot === 'bicycle' || b.dataset.shot === 'cr7' || b.dataset.shot === 'neymar'){
+        b.style.display = 'none';
+      } else {
+        b.style.display = '';
+      }
+    });
     document.getElementById('hud-name').textContent = playerName;
     document.getElementById('match-shooter').textContent = selectedShooter.name + ' #' + selectedShooter.dorsal;
     document.getElementById('match-keeper').textContent = selectedKeeper.name;
@@ -1378,15 +1419,17 @@
     ball.style.top = '78%';
     ball.style.width = '7%';
     document.getElementById('fake-picker').classList.add('show');
-    // Cuenta atras grande, corta (2 segundos)
+    // Cuenta atras grande centrada, corta (2 segundos)
     let remaining = 2;
-    document.getElementById('fake-cd').textContent = remaining;
+    const cdEl = document.getElementById('fake-cd');
+    cdEl.textContent = remaining;
+    cdEl.style.animation = 'none'; void cdEl.offsetWidth; cdEl.style.animation = '';
     if (fakeCdTimer) clearInterval(fakeCdTimer);
     fakeCdTimer = setInterval(() => {
       remaining--;
       if (remaining <= 0){
         clearInterval(fakeCdTimer); fakeCdTimer = null;
-        document.getElementById('fake-cd').textContent = '';
+        cdEl.textContent = '';
         // Auto-fail: el portero ya esta en posicion y el balon se queda parado
         document.getElementById('fake-picker').classList.remove('show');
         document.querySelector('.stage').classList.remove('slowmo');
@@ -1400,7 +1443,8 @@
           document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
         }, 100);
       } else {
-        document.getElementById('fake-cd').textContent = remaining;
+        cdEl.textContent = remaining;
+        cdEl.style.animation = 'none'; void cdEl.offsetWidth; cdEl.style.animation = '';
       }
     }, 1000);
   }
@@ -1732,6 +1776,44 @@
       return;
     }
 
+    // JORGINHO: corre, hace un hop dramatico (portero compromete), aterriza y soft-pass.
+    if (shotType === 'jorginho'){
+      const realSX = sX, realSY = sY, realPower = power;
+      const player = document.getElementById('player');
+      player.classList.add('running');
+      player.style.left = '38%';
+      player.style.bottom = '14%';
+      setTimeout(() => {
+        // Hop dramatico
+        player.classList.remove('running');
+        player.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
+        player.style.transform = 'translateY(-22%) rotate(2deg)';
+        // Portero se compromete
+        const keeper = document.getElementById('keeper');
+        const dive = Math.floor(Math.random() * 3);
+        const kLeft = ['12%','42%','72%'][dive];
+        const zones = [[10,38],[38,62],[62,90]];
+        keeper.style.left = kLeft;
+        keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
+        keeper.classList.remove('dive-l','dive-c','dive-r');
+        keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+        paradinhaDive = {dive: dive, zone: zones[dive]};
+      }, 600);
+      setTimeout(() => {
+        // Aterrizaje + soft pass
+        player.style.transform = '';
+        shooting = false;
+        const prev = shotType;
+        shotType = 'pass';
+        doShoot(realSX * 0.7, realSY, realPower * 0.6, {skipRun: true});
+        setTimeout(() => {
+          shotType = prev;
+          document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
+        }, 100);
+      }, 1100);
+      return;
+    }
+
     // FAKE: corre al balon -> finta con la pierna (sin tocar balon) -> camara lenta
     // -> selector de tipo de chute -> chute real con el tipo elegido.
     if (shotType === 'fake'){
@@ -2055,6 +2137,19 @@
     if (kind === 'gol'){
       text.textContent = 'GOOOAL!';
       if (gameMode !== 'keeper') score++;   // en keeper mode, gol del CPU NO suma al usuario
+      // Track row scored para bonus
+      if (gameMode === 'shooter' && shotType in ROW_OF){
+        scoredRows.add(ROW_OF[shotType]);
+      }
+      // Award card si es bonus bicycle gol
+      if (bonusMode && shotType === 'bicycle'){
+        const card = awardBicycleCard();
+        if (card){
+          setTimeout(() => {
+            alert('🎴 NEW CARD UNLOCKED:\n\n' + card.name + ' (#' + card.dorsal + ')\n' + card.alias);
+          }, 1600);
+        }
+      }
       player.classList.remove('kicking','running','cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt');
       const celes = ['cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt'];
       const pick = celes[Math.floor(Math.random() * celes.length)];
@@ -2105,8 +2200,32 @@
 
     setTimeout(() => {
       overlay.classList.remove('show');
-      if (shotsTaken >= TOTAL_SHOTS){
-        endGame();
+      if (bonusMode){
+        bonusAttempts++;
+        if (bonusAttempts >= BONUS_TOTAL){
+          bonusMode = false;
+          endGame();
+        } else {
+          resetBall();
+          shooting = false;
+        }
+      } else if (shotsTaken >= TOTAL_SHOTS){
+        // Comprobar bonus unlock
+        if (gameMode === 'shooter' && scoredRows.size >= 5){
+          bonusMode = true;
+          bonusAttempts = 0;
+          // Mostrar BICYCLE button + ocultar resto + alert
+          document.querySelectorAll('.shot-btn').forEach(b => {
+            b.style.display = b.dataset.shot === 'bicycle' ? '' : 'none';
+          });
+          document.querySelector('.shot-btn[data-shot="bicycle"]').classList.add('active');
+          shotType = 'bicycle';
+          alert('🎉 BONUS UNLOCKED!\n\nYou scored from all 5 shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
+          resetBall();
+          shooting = false;
+        } else {
+          endGame();
+        }
       } else {
         resetBall();
         shooting = false;
