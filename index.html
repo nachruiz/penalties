@@ -1,8 +1,18 @@
 <!DOCTYPE html>
+<!--
+  Legends Penalties
+  Copyright (c) 2026 Khoru Creative S.L. All rights reserved.
+  This source code is provided for viewing only. No part of this work may be
+  reproduced, distributed, modified, or republished, in whole or in part,
+  by any means, without the express prior written permission of Khoru Creative S.L.
+  Unauthorized use, copying, redistribution or commercial exploitation is prohibited.
+-->
 <html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="author" content="Khoru Creative S.L.">
+<meta name="copyright" content="Copyright (c) 2026 Khoru Creative S.L. All rights reserved.">
 <title>Legends Penalties</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -64,6 +74,8 @@
   }
   /* Asegurar que el contenido (titulo, input, etc) queda por encima de los pseudoelementos */
   #screen-intro > *{ position:relative; z-index:2; }
+  /* Pie de copyright discreto en la portada */
+  .copyright-foot{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:0.62rem;color:rgba(255,255,255,0.45);letter-spacing:0.06em;font-family:'DM Sans',sans-serif;pointer-events:none}
   /* Language picker: solo c&oacute;digo de idioma (Windows no renderiza flag emojis) */
   .lang-picker{position:absolute;top:12px;left:12px;display:flex;gap:5px;z-index:30}
   .lang-flag{background:#001f3f;border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:6px 9px;font-size:0.72rem;color:#fff;cursor:pointer;line-height:1;transition:all 0.15s;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;min-width:34px;text-align:center}
@@ -312,7 +324,7 @@
   .assist-circle.show{display:block;animation:assist-pulse 1s ease-in-out infinite alternate}
   @keyframes assist-pulse{from{opacity:0.7;box-shadow:0 0 6px rgba(124,252,0,0.5),inset 0 0 6px rgba(124,252,0,0.3)}to{opacity:1;box-shadow:0 0 14px rgba(124,252,0,0.9),inset 0 0 10px rgba(124,252,0,0.5)}}
   /* Shot-types panel: cuadrante INFERIOR del lado opuesto al lanzador, para no tapar la trayectoria */
-  .shot-types{position:absolute;right:4px;bottom:2%;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;z-index:10;width:200px;max-height:46%;overflow:visible}
+  .shot-types{position:absolute!important;right:4px;left:auto;top:auto!important;bottom:2%!important;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;z-index:10;width:200px;max-height:42%;overflow:visible;align-content:end}
   .shot-types .shot-btn{padding:5px 7px;font-size:0.82rem}
   .shot-types .shot-btn .shot-sub{font-size:0.62rem}
   /* Especiales (CR7/Neymar/Bicycle) van en el cuadrante SUPERIOR para no chocar con la jugada */
@@ -516,6 +528,7 @@
       <button class="btn-secondary diff-btn" data-diff="expert" onclick="setDifficulty('expert')" data-i18n="expert">EXPERT</button>
     </div>
     <button class="btn" onclick="goToKeepersGallery()" data-i18n="next">NEXT</button>
+    <div class="copyright-foot">&copy; 2026 Khoru Creative S.L. &mdash; All rights reserved</div>
   </div>
 
   <!-- Galeria 1: KEEPERS in play (avatares grandes) -->
