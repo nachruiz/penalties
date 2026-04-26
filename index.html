@@ -163,12 +163,12 @@
   /* Tirachinas (triangulo) */
   .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
   .drag-svg.show{display:block}
-  /* Shot type buttons (debajo de la porteria, no la tapan) */
-  .shot-types{position:absolute;right:4px;top:55%;display:flex;flex-direction:column;gap:4px;z-index:10}
-  .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:5px 7px;font-family:'Cinzel',serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border-radius:6px;cursor:pointer;min-width:74px;text-align:center;transition:all 0.15s}
+  /* Shot type buttons (2 columnas para que quepan todos en pantalla) */
+  .shot-types{position:absolute;right:3px;top:42%;display:grid;grid-template-columns:repeat(2,1fr);gap:3px;z-index:10;width:138px}
+  .shot-btn{background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.4);color:#fff;padding:3px 5px;font-family:'Cinzel',serif;font-size:0.55rem;font-weight:700;letter-spacing:0.04em;border-radius:5px;cursor:pointer;text-align:center;transition:all 0.15s}
   .shot-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.15)}
   .shot-btn.active{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,0.5)}
-  .shot-btn .shot-sub{display:block;font-family:'DM Sans',sans-serif;font-size:0.5rem;opacity:0.75;letter-spacing:0;font-weight:500;margin-top:1px;text-transform:lowercase}
+  .shot-btn .shot-sub{display:block;font-family:'DM Sans',sans-serif;font-size:0.42rem;opacity:0.7;letter-spacing:0;font-weight:500;margin-top:0;text-transform:lowercase;line-height:1.1}
   .shot-btn.active .shot-sub{opacity:0.85}
   /* Marker on ball strike point */
   .strike-marker{position:absolute;width:14px;height:14px;border-radius:50%;background:#FF3030;border:2px solid #fff;pointer-events:none;z-index:13;transform:translate(-50%,-50%);display:none;box-shadow:0 0 10px rgba(255,48,48,0.9)}
@@ -1257,10 +1257,10 @@
 
     // ---- Efectos por tipo de chute ----
     if (shotType === 'pass'){
-      // PASS con el interior del pie: tiro raso, lateral o medio. Velocidad media-baja.
-      finalY = 33 + (Math.random() - 0.5) * 4;  // raso (33-35 cerca del suelo del gol)
+      // PASS con el interior del pie: tiro a RAS DE SUELO. Velocidad media-baja.
+      finalY = 35.5 + (Math.random() - 0.5) * 1.5;  // 34.75-36.25, muy raso (justo encima del suelo)
       ballSpeedMs = Math.round(ballSpeedMs * 1.15);
-      saveModifier += 0.05;  // un raso al portero es facil de parar si esta en zona
+      saveModifier += 0.05;
       spinDeg = Math.round(spinDeg * 0.8);
     }
     else if (shotType === 'curl'){
