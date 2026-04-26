@@ -196,9 +196,10 @@
   .result-speed .num{color:#fff;font-weight:900;font-size:2.4rem;text-shadow:0 4px 14px rgba(0,0,0,0.7)}
   .result-speed .unit{opacity:0.85;font-size:1rem;margin-left:3px;color:#FFD700}
   @keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-  .result-why{color:#fff;background:rgba(0,31,63,0.92);border:1.5px solid #FFD700;border-radius:10px;padding:12px 16px;margin-top:14px;font-size:0.9rem;max-width:300px;text-align:center;line-height:1.4;opacity:0;animation:fade-up 0.5s 0.4s forwards;display:none}
-  .result-why.show{display:block}
-  .result-why .why-title{color:#FFD700;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.12em;margin-bottom:4px;text-transform:uppercase}
+  .result-why{position:absolute;left:8px;top:50%;width:236px;color:#fff;background:rgba(0,31,63,0.95);border:2px solid #FFD700;border-radius:12px;padding:14px 16px;font-size:0.92rem;text-align:center;line-height:1.45;opacity:0;display:none;box-shadow:0 4px 24px rgba(0,0,0,0.6)}
+  .result-why.show{display:block;animation:why-slide 0.45s ease-out forwards}
+  @keyframes why-slide{from{opacity:0;transform:translateY(-50%) translateX(-40px)}to{opacity:1;transform:translateY(-50%) translateX(0)}}
+  .result-why .why-title{color:#FFD700;font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;margin-bottom:6px;text-transform:uppercase}
   @keyframes flash{from{background:rgba(0,0,0,0.8)}to{background:rgba(0,0,0,0.5)}}
   @keyframes pop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
   /* Hint */
@@ -1776,7 +1777,7 @@
       return;
     }
 
-    // JORGINHO: corre, hace un hop dramatico (portero compromete), aterriza y soft-pass.
+    // JORGINHO: corre, justo antes del disparo SALTO MUY EXAGERADO (parte de la carrerilla).
     if (shotType === 'jorginho'){
       const realSX = sX, realSY = sY, realPower = power;
       const player = document.getElementById('player');
@@ -1784,11 +1785,11 @@
       player.style.left = '38%';
       player.style.bottom = '14%';
       setTimeout(() => {
-        // Hop dramatico
+        // SALTO MUY EXAGERADO antes del kick (compromete al portero)
         player.classList.remove('running');
-        player.style.transition = 'transform 0.4s cubic-bezier(0.34,1.56,0.64,1)';
-        player.style.transform = 'translateY(-22%) rotate(2deg)';
-        // Portero se compromete
+        player.style.transition = 'transform 0.55s cubic-bezier(0.34,1.7,0.5,1)';
+        player.style.transform = 'translateY(-55%) rotate(10deg) scale(1.05)';
+        // Portero se lanza
         const keeper = document.getElementById('keeper');
         const dive = Math.floor(Math.random() * 3);
         const kLeft = ['12%','42%','72%'][dive];
@@ -1798,10 +1799,16 @@
         keeper.classList.remove('dive-l','dive-c','dive-r');
         keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
         paradinhaDive = {dive: dive, zone: zones[dive]};
-      }, 600);
+      }, 550);
       setTimeout(() => {
-        // Aterrizaje + soft pass
+        // Aterrizaje suave en el aire (mantener leve elevacion)
+        player.style.transition = 'transform 0.25s ease-out';
+        player.style.transform = 'translateY(-5%)';
+      }, 1100);
+      setTimeout(() => {
+        // Soft pass de interior
         player.style.transform = '';
+        player.style.transition = '';
         shooting = false;
         const prev = shotType;
         shotType = 'pass';
@@ -1810,7 +1817,7 @@
           shotType = prev;
           document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
         }, 100);
-      }, 1100);
+      }, 1450);
       return;
     }
 
@@ -1893,11 +1900,10 @@
       saveModifier -= 0.08;
     }
     else if (shotType === 'panenka'){
-      // Vaselina: balon va al centro, SIEMPRE muy suave (~60% mas lento).
-      // Suele entrar a media-alta altura. Solo si te pasas mucho de potencia rasca larguero.
+      // Vaselina: balon va al centro, SIEMPRE muy suave. Bajada de 20% de altura general.
       finalX = 50 + (Math.random() - 0.5) * 10;
-      finalY = 27 - power * 6;     // power=0 -> 27 (mid), power=1 -> 21 (justo bajo larguero)
-      finalY += (Math.random() - 0.5) * 4; // pequeno ruido
+      finalY = 31 - power * 6;     // power=0 -> 31 (media-baja), power=1 -> 25 (alta pero no al larguero)
+      finalY += (Math.random() - 0.5) * 4;
       ballSpeedMs = Math.min(1300, Math.round(ballSpeedMs * 1.6));
       spinDeg = 360;
     }
@@ -2201,6 +2207,8 @@
     shotsTaken++;
     updateHud();
 
+    // Duracion mas larga si fallaste (para leer la explicacion)
+    const overlayDuration = (kind === 'fuera') ? 3300 : 1300;
     setTimeout(() => {
       overlay.classList.remove('show');
       if (bonusMode){
@@ -2233,7 +2241,7 @@
         resetBall();
         shooting = false;
       }
-    }, 1300);
+    }, overlayDuration);
   }
 
   function endGame(){
