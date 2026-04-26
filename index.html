@@ -1649,13 +1649,10 @@
       p3y = p.y - perpY * halfW;
     }
 
-    // El apex del triangulo SIEMPRE en el centro del balon (asi toca la pelota)
-    const ballEl = document.getElementById('ball');
-    const ballRect = ballEl.getBoundingClientRect();
-    const ballCx = ballRect.left + ballRect.width/2;
-    const ballCy = ballRect.top + ballRect.height/2;
-    const apexX = ((ballCx - stage.left) / stage.width) * 100;
-    const apexY = ((ballCy - stage.top) / stage.height) * 100;
+    // El apex del triangulo va al PUNTO DE GOLPEO (donde esta el marcador rojo en el balon)
+    // Asi el triangulo toca visiblemente el balon en el punto exacto del strike.
+    const apexX = ((dragStartX - stage.left) / stage.width) * 100;
+    const apexY = ((dragStartY - stage.top) / stage.height) * 100;
     const tx2 = ((p2x - stage.left) / stage.width) * 100;
     const ty2 = ((p2y - stage.top) / stage.height) * 100;
     const tx3 = ((p3x - stage.left) / stage.width) * 100;
