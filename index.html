@@ -43,6 +43,14 @@
   /* Settings button */
   .settings-btn{position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .settings-btn:hover{background:rgba(255,215,0,0.2)}
+  /* Fake shot picker (despues de la finta, en camara lenta) */
+  .fake-picker{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.92);border:2px solid #FFD700;border-radius:14px;padding:14px 18px;z-index:60;display:none;min-width:300px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.6)}
+  .fake-picker.show{display:block;animation:bm-pop 0.25s ease-out}
+  .fake-picker h3{color:#FFD700;font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:4px}
+  .fake-picker p{color:#fff;font-size:0.72rem;opacity:0.8;margin-bottom:10px}
+  .fake-picker-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+  .fake-picker-buttons button{background:rgba(0,31,63,0.9);border:1.5px solid rgba(255,215,0,0.5);color:#fff;padding:7px 4px;font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;letter-spacing:0.04em;border-radius:5px;cursor:pointer}
+  .fake-picker-buttons button:hover{background:rgba(255,215,0,0.2)}
   /* Bicycle kick mini-game (barra abajo, fuera del balon, con countdown) */
   .bicycle-modal{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:2px solid #FFD700;border-radius:14px;display:none;z-index:60;cursor:pointer;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
   .bicycle-modal.show{display:block;animation:bm-pop 0.25s ease-out}
@@ -205,6 +213,21 @@
   .sorteo-card .stat-val{color:#FFD700;font-weight:900;font-size:0.85rem;width:24px;text-align:right}
   .roll-anim{animation:roll-shake 0.4s infinite alternate}
   @keyframes roll-shake{from{transform:rotate(-2deg) scale(0.99)}to{transform:rotate(2deg) scale(1.01)}}
+  /* BICICLETA EN EL AIRE: piernas pedaleando + voltereta hacia atras */
+  .player.bicycle-kick{animation:bicycle-flip 1s cubic-bezier(0.34,1.56,0.64,1) forwards}
+  @keyframes bicycle-flip{
+    0%   {transform:translateY(-25%) rotate(0deg)}
+    25%  {transform:translateY(-55%) rotate(-110deg)}
+    50%  {transform:translateY(-65%) rotate(-200deg)}
+    75%  {transform:translateY(-40%) rotate(-300deg)}
+    100% {transform:translateY(0) rotate(-360deg)}
+  }
+  .player.bicycle-kick .leg-l{animation:bicycle-leg-l 0.28s infinite alternate ease-in-out!important}
+  .player.bicycle-kick .leg-r{animation:bicycle-leg-r 0.28s infinite alternate ease-in-out!important}
+  @keyframes bicycle-leg-l{0%{transform:rotate(85deg)}100%{transform:rotate(-30deg)}}
+  @keyframes bicycle-leg-r{0%{transform:rotate(-30deg)}100%{transform:rotate(85deg)}}
+  .player.bicycle-kick .arm-l{animation:none!important;transform:rotate(-90deg)!important}
+  .player.bicycle-kick .arm-r{animation:none!important;transform:rotate(90deg)!important}
   /* Pausa de paradinha (jugador se detiene mid-carrera) */
   .player.pausing{transform:rotate(3deg) translateX(-1%)}
   .player.pausing .leg-l, .player.pausing .leg-r{animation:none!important;transform:rotate(0deg)!important}
@@ -232,6 +255,17 @@
 <div class="stage">
 
   <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+  <div class="fake-picker" id="fake-picker">
+    <h3>SHOOT NOW!</h3>
+    <p>Keeper committed — pick your real shot</p>
+    <div class="fake-picker-buttons">
+      <button onclick="pickFakeShot('pass')">PASS</button>
+      <button onclick="pickFakeShot('instep')">INSTEP</button>
+      <button onclick="pickFakeShot('curl')">CURL</button>
+      <button onclick="pickFakeShot('trivela')">TRIVELA</button>
+      <button onclick="pickFakeShot('panenka')">PANENKA</button>
+    </div>
+  </div>
   <div class="bicycle-modal" id="bicycle-modal" onclick="bicycleTap()">
     <div class="bicycle-cd" id="bicycle-cd"></div>
     <div class="bicycle-content">
@@ -739,8 +773,9 @@
     const combined = (bicycleScore1 + bicycleScore2) / 2;
     document.querySelector('.stage').classList.remove('slowmo');
     const player = document.getElementById('player');
-    // BICICLETA EN EL AIRE: voltereta hacia atras
-    player.classList.add('cele-mortal');
+    // BICICLETA EN EL AIRE: piernas pedaleando + voltereta
+    player.classList.remove('cele-mortal','cele-cr7','cele-arquero');
+    player.classList.add('bicycle-kick');
 
     // Donde acaba el balon segun la precision
     let finalX, finalY, ballSpeedMs;
@@ -776,7 +811,7 @@
       showResult(result, finalX, ballSpeedMs);
 
       setTimeout(() => {
-        player.classList.remove('cele-mortal');
+        player.classList.remove('bicycle-kick','cele-mortal');
         player.style.transform = '';
         shotType = 'instep';
         document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
@@ -1062,6 +1097,22 @@
     keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
   }
 
+  // ====== FAKE SHOT PICKER (despues del fake, eliges chute real) ======
+  let fakePickerData = {};
+  function pickFakeShot(type){
+    document.getElementById('fake-picker').classList.remove('show');
+    document.querySelector('.stage').classList.remove('slowmo');
+    const player = document.getElementById('player');
+    player.classList.remove('pausing');
+    shooting = false;
+    shotType = type;
+    doShoot(fakePickerData.sX, fakePickerData.sY, fakePickerData.power);
+    setTimeout(() => {
+      shotType = 'instep';
+      document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+    }, 100);
+  }
+
   // ====== ARRASTRAR JUGADOR (manual reposition) ======
   let playerDragging = false;
   let pdStartX, pdStartY, pdStartLeft, pdStartBottom;
@@ -1332,18 +1383,19 @@
       return;
     }
 
-    // FAKE: la pierna se mueve DOS veces — 1a finta sin balon, 2a chute real.
-    // El portero se lanza tras la primera (queda comprometido).
+    // FAKE: corre al balon -> finta con la pierna (sin tocar balon) -> camara lenta
+    // -> selector de tipo de chute -> chute real con el tipo elegido.
     if (shotType === 'fake'){
       const realSX = sX, realSY = sY, realPower = power;
       const player = document.getElementById('player');
       player.classList.add('running');
       player.style.left = '38%';
+      player.style.bottom = '14%';
       setTimeout(() => {
-        // 1a patada: FINTA (pierna se mueve, balon no)
+        // Finta: el pie se mueve sin tocar el balon
         player.classList.remove('running');
         player.classList.add('kicking');
-        // Portero se compromete random
+        // Portero se compromete a un lado
         const keeper = document.getElementById('keeper');
         const dive = Math.floor(Math.random() * 3);
         const kLeft = ['12%','42%','72%'][dive];
@@ -1353,22 +1405,15 @@
         keeper.classList.remove('dive-l','dive-c','dive-r');
         keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
         paradinhaDive = {dive: dive, zone: zones[dive]};
-      }, 520);
+      }, 600);
       setTimeout(() => {
-        // Pierna vuelve a posicion neutra (fin de la finta)
+        // CAMARA LENTA + selector de chute
+        document.querySelector('.stage').classList.add('slowmo');
         player.classList.remove('kicking');
-      }, 800);
-      setTimeout(() => {
-        // 2a patada: chute REAL. Se reusa doShoot con shotType=paradinha (portero ya comprometido).
-        shooting = false;
-        const prev = shotType;
-        shotType = 'paradinha';
-        doShoot(realSX, realSY, realPower);
-        setTimeout(() => {
-          shotType = prev;
-          document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
-        }, 100);
-      }, 1100);
+        player.classList.add('pausing');
+        fakePickerData = {sX: realSX, sY: realSY, power: realPower};
+        document.getElementById('fake-picker').classList.add('show');
+      }, 950);
       return;
     }
 
@@ -1440,7 +1485,8 @@
 
     // ---- Decidir RESULTADO antes de animar (para que la animacion sea coherente) ----
     let zone, kLeft, dive;
-    if (shotType === 'paradinha' && paradinhaDive){
+    if (paradinhaDive){
+      // Portero ya comprometido (paradinha o fake). Cualquier chute lo respeta.
       dive = paradinhaDive.dive; zone = paradinhaDive.zone;
       kLeft = ['12%','42%','72%'][dive];
     } else {
@@ -1464,7 +1510,8 @@
       // Probabilidad de parada depende de si el portero esta en la zona del chute
       const inZone = (finalX >= zone[0] && finalX <= zone[1]);
       let saveChance;
-      if (shotType === 'paradinha'){
+      if (shotType === 'paradinha' || paradinhaDive){
+        // Portero ya comprometido (paradinha o fake): si acertaste su zona, parada. Si no, gol facil.
         saveChance = inZone ? 0.70 : 0.05;
       } else {
         saveChance = inZone ? 0.75 : 0.10;
@@ -1531,8 +1578,8 @@
       player.classList.remove('running','pausing');
       player.classList.add('kicking');
 
-      // Mover portero (si no es paradinha, ya se movio antes)
-      if (shotType !== 'paradinha'){
+      // Mover portero (si paradinha o ya comprometido por fake, no lo movemos otra vez)
+      if (shotType !== 'paradinha' && !paradinhaDive){
         const keeper = document.getElementById('keeper');
         keeper.style.left = kLeft;
         keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
