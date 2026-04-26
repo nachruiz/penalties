@@ -23,11 +23,11 @@
   .hud .name{font-size:1.05rem;color:#fff}
   .hud .score{font-size:1.4rem;color:#FFD700}
   .hud .shots{font-size:0.85rem;color:#fff;opacity:0.8}
-  /* Goal area: ahora rectangular (mas ancha que alta) */
-  .goal{position:absolute;top:14%;left:3%;right:3%;height:22%;border:7px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.04),rgba(255,255,255,0.04) 10px,rgba(255,255,255,0.08) 10px,rgba(255,255,255,0.08) 20px);box-shadow:0 0 0 3px rgba(0,0,0,0.3) inset;cursor:crosshair}
-  .crossbar{position:absolute;top:14%;left:3%;right:3%;height:7px;background:#fff;z-index:5}
+  /* Goal area: rectangular, bajada un poco para no chocar con la match-hud */
+  .goal{position:absolute;top:19%;left:3%;right:3%;height:21%;border:7px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.04),rgba(255,255,255,0.04) 10px,rgba(255,255,255,0.08) 10px,rgba(255,255,255,0.08) 20px);box-shadow:0 0 0 3px rgba(0,0,0,0.3) inset;cursor:crosshair}
+  .crossbar{position:absolute;top:19%;left:3%;right:3%;height:7px;background:#fff;z-index:5}
   /* Goalkeeper (svg) */
-  .keeper{position:absolute;width:14%;height:18%;left:43%;top:18%;transform-origin:bottom center;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),left 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:6}
+  .keeper{position:absolute;width:14%;height:18%;left:43%;top:23%;transform-origin:bottom center;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),left 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:6}
   .keeper svg{width:100%;height:100%;display:block;overflow:visible}
   /* Brazos del portero (alcance hacia donde se lanza) */
   .keeper .k-arm{transform-box:fill-box;transform-origin:50% 0%;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)}
@@ -87,11 +87,15 @@
   .ball svg{width:100%;height:100%;display:block;transition:transform 0.3s}
   /* Penalty spot */
   .spot{position:absolute;width:4%;aspect-ratio:1;left:48%;top:72%;background:#fff;border-radius:50%;opacity:0.4;z-index:5}
-  /* Player (tirador svg) - empieza fuera, a la izquierda del balon */
-  .player{position:absolute;width:18%;height:24%;left:24%;bottom:0;z-index:9;transform-origin:bottom center;transition:left 0.5s cubic-bezier(0.4,0,0.6,1),transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+  /* Player (tirador svg) - empieza fuera, a la izquierda del balon. Se mueve en diagonal hacia el balon. */
+  .player{position:absolute;width:18%;height:24%;left:24%;bottom:0;z-index:9;transform-origin:bottom center;transition:left 0.5s cubic-bezier(0.4,0,0.6,1),bottom 0.5s cubic-bezier(0.4,0,0.6,1),transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+  /* Lefty: mirror visual del SVG y arranca por la derecha */
+  .player.lefty svg{transform:scaleX(-1)}
   .player svg{width:100%;height:100%;display:block;overflow:visible}
   .player .leg{transform-box:fill-box;transform-origin:50% 0%;transition:transform 0.15s}
-  /* Run animation (legs alternating) */
+  /* Run animation: piernas alternan + saltitos (bounce vertical) */
+  .player.running{animation:player-hop 0.22s infinite alternate ease-in-out}
+  @keyframes player-hop{0%{transform:translateY(0)}100%{transform:translateY(-5%)}}
   .player.running .leg-l{animation:leg-run-l 0.32s infinite alternate ease-in-out}
   .player.running .leg-r{animation:leg-run-r 0.32s infinite alternate ease-in-out}
   @keyframes leg-run-l{0%{transform:rotate(25deg)}100%{transform:rotate(-25deg)}}
@@ -130,7 +134,7 @@
   .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
   .drag-svg.show{display:block}
   /* Shot type buttons (debajo de la porteria, no la tapan) */
-  .shot-types{position:absolute;right:4px;top:42%;display:flex;flex-direction:column;gap:4px;z-index:10}
+  .shot-types{position:absolute;right:4px;top:55%;display:flex;flex-direction:column;gap:4px;z-index:10}
   .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:5px 7px;font-family:'Cinzel',serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border-radius:6px;cursor:pointer;min-width:74px;text-align:center;transition:all 0.15s}
   .shot-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.15)}
   .shot-btn.active{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,0.5)}
@@ -139,8 +143,8 @@
   /* Marker on ball strike point */
   .strike-marker{position:absolute;width:14px;height:14px;border-radius:50%;background:#FF3030;border:2px solid #fff;pointer-events:none;z-index:13;transform:translate(-50%,-50%);display:none;box-shadow:0 0 10px rgba(255,48,48,0.9)}
   .strike-marker.show{display:block}
-  /* Match info HUD (jugador vs portero) */
-  .match-hud{position:absolute;top:50px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 12px;font-size:0.75rem;z-index:9;pointer-events:none}
+  /* Match info HUD (jugador vs portero) - encabezado encima de la porteria */
+  .match-hud{position:absolute;top:58px;left:0;right:0;display:flex;justify-content:space-between;padding:2px 8px;font-size:0.7rem;z-index:9;pointer-events:none}
   .match-hud .who{background:rgba(0,31,63,0.85);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,215,0,0.4);max-width:46%}
   .match-hud .who .role{color:#FFD700;font-size:0.62rem;letter-spacing:0.1em;font-weight:900}
   .match-hud .who .nm{color:#fff;font-weight:800;font-size:0.85rem;line-height:1.1}
@@ -398,8 +402,8 @@
   // skin: light | medium | dark
   const SHOOTERS = [
     {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'short', skin:'dark',   hairColor:'#0a0a0a', foot:'R', games:1363, goals:1281},
-    {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a', games:692,  goals:312},
-    {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914', games:1100, goals:850},
+    {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a', foot:'L', games:692,  goals:312},
+    {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914', foot:'L', games:1100, goals:850},
     {name:'Tornado',   dorsal:7,  power:9,  precision:8,  nation:'Portugal', alias:'Goal machine',   hair:'short', skin:'medium', hairColor:'#3d2914', games:1230, goals:920},
     {name:'Vision',    dorsal:14, power:7,  precision:10, nation:'Holland',  alias:'Total football', hair:'curly', skin:'light',  hairColor:'#5d3a1f', games:698,  goals:401},
     {name:'Architect', dorsal:9,  power:8,  precision:9,  nation:'Argentina',alias:'Blond Arrow',    hair:'short', skin:'light',  hairColor:'#cda86d', games:709,  goals:511},
@@ -408,7 +412,7 @@
     {name:'Phenomenon',dorsal:9,  power:9,  precision:8,  nation:'Brazil',   alias:'O Fenomeno',     hair:'mohawk',skin:'medium', hairColor:'#0a0a0a', games:616,  goals:414},
     {name:'Joy',       dorsal:7,  power:7,  precision:9,  nation:'Brazil',   alias:'Joy of people',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:669,  goals:232},
     {name:'Panther',   dorsal:10, power:9,  precision:8,  nation:'Portugal', alias:'Black Panther',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:745,  goals:733},
-    {name:'Cannon',    dorsal:10, power:10, precision:8,  nation:'Hungary',  alias:'Galloping Major',hair:'short', skin:'light',  hairColor:'#3d2914', games:754,  goals:745},
+    {name:'Cannon',    dorsal:10, power:10, precision:8,  nation:'Hungary',  alias:'Galloping Major',hair:'short', skin:'light',  hairColor:'#3d2914', foot:'L', games:754,  goals:745},
     {name:'Maestro',   dorsal:10, power:8,  precision:10, nation:'France',   alias:'Le Roi',         hair:'curly', skin:'light',  hairColor:'#3d2914', games:580,  goals:312},
     {name:'Dazzle',    dorsal:7,  power:7,  precision:10, nation:'N.Ireland',alias:'5th Beatle',     hair:'long',  skin:'light',  hairColor:'#3d2914', games:597,  goals:207},
     {name:'Artist',    dorsal:10, power:8,  precision:9,  nation:'Brazil',   alias:'Brazilian magic',hair:'long',  skin:'medium', hairColor:'#3d2914', games:618,  goals:268},
@@ -416,7 +420,7 @@
     {name:'Whisper',   dorsal:8,  power:6,  precision:10, nation:'Spain',    alias:'Don Andres',     hair:'bald',  skin:'light',  hairColor:'#cda86d', games:880,  goals:95},
     {name:'Bomber',    dorsal:13, power:9,  precision:9,  nation:'Germany',  alias:'Der Bomber',     hair:'short', skin:'light',  hairColor:'#3d2914', games:742,  goals:575},
     {name:'Beast',     dorsal:7,  power:9,  precision:8,  nation:'France',   alias:'Speed beast',    hair:'short', skin:'medium', hairColor:'#0a0a0a', games:440,  goals:280},
-    {name:'Power',     dorsal:3,  power:10, precision:6,  nation:'Brazil',   alias:'Free-kick gun',  hair:'short', skin:'medium', hairColor:'#0a0a0a', games:937,  goals:70}
+    {name:'Power',     dorsal:3,  power:10, precision:6,  nation:'Brazil',   alias:'Free-kick gun',  hair:'short', skin:'medium', hairColor:'#0a0a0a', foot:'L', games:937,  goals:70}
   ];
   // ====== TOP 20 KEEPERS (con estilo visual) ======
   const KEEPERS = [
@@ -441,6 +445,15 @@
     {name:'Fortress',  dorsal:1,  reach:9,  reflex:9,  intuition:7,  nation:'Germany', alias:'Wall Cologne',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000', games:712,  gpg:1.05},
     {name:'Spider',    dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'Italy',   alias:'Italian spider', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#7d7d7d', games:561,  gpg:1.05}
   ];
+
+  // Banderas de nacionalidad (emoji)
+  const NATION_FLAGS = {
+    Brazil:'🇧🇷', Argentina:'🇦🇷', Spain:'🇪🇸', France:'🇫🇷',
+    Germany:'🇩🇪', Portugal:'🇵🇹', Holland:'🇳🇱', Italy:'🇮🇹',
+    England:'🏴󠁧󠁢󠁥󠁮󠁧󠁿', Hungary:'🇭🇺', 'N.Ireland':'🇬🇧',
+    USSR:'🇷🇺', Denmark:'🇩🇰', Czech:'🇨🇿', Slovenia:'🇸🇮', Belgium:'🇧🇪'
+  };
+  function flag(nation){ return NATION_FLAGS[nation] || ''; }
 
   // Colores de seleccion (camiseta, acento, pantalon)
   const NATION_COLORS = {
@@ -640,6 +653,8 @@
     document.getElementById('sorteo-result').style.display = 'none';
     document.getElementById('btn-roll').style.display = 'inline-block';
     document.getElementById('btn-play').style.display = 'none';
+    // Restaurar visibilidad de las galerias por si vuelves al sorteo
+    document.querySelectorAll('#screen-sorteo .lineup-section').forEach(el => el.style.display = '');
     show('sorteo');
   }
   function renderGalleryCards(gridId, list, type){
@@ -685,9 +700,9 @@
     const cd = document.getElementById('draw-countdown');
     cd.classList.add('show');
 
-    const totalMs = 10000;
-    const startInt = 50;
-    const endInt = 700;
+    const totalMs = 5000;
+    const startInt = 40;
+    const endInt = 600;
     let elapsed = 0;
     const startTime = Date.now();
 
@@ -703,12 +718,9 @@
       cd.textContent = remaining;
 
       if (now >= totalMs){
-        // Parar y revelar el elegido
-        sCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
-        kCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
-        sCards[sIdx].classList.add('chosen'); sCards[sIdx].classList.remove('dimmed');
-        kCards[kIdx].classList.add('chosen'); kCards[kIdx].classList.remove('dimmed');
+        // Parar y revelar el elegido. Ocultar las galerias de descartados para dejar sitio al PLAY.
         cd.classList.remove('show');
+        document.querySelectorAll('#screen-sorteo .lineup-section').forEach(el => el.style.display = 'none');
         // Mostrar tarjetas grandes con detalle
         const cardS = document.getElementById('card-shooter');
         const cardK = document.getElementById('card-keeper');
@@ -788,8 +800,11 @@
     ball.style.transition = 'all 0.5s cubic-bezier(0.5,0,0.75,0)';
     // Reset player position and animations
     const player = document.getElementById('player');
-    player.classList.remove('running','kicking','celebrate','cele-cr7','cele-mortal','cele-arquero');
-    player.style.left = '24%';
+    player.classList.remove('running','kicking','pausing','celebrate','cele-cr7','cele-mortal','cele-arquero');
+    const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+    player.classList.toggle('lefty', isLefty);
+    player.style.left = isLefty ? '60%' : '24%';
+    player.style.bottom = '0';
     paradinhaDive = null;
     // Reset keeper celebration state (keeper ya declarado arriba)
     keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
@@ -904,8 +919,13 @@
       p3y = p.y - perpY * halfW;
     }
 
-    const apexX = ((dragStartX - stage.left) / stage.width) * 100;
-    const apexY = ((dragStartY - stage.top) / stage.height) * 100;
+    // El apex del triangulo SIEMPRE en el centro del balon (asi toca la pelota)
+    const ballEl = document.getElementById('ball');
+    const ballRect = ballEl.getBoundingClientRect();
+    const ballCx = ballRect.left + ballRect.width/2;
+    const ballCy = ballRect.top + ballRect.height/2;
+    const apexX = ((ballCx - stage.left) / stage.width) * 100;
+    const apexY = ((ballCy - stage.top) / stage.height) * 100;
     const tx2 = ((p2x - stage.left) / stage.width) * 100;
     const ty2 = ((p2y - stage.top) / stage.height) * 100;
     const tx3 = ((p3x - stage.left) / stage.width) * 100;
@@ -933,7 +953,10 @@
       return;
     }
     const power = Math.min(1, dragDist / MAX_DRAG);
-    doShoot(strikeRelX, strikeRelY, power);
+    // SLINGSHOT: direccion = OPUESTO al arrastre (linea media del triangulo, apex -> base)
+    const dirX = -dragDx / dragDist;   // -1..+1
+    const dirY = -dragDy / dragDist;   // -1..+1
+    doShoot(dirX, dirY, power);
   }
 
   // ====== DISPARO ======
@@ -941,40 +964,51 @@
     if (shooting) return;
     shooting = true;
 
-    // FAKE: el jugador corre y finge chutar pero NO lanza el balon. El portero se lanza igual.
+    // FAKE: la pierna se mueve DOS veces — 1a finta sin balon, 2a chute real.
+    // El portero se lanza tras la primera (queda comprometido).
     if (shotType === 'fake'){
+      const realSX = sX, realSY = sY, realPower = power;
       const player = document.getElementById('player');
       player.classList.add('running');
       player.style.left = '38%';
       setTimeout(() => {
+        // 1a patada: FINTA (pierna se mueve, balon no)
         player.classList.remove('running');
         player.classList.add('kicking');
-        // Portero se compromete (random)
+        // Portero se compromete random
         const keeper = document.getElementById('keeper');
         const dive = Math.floor(Math.random() * 3);
         const kLeft = ['12%','42%','72%'][dive];
+        const zones = [[10,38],[38,62],[62,90]];
         keeper.style.left = kLeft;
         keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
         keeper.classList.remove('dive-l','dive-c','dive-r');
         keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+        paradinhaDive = {dive: dive, zone: zones[dive]};
       }, 520);
       setTimeout(() => {
-        // Reset jugador, dejar el balon en su sitio. Cambia a INSTEP para chute real.
-        const player = document.getElementById('player');
+        // Pierna vuelve a posicion neutra (fin de la finta)
         player.classList.remove('kicking');
-        player.style.left = '24%';
+      }, 800);
+      setTimeout(() => {
+        // 2a patada: chute REAL. Se reusa doShoot con shotType=paradinha (portero ya comprometido).
         shooting = false;
-        shotType = 'instep';
-        document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
-      }, 1500);
+        const prev = shotType;
+        shotType = 'paradinha';
+        doShoot(realSX, realSY, realPower);
+        setTimeout(() => {
+          shotType = prev;
+          document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
+        }, 100);
+      }, 1100);
       return;
     }
 
     // ---- Mapeo base ----
-    // Coords del nuevo gol rectangular (top:14% height:22% -> 14..36)
-    const goalLeft = 3, goalRight = 97, goalTop = 14, goalBottom = 36;
-    const goalCx = 50, goalCy = 27;
-    let halfW = 47, halfH = 11;
+    // Coords del gol (top:19% height:21% -> 19..40)
+    const goalLeft = 3, goalRight = 97, goalTop = 19, goalBottom = 40;
+    const goalCx = 50, goalCy = 30;
+    let halfW = 47, halfH = 10;
     let finalX = goalCx + sX * halfW;
     let finalY = goalCy + sY * halfH;
 
@@ -1065,27 +1099,36 @@
       }
     }
 
-    // ---- 1) CARRERA del jugador ----
+    // ---- 1) CARRERA del jugador (DIAGONAL hacia el balon) ----
     const player = document.getElementById('player');
+    const isLefty = (selectedShooter && selectedShooter.foot === 'L');
     player.classList.add('running');
+    player.classList.toggle('lefty', isLefty);
+
+    // Posicion final del run (diagonal): el jugador se acerca y SUBE hacia el balon
+    const runLeft = isLefty ? '46%' : '36%';
+    const runMidLeft = isLefty ? '52%' : '30%';
+    const runBottom = '14%';
 
     let kickDelay = 520;
     if (shotType === 'paradinha'){
       // PARADINHA: arranca -> casi se para a mitad -> coge carrerilla -> chuta
-      player.style.left = '30%';   // primera fase: solo medio camino
+      player.style.left = runMidLeft;
+      player.style.bottom = '7%';
       setTimeout(() => {
         player.classList.remove('running');
         player.classList.add('pausing');
-        // se queda detenido en ~30%
       }, 380);
       setTimeout(() => {
         player.classList.remove('pausing');
         player.classList.add('running');
-        player.style.left = '38%'; // carrerilla final hacia el balon
+        player.style.left = runLeft;
+        player.style.bottom = runBottom;
       }, 880);
       kickDelay = 1250;
     } else {
-      player.style.left = '38%';
+      player.style.left = runLeft;
+      player.style.bottom = runBottom;
     }
 
     setTimeout(() => {
@@ -1204,7 +1247,7 @@
         ball.style.transform = 'rotate(900deg)';
       }, 350);
     }
-    else { text.textContent = 'OUT!'; speakCrowd('Uy', 3); playWhistle(); setTimeout(()=>playApplause(800), 200); }
+    else { text.textContent = 'OUT!'; speak('Oooooooooh', {rate:0.55, pitch:0.85}); playWhistle(); setTimeout(()=>playApplause(800), 200); }
     overlay.classList.add('show');
     shotsTaken++;
     updateHud();
