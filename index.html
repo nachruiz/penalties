@@ -1786,18 +1786,20 @@
       return;
     }
 
-    // JORGINHO: corre, justo antes del disparo SALTO MUY EXAGERADO (parte de la carrerilla).
+    // JORGINHO: corre hasta DETRAS de la pelota, salta exagerado desde alli (no por delante).
     if (shotType === 'jorginho'){
       const realSX = sX, realSY = sY, realPower = power;
+      const isLeftyJ = (selectedShooter && selectedShooter.foot === 'L');
       const player = document.getElementById('player');
       player.classList.add('running');
-      player.style.left = '38%';
-      player.style.bottom = '14%';
+      // Posicion DETRAS del balon: mas abajo en pantalla y un poco al lado (no tapando)
+      player.style.left = (isLeftyJ ? 56 : 32) + '%';
+      player.style.bottom = '6%';   // claramente detras (mas cerca del jugador, no de la porteria)
       setTimeout(() => {
-        // SALTO MUY EXAGERADO antes del kick (compromete al portero)
+        // SALTO EXAGERADO desde detras de la pelota
         player.classList.remove('running');
         player.style.transition = 'transform 0.55s cubic-bezier(0.34,1.7,0.5,1)';
-        player.style.transform = 'translateY(-55%) rotate(10deg) scale(1.05)';
+        player.style.transform = 'translateY(-50%) rotate(10deg) scale(1.05)';
         // Portero se lanza
         const keeper = document.getElementById('keeper');
         const dive = Math.floor(Math.random() * 3);
