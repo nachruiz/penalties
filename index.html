@@ -129,6 +129,15 @@
   @keyframes weird-leg-r{0%{transform:rotate(-15deg)}100%{transform:rotate(55deg)}}
   .player.weird-paradinha.running{animation:weird-bob 0.16s infinite alternate ease-in-out!important}
   @keyframes weird-bob{0%{transform:translateY(0)}100%{transform:translateY(-7%)}}
+  /* NEYMAR stutter: saltitos cortos casi sin avanzar, rodillas altas */
+  .player.neymar-stutter{animation:ney-bob 0.18s infinite alternate ease-in-out!important}
+  @keyframes ney-bob{0%{transform:translateY(0)}100%{transform:translateY(-9%)}}
+  .player.neymar-stutter .leg-l{animation:ney-leg-l 0.18s infinite alternate ease-in-out!important}
+  .player.neymar-stutter .leg-r{animation:ney-leg-r 0.18s infinite alternate ease-in-out!important}
+  @keyframes ney-leg-l{0%{transform:rotate(70deg)}100%{transform:rotate(-10deg)}}
+  @keyframes ney-leg-r{0%{transform:rotate(-10deg)}100%{transform:rotate(70deg)}}
+  .player.neymar-stutter .arm-l{animation:none!important;transform:rotate(20deg)!important}
+  .player.neymar-stutter .arm-r{animation:none!important;transform:rotate(-20deg)!important}
   /* Lefty: mirror visual del SVG y arranca por la derecha. Texto del dorsal contra-mirror para que se lea bien. */
   .player.lefty svg{transform:scaleX(-1)}
   .player.lefty svg text{transform:scaleX(-1);transform-origin:50% 50%;transform-box:fill-box}
@@ -495,14 +504,14 @@
   // hair: bald | short | long | curly | mohawk
   // skin: light | medium | dark
   const SHOOTERS = [
-    {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'afro',  skin:'dark',   hairColor:'#0a0a0a', foot:'R', games:1363, goals:1281},
+    {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'short', skin:'dark',   hairColor:'#0a0a0a', foot:'R', games:1363, goals:1281},
     {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a', foot:'L', games:692,  goals:312},
     {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914', foot:'L', games:1100, goals:850},
     {name:'Tornado',   dorsal:7,  power:9,  precision:8,  nation:'Portugal', alias:'Goal machine',   hair:'short', skin:'medium', hairColor:'#3d2914', games:1230, goals:920},
     {name:'Vision',    dorsal:14, power:7,  precision:10, nation:'Holland',  alias:'Total football', hair:'curly', skin:'light',  hairColor:'#5d3a1f', games:698,  goals:401},
     {name:'Architect', dorsal:9,  power:8,  precision:9,  nation:'Argentina',alias:'Blond Arrow',    hair:'short', skin:'light',  hairColor:'#cda86d', games:709,  goals:511},
     {name:'Kaiser',    dorsal:5,  power:8,  precision:9,  nation:'Germany',  alias:'The Emperor',    hair:'short', skin:'light',  hairColor:'#3d2914', games:659,  goals:80},
-    {name:'Elegance',  dorsal:10, power:7,  precision:10, nation:'France',   alias:'French maestro', hair:'bald',  skin:'light',  hairColor:'#3d2914', games:712,  goals:159},
+    {name:'Elegance',  dorsal:10, power:7,  precision:10, nation:'France',   alias:'French maestro', hair:'horseshoe', skin:'light', hairColor:'#3d2914', games:712, goals:159},
     {name:'Phenomenon',dorsal:9,  power:9,  precision:8,  nation:'Brazil',   alias:'O Fenomeno',     hair:'mohawk',skin:'medium', hairColor:'#0a0a0a', games:616,  goals:414},
     {name:'Joy',       dorsal:7,  power:7,  precision:9,  nation:'Brazil',   alias:'Joy of people',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:669,  goals:232},
     {name:'Panther',   dorsal:10, power:9,  precision:8,  nation:'Portugal', alias:'Black Panther',  hair:'short', skin:'dark',   hairColor:'#0a0a0a', games:745,  goals:733},
@@ -576,6 +585,7 @@
     else if (s.hair === 'curly') hairPath = '<g fill="'+hairColor+'"><circle cx="36" cy="12" r="7"/><circle cx="50" cy="4" r="8"/><circle cx="64" cy="12" r="7"/><circle cx="32" cy="22" r="6"/><circle cx="68" cy="22" r="6"/></g>';
     else if (s.hair === 'mohawk')hairPath = '<path d="M44 0 L56 0 L56 22 L44 22 Z" fill="'+hairColor+'"/>';
     else if (s.hair === 'afro')  hairPath = '<g fill="'+hairColor+'"><circle cx="32" cy="14" r="9"/><circle cx="42" cy="4" r="9"/><circle cx="50" cy="0" r="9"/><circle cx="58" cy="4" r="9"/><circle cx="68" cy="14" r="9"/><circle cx="30" cy="22" r="7"/><circle cx="70" cy="22" r="7"/></g>';
+    else if (s.hair === 'horseshoe') hairPath = '<g fill="'+hairColor+'"><ellipse cx="34" cy="24" rx="6" ry="9"/><ellipse cx="66" cy="24" rx="6" ry="9"/><ellipse cx="50" cy="32" rx="15" ry="3"/></g>';
     // bald: nada
     const txtColor = (c.jersey === '#fff' || c.jersey === '#ffe600' || c.jersey === '#FFD700') ? '#001f3f' : '#fff';
     return '<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">'+
@@ -1354,31 +1364,57 @@
       return;
     }
 
-    // NEYMAR: pasitos laterales + PARADINHA RARA (pasitos cortos + rodillas altas).
+    // NEYMAR: pasitos laterales lentos + 8 saltitos casi en sitio + chute con paradinha-save.
     if (shotType === 'neymar'){
       const realSX = sX, realSY = sY, realPower = power;
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
-      const startLeft = isLefty ? '60%' : '24%';
+      const startVal = isLefty ? 60 : 24;
+      const endVal   = isLefty ? 46 : 36;
       const player = document.getElementById('player');
-      // Fase 1: pasitos laterales lentos
+      // FASE 1: side-step lento hacia la esquina
       player.classList.add('side-stepping');
       player.style.transition = 'left 1.6s ease-in-out, bottom 1.6s ease-in-out';
-      player.style.left = startLeft;
+      player.style.left = startVal + '%';
       player.style.bottom = '0';
       setTimeout(() => {
         player.classList.remove('side-stepping');
-        player.style.transition = '';
-        // Fase 2: marca raro durante toda la paradinha
-        player.classList.add('weird-paradinha');
-        shooting = false;
-        const prev = shotType;
-        shotType = 'paradinha';
-        doShoot(realSX, realSY, realPower);
-        setTimeout(() => {
-          shotType = prev;
-          document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
-          player.classList.remove('weird-paradinha');
-        }, 2500);
+        // FASE 2: 8 saltitos casi en sitio, avanzando MUY POCO en cada uno
+        player.classList.add('neymar-stutter');
+        player.style.transition = 'left 0.30s cubic-bezier(0.4,0,0.6,1), bottom 0.30s cubic-bezier(0.4,0,0.6,1)';
+        const totalSteps = 8;
+        const stepDx = (endVal - startVal) / totalSteps;
+        const stepDy = 14 / totalSteps;
+        let step = 0;
+        const stepInt = setInterval(() => {
+          step++;
+          player.style.left = (startVal + stepDx * step) + '%';
+          player.style.bottom = (stepDy * step) + '%';
+          if (step >= totalSteps){
+            clearInterval(stepInt);
+            // FASE 3: portero se compromete + chute REAL
+            setTimeout(() => {
+              player.classList.remove('neymar-stutter');
+              player.style.transition = '';
+              const keeper = document.getElementById('keeper');
+              const dive = Math.floor(Math.random() * 3);
+              const kLeft = ['12%','42%','72%'][dive];
+              const zones = [[10,38],[38,62],[62,90]];
+              keeper.style.left = kLeft;
+              keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
+              keeper.classList.remove('dive-l','dive-c','dive-r');
+              keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+              paradinhaDive = {dive: dive, zone: zones[dive]};
+              shooting = false;
+              const prev = shotType;
+              shotType = 'instep';
+              doShoot(realSX, realSY, realPower, {skipRun: true});
+              setTimeout(() => {
+                shotType = prev;
+                document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
+              }, 100);
+            }, 280);
+          }
+        }, 360);  // 360ms por saltito x 8 = ~2.9 segundos
       }, 1700);
       return;
     }
