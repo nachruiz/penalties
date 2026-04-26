@@ -50,8 +50,8 @@
   #screen-intro > *{ position:relative; z-index:2; }
   /* Pie de copyright discreto en la portada */
   .copyright-foot{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:0.62rem;color:rgba(255,255,255,0.45);letter-spacing:0.06em;font-family:'DM Sans',sans-serif;pointer-events:none}
-  /* Language picker: solo c&oacute;digo de idioma (Windows no renderiza flag emojis) */
-  .lang-picker{position:absolute;top:12px;left:12px;display:flex;gap:5px;z-index:30}
+  /* Language picker: en flujo, encima del t&iacute;tulo, centrado. As&iacute; nunca pisa al H1 */
+  .lang-picker{display:flex;gap:5px;justify-content:center;margin:0 0 16px;flex-wrap:wrap}
   .lang-flag{background:#001f3f;border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:6px 9px;font-size:0.72rem;color:#fff;cursor:pointer;line-height:1;transition:all 0.15s;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;min-width:34px;text-align:center}
   .lang-flag:hover{background:#0a2e5c}
   .lang-flag.active{background:linear-gradient(135deg,#FFD700,#c9a000);border-color:#FFD700;color:#001f3f;box-shadow:0 0 10px rgba(255,215,0,0.55)}
@@ -291,8 +291,9 @@
   .keeper.dive-br .k-arm-l{transform:rotate(90deg)!important;animation:none!important}
   .keeper.dive-br .k-arm-r{transform:rotate(45deg)!important;animation:none!important}
   /* Shot type buttons (subidos para no tapar la cabeza del jugador) */
-  /* Asistente de golpeo: toggle + circulo verde sobre la zona dulce del balon */
-  .assist-toggle{position:absolute;top:96px;left:8px;z-index:30;background:rgba(0,31,63,0.88);border:1.5px solid rgba(124,252,0,0.55);color:#9aff5a;border-radius:6px;padding:5px 9px;font-size:0.62rem;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;line-height:1}
+  /* Asistente de golpeo: pegado al jugador (esquina inferior). Mismo lado que el lanzador */
+  .assist-toggle{position:absolute;bottom:8px;left:8px;z-index:30;background:rgba(0,31,63,0.88);border:1.5px solid rgba(124,252,0,0.55);color:#9aff5a;border-radius:6px;padding:5px 9px;font-size:0.62rem;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;line-height:1}
+  .assist-toggle.lefty-side{left:auto;right:8px}
   .assist-toggle.on{background:linear-gradient(135deg,#7CFC00,#4a9a00);color:#001f3f;border-color:#7CFC00;box-shadow:0 0 10px rgba(124,252,0,0.55)}
   .assist-circle{position:absolute;border:2.5px solid #7CFC00;border-radius:50%;z-index:11;pointer-events:none;display:none;box-shadow:0 0 10px rgba(124,252,0,0.7),inset 0 0 8px rgba(124,252,0,0.4);background:rgba(124,252,0,0.18)}
   .assist-circle.show{display:block;animation:assist-pulse 1s ease-in-out infinite alternate}
@@ -1784,6 +1785,8 @@
     const isLeftyShooter = (selectedShooter && selectedShooter.foot === 'L');
     document.getElementById('shot-types').classList.toggle('lefty-side', isLeftyShooter);
     document.getElementById('shot-types-special').classList.toggle('lefty-side', isLeftyShooter);
+    // El toggle del asistente va PEGADO AL JUGADOR (mismo lado que el lanzador)
+    document.getElementById('assist-toggle').classList.toggle('lefty-side', isLeftyShooter);
     document.getElementById('hud-name').textContent = playerName;
     document.getElementById('match-shooter').textContent = selectedShooter.name + ' #' + selectedShooter.dorsal;
     document.getElementById('match-keeper').textContent = selectedKeeper.name;
@@ -2467,7 +2470,8 @@
     // ---- Efectos por tipo de chute ----
     if (shotType === 'pass'){
       // PASS con el interior del pie: tiro a RAS DE SUELO. Velocidad media-baja.
-      finalY = 35.5 + (Math.random() - 0.5) * 1.5;  // 34.75-36.25, muy raso (justo encima del suelo)
+      // SIEMPRE raso: este finalY sobreescribe cualquier strikeBiasY o sY previo.
+      finalY = 36.5 + (Math.random() - 0.5) * 1.0;  // 36-37, pegado al cesped (bottom de la porteria=40)
       ballSpeedMs = Math.round(ballSpeedMs * 1.15);
       saveModifier += 0.05;
       spinDeg = Math.round(spinDeg * 0.8);
