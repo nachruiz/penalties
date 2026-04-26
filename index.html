@@ -43,6 +43,17 @@
   /* Settings button */
   .settings-btn{position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .settings-btn:hover{background:rgba(255,215,0,0.2)}
+  /* Bicycle kick mini-game */
+  .bicycle-modal{position:absolute;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:60;cursor:pointer}
+  .bicycle-modal.show{display:flex}
+  .bicycle-content{text-align:center;padding:30px;max-width:340px}
+  .bicycle-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:2rem;margin-bottom:18px;letter-spacing:0.1em}
+  .bicycle-content p{color:#fff;margin-bottom:18px;font-size:0.85rem;opacity:0.85}
+  .bicycle-bar{position:relative;width:280px;height:32px;background:rgba(255,255,255,0.08);border:2px solid #FFD700;border-radius:16px;overflow:hidden;margin:18px auto 8px}
+  .bicycle-zone{position:absolute;left:38%;top:0;bottom:0;width:24%;background:rgba(124,252,0,0.4)}
+  .bicycle-indicator{position:absolute;left:0;top:0;bottom:0;width:6px;background:#fff;box-shadow:0 0 12px #fff;border-radius:3px;animation:bicycle-move 1.4s infinite alternate linear}
+  @keyframes bicycle-move{0%{left:0}100%{left:calc(100% - 6px)}}
+  .bicycle-hint{color:#FFD700;font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.1em;margin-top:14px}
   /* Help button + tooltip */
   .help-btn{position:absolute;top:12px;left:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:30px;height:30px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .help-btn:hover{background:rgba(255,215,0,0.2)}
@@ -197,6 +208,14 @@
 <div class="stage">
 
   <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+  <div class="bicycle-modal" id="bicycle-modal" onclick="bicycleTap()">
+    <div class="bicycle-content">
+      <h3 id="bicycle-stage">JUMP!</h3>
+      <p id="bicycle-instr">Tap when the indicator hits the green zone</p>
+      <div class="bicycle-bar"><div class="bicycle-zone"></div><div class="bicycle-indicator" id="bicycle-indicator"></div></div>
+      <div class="bicycle-hint">TAP TO LOCK</div>
+    </div>
+  </div>
   <div class="settings-modal" id="settings-modal">
     <div class="settings-content">
       <h3>Settings</h3>
@@ -302,8 +321,8 @@
       <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub">chip shot</span></button>
       <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">stutter step</span></button>
       <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub">feint, no shot</span></button>
-      <button class="shot-btn" data-shot="bicycle" onclick="alert('Bicycle kick: timing mini-game coming next iteration')">BICYCLE<span class="shot-sub">overhead</span></button>
-      <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')">NEYMAR<span class="shot-sub">side-step + shot</span></button>
+      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()">BICYCLE<span class="shot-sub">overhead</span></button>
+      <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')" style="display:none">NEYMAR<span class="shot-sub">side-step + shot</span></button>
     </div>
     <div class="crossbar"></div>
     <div class="goal" id="goal"></div>
@@ -548,6 +567,71 @@
   function toggleHelp(){
     document.getElementById('help-tooltip').classList.toggle('show');
   }
+  // ====== BICYCLE KICK mini-game ======
+  let bicycleStage = 0;
+  let bicycleScore1 = 0, bicycleScore2 = 0;
+  function startBicycle(){
+    if (shooting) return;
+    bicycleStage = 1;
+    bicycleScore1 = 0; bicycleScore2 = 0;
+    document.getElementById('bicycle-stage').textContent = 'JUMP!';
+    document.getElementById('bicycle-instr').textContent = 'Tap when the indicator hits the green zone';
+    const ind = document.getElementById('bicycle-indicator');
+    ind.style.animation = 'none'; void ind.offsetWidth; ind.style.animation = '';
+    document.getElementById('bicycle-modal').classList.add('show');
+  }
+  function bicycleTap(){
+    const ind = document.getElementById('bicycle-indicator');
+    const bar = ind.parentElement;
+    const indRect = ind.getBoundingClientRect();
+    const barRect = bar.getBoundingClientRect();
+    const pos = (indRect.left + indRect.width/2 - barRect.left) / barRect.width;
+    const accuracy = Math.max(0, 1 - Math.abs(0.5 - pos) * 2.5);
+    if (bicycleStage === 1){
+      bicycleScore1 = accuracy;
+      bicycleStage = 2;
+      document.getElementById('bicycle-stage').textContent = 'KICK!';
+      document.getElementById('bicycle-instr').textContent = 'Now time the kick';
+      ind.style.animation = 'none'; void ind.offsetWidth;
+      ind.style.animationDuration = '1.0s';
+      ind.style.animation = '';
+    } else if (bicycleStage === 2){
+      bicycleScore2 = accuracy;
+      document.getElementById('bicycle-modal').classList.remove('show');
+      finishBicycle();
+    }
+  }
+  function finishBicycle(){
+    const combined = (bicycleScore1 + bicycleScore2) / 2;
+    bicycleStage = 0;
+    // Resultado segun precision combinada
+    let aimX, aimY, power;
+    if (combined > 0.75){
+      // Espectacular: chilena al angulo
+      aimX = (Math.random() > 0.5 ? 0.78 : -0.78);
+      aimY = -0.85;
+      power = 0.95;
+    } else if (combined > 0.45){
+      // OK: chute al palo, alto
+      aimX = (Math.random() - 0.5) * 1.4;
+      aimY = -0.7;
+      power = 0.7;
+    } else {
+      // Fallo: balon se va loco (probable fuera)
+      aimX = (Math.random() - 0.5) * 2.6;
+      aimY = -1.3;
+      power = 0.4;
+    }
+    // strike point neutro para que no afecte el bias
+    strikeRelX = 0; strikeRelY = 0;
+    const prev = shotType;
+    shotType = 'instep';
+    doShoot(aimX, aimY, power);
+    setTimeout(() => {
+      shotType = prev;
+      document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
+    }, 100);
+  }
   function toggleSound(){
     soundEnabled = document.getElementById('sound-toggle').checked;
   }
@@ -647,6 +731,7 @@
   function goToKeepersGallery(){
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
+    try { localStorage.setItem('penalties_name', playerName); } catch(e){}
     poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
     poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
     renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
@@ -870,6 +955,21 @@
     playerDragging = false;
     const player = document.getElementById('player');
     player.style.transition = '';
+    updateNeymarButton();
+  }
+  function updateNeymarButton(){
+    // NEYMAR solo aparece si el jugador esta en zona central (lo arrastraste al medio)
+    const player = document.getElementById('player');
+    const left = parseFloat(player.style.left || '24');
+    const isInCenter = left > 35 && left < 65;
+    const neymarBtn = document.querySelector('.shot-btn[data-shot="neymar"]');
+    if (!neymarBtn) return;
+    neymarBtn.style.display = isInCenter ? '' : 'none';
+    // Si NEYMAR estaba seleccionado y ya no esta en centro, volver a INSTEP
+    if (!isInCenter && shotType === 'neymar'){
+      shotType = 'instep';
+      document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+    }
   }
 
   // ====== TIRACHINAS: pointer events on ball ======
@@ -1026,31 +1126,30 @@
     if (shooting) return;
     shooting = true;
 
-    // NEYMAR: si has movido al jugador al medio, primero hace pasitos laterales hasta la
-    // posicion normal (esquina), y luego chuta como instep.
+    // NEYMAR: pasitos laterales lentos hasta la esquina + paradinha (stutter) + chute.
     if (shotType === 'neymar'){
       const realSX = sX, realSY = sY, realPower = power;
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
       const startLeft = isLefty ? '60%' : '24%';
       const player = document.getElementById('player');
-      // Pasitos laterales hacia la posicion de inicio
+      // Fase 1: pasitos laterales lentos hasta posicion normal
       player.classList.add('side-stepping');
-      player.style.transition = 'left 0.7s ease-in-out, bottom 0.7s ease-in-out';
+      player.style.transition = 'left 1.6s ease-in-out, bottom 1.6s ease-in-out';
       player.style.left = startLeft;
       player.style.bottom = '0';
       setTimeout(() => {
         player.classList.remove('side-stepping');
         player.style.transition = '';
-        // Ya en posicion: lanza como INSTEP
+        // Fase 2: usar paradinha (stutter step + portero comprometido + chute)
         shooting = false;
         const prev = shotType;
-        shotType = 'instep';
+        shotType = 'paradinha';
         doShoot(realSX, realSY, realPower);
         setTimeout(() => {
           shotType = prev;
           document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
         }, 100);
-      }, 750);
+      }, 1700);
       return;
     }
 
@@ -1258,9 +1357,14 @@
       // ---- 3) ANIMACION DEL BALON segun shot type ----
       const ball = document.getElementById('ball');
       const startX = 45.5, startY = 60;
-      if (shotType === 'curl'){
-        // Curl: pasa por punto intermedio desviado al lado opuesto del strike (curva)
-        const midX = (startX + ballEndX) / 2 + (sX > 0 ? -16 : 16);
+      if (shotType === 'curl' || shotType === 'trivela'){
+        // CURL e TRIVELA: ambos curvan visualmente. La direccion depende del PIE, no del aim.
+        const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+        let curveDir; // +1 = ball acaba a la derecha (positive offset); -1 = a la izquierda
+        if (shotType === 'curl') curveDir = isLefty ? +1 : -1;
+        else                     curveDir = isLefty ? -1 : +1;
+        // Midpoint: el balon arquea hacia el lado OPUESTO al destino final (curva tipo platano)
+        const midX = (startX + ballEndX) / 2 - curveDir * 14;
         const midY = (startY + ballEndY) / 2 - 4;
         ball.style.transition = 'all ' + (ballSpeedMs * 0.5) + 'ms cubic-bezier(0.4,0,0.6,1)';
         ball.style.left = (midX - 4.5) + '%';
@@ -1412,6 +1516,11 @@
   document.getElementById('player-name').addEventListener('keydown', e => {
     if (e.key === 'Enter') goToKeepersGallery();
   });
+  // Cargar nombre guardado
+  try {
+    const savedName = localStorage.getItem('penalties_name');
+    if (savedName) document.getElementById('player-name').value = savedName;
+  } catch(e){}
 </script>
 </body>
 </html>
