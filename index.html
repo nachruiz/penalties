@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Penalties</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:#0a3d1f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none}
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%)}
+  .stage{position:relative;width:100vw;max-width:560px;aspect-ratio:9/16;max-height:100vh;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%);overflow:hidden;border:0;box-shadow:0 0 40px rgba(0,0,0,0.6)}
+  .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
+  .screen.active{display:flex}
+  h1{font-family:"Trebuchet MS",sans-serif;font-size:clamp(2.4rem,8vw,3.6rem);color:#fff;letter-spacing:0.05em;margin-bottom:8px;text-shadow:0 2px 6px rgba(0,0,0,0.6)}
+  .sub{color:#FFD700;font-size:1rem;margin-bottom:32px;letter-spacing:0.1em;text-transform:uppercase}
+  input[type=text]{background:rgba(255,255,255,0.95);color:#001f3f;font-size:1.4rem;font-weight:700;text-align:center;padding:14px 18px;border-radius:8px;border:none;width:80%;max-width:320px;letter-spacing:0.05em;text-transform:uppercase}
+  input:focus{outline:3px solid #FFD700}
+  .btn{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border:none;padding:18px 48px;font-size:1.2rem;font-weight:900;letter-spacing:0.1em;border-radius:10px;cursor:pointer;margin-top:24px;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+  .btn:active{transform:translateY(2px)}
+  .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
+  /* HUD */
+  .hud{position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:center;padding:14px 18px;background:rgba(0,31,63,0.7);font-weight:900;letter-spacing:0.05em;z-index:10}
+  .hud .name{font-size:1.05rem;color:#fff}
+  .hud .score{font-size:1.4rem;color:#FFD700}
+  .hud .shots{font-size:0.85rem;color:#fff;opacity:0.8}
+  /* Goal area: ahora rectangular (mas ancha que alta) */
+  .goal{position:absolute;top:14%;left:3%;right:3%;height:22%;border:7px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.04),rgba(255,255,255,0.04) 10px,rgba(255,255,255,0.08) 10px,rgba(255,255,255,0.08) 20px);box-shadow:0 0 0 3px rgba(0,0,0,0.3) inset;cursor:crosshair}
+  .crossbar{position:absolute;top:14%;left:3%;right:3%;height:7px;background:#fff;z-index:5}
+  /* Goalkeeper (svg) */
+  .keeper{position:absolute;width:14%;height:18%;left:43%;top:18%;transform-origin:bottom center;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),left 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:6}
+  .keeper svg{width:100%;height:100%;display:block;overflow:visible}
+  /* Brazos del portero (alcance hacia donde se lanza) */
+  .keeper .k-arm{transform-box:fill-box;transform-origin:50% 0%;transition:transform 0.35s cubic-bezier(0.34,1.56,0.64,1)}
+  .keeper.dive-l .k-arm-l{transform:rotate(50deg)}
+  .keeper.dive-l .k-arm-r{transform:rotate(85deg)}
+  .keeper.dive-r .k-arm-l{transform:rotate(-85deg)}
+  .keeper.dive-r .k-arm-r{transform:rotate(-50deg)}
+  .keeper.dive-c .k-arm-l{transform:rotate(-30deg)}
+  .keeper.dive-c .k-arm-r{transform:rotate(30deg)}
+  /* Celebracion portero: brazo arriba */
+  .keeper.k-cele .k-arm-r{transform:rotate(-160deg)!important}
+  .keeper.k-cele .k-arm-l{transform:rotate(-30deg)!important}
+  /* Settings button */
+  .settings-btn{position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
+  .settings-btn:hover{background:rgba(255,215,0,0.2)}
+  .settings-modal{position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:50;display:none;align-items:center;justify-content:center;padding:20px}
+  .settings-modal.show{display:flex}
+  .settings-content{background:linear-gradient(180deg,#001f3f,#0a0f1f);border:2px solid #FFD700;border-radius:12px;padding:24px;max-width:380px;width:100%;color:#fff}
+  .settings-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:1.4rem;margin-bottom:14px;text-align:center}
+  .settings-content h4{font-family:'Cinzel',serif;color:#FFD700;font-size:0.95rem;margin:14px 0 6px;letter-spacing:0.05em}
+  .settings-content label{display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 0;font-size:0.95rem}
+  .settings-content label input{transform:scale(1.4);accent-color:#FFD700}
+  .settings-content p{font-size:0.82rem;line-height:1.4;color:#ddd;margin:6px 0}
+  .settings-content p strong{color:#FFD700}
+  .settings-content .close-btn{margin-top:14px;width:100%}
+  /* Lineup screen */
+  .lineup-section{width:100%;max-width:480px;margin:6px 0}
+  .lineup-section .lh{color:#FFD700;font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;margin-bottom:6px;text-align:center;text-transform:uppercase}
+  .lineup-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
+  .lineup-card{background:rgba(0,31,63,0.7);border:1.5px solid rgba(255,215,0,0.25);border-radius:6px;padding:6px 4px;text-align:center;font-size:0.62rem;line-height:1.05;transition:all 0.25s}
+  .lineup-card .ln{font-family:'Cinzel',serif;color:#fff;font-weight:700;font-size:0.7rem}
+  .lineup-card .lm{color:rgba(255,215,0,0.7);font-size:0.55rem;margin-top:1px}
+  .lineup-card.chosen{background:linear-gradient(135deg,#FFD700,#c9a000);border-color:#FFD700;box-shadow:0 0 12px rgba(255,215,0,0.7);transform:scale(1.06)}
+  .lineup-card.chosen .ln,.lineup-card.chosen .lm{color:#001f3f}
+  .lineup-card.dimmed{opacity:0.35}
+  /* Ball (svg) */
+  .ball{position:absolute;width:9%;aspect-ratio:1;left:45.5%;top:60%;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);z-index:11;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.4))}
+  .ball svg{width:100%;height:100%;display:block;transition:transform 0.3s}
+  /* Penalty spot */
+  .spot{position:absolute;width:4%;aspect-ratio:1;left:48%;top:72%;background:#fff;border-radius:50%;opacity:0.4;z-index:5}
+  /* Player (tirador svg) - empieza fuera, a la izquierda del balon */
+  .player{position:absolute;width:18%;height:24%;left:24%;bottom:0;z-index:9;transform-origin:bottom center;transition:left 0.5s cubic-bezier(0.4,0,0.6,1),transform 0.3s cubic-bezier(0.34,1.56,0.64,1)}
+  .player svg{width:100%;height:100%;display:block;overflow:visible}
+  .player .leg{transform-box:fill-box;transform-origin:50% 0%;transition:transform 0.15s}
+  /* Run animation (legs alternating) */
+  .player.running .leg-l{animation:leg-run-l 0.32s infinite alternate ease-in-out}
+  .player.running .leg-r{animation:leg-run-r 0.32s infinite alternate ease-in-out}
+  @keyframes leg-run-l{0%{transform:rotate(25deg)}100%{transform:rotate(-25deg)}}
+  @keyframes leg-run-r{0%{transform:rotate(-25deg)}100%{transform:rotate(25deg)}}
+  .player.running .arm-l{animation:arm-run-l 0.32s infinite alternate ease-in-out}
+  .player.running .arm-r{animation:arm-run-r 0.32s infinite alternate ease-in-out}
+  .player .arm{transform-box:fill-box;transform-origin:50% 0%;transition:transform 0.15s}
+  @keyframes arm-run-l{0%{transform:rotate(-30deg)}100%{transform:rotate(30deg)}}
+  @keyframes arm-run-r{0%{transform:rotate(30deg)}100%{transform:rotate(-30deg)}}
+  /* Kick: leg derecha hace swing fuerte */
+  .player.kicking{transform:rotate(-6deg) translateY(-2%)}
+  .player.kicking .leg-r{transform:rotate(-75deg)!important;animation:none!important}
+  .player.kicking .leg-l{transform:rotate(15deg)!important;animation:none!important}
+  .player.kicking .arm-l{transform:rotate(-45deg)!important;animation:none!important}
+  .player.kicking .arm-r{transform:rotate(20deg)!important;animation:none!important}
+  /* Celebrate */
+  .player.celebrate{transform:translateY(-10%)}
+  .player.celebrate .arm-l{transform:rotate(-130deg)!important;animation:none!important}
+  .player.celebrate .arm-r{transform:rotate(130deg)!important;animation:none!important}
+  /* Result overlay */
+  .result-overlay{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,0,0,0.5);z-index:20;animation:flash 0.3s}
+  .result-overlay.show{display:flex}
+  .result-text{font-size:clamp(3rem,12vw,5rem);font-weight:900;letter-spacing:0.1em;text-shadow:0 6px 20px rgba(0,0,0,0.8);animation:pop 0.5s cubic-bezier(0.34,1.56,0.64,1)}
+  .result-text.gol{color:#FFD700}
+  .result-text.parada{color:#fff}
+  .result-text.fuera{color:#ff6b6b}
+  .result-speed{color:#FFD700;font-family:'Cinzel',serif;font-size:0.95rem;letter-spacing:0.08em;margin-top:14px;opacity:0;text-align:center;animation:fade-up 0.5s 0.25s forwards}
+  .result-speed .num{color:#fff;font-weight:900;font-size:1.15rem}
+  .result-speed .unit{opacity:0.7;font-size:0.75rem;margin-left:2px}
+  @keyframes fade-up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes flash{from{background:rgba(0,0,0,0.8)}to{background:rgba(0,0,0,0.5)}}
+  @keyframes pop{from{transform:scale(0.4);opacity:0}to{transform:scale(1);opacity:1}}
+  /* Hint */
+  .hint{position:absolute;bottom:8px;left:0;right:0;text-align:center;font-size:0.78rem;color:#fff;opacity:0.7;letter-spacing:0.05em;z-index:8;pointer-events:none;padding:0 14px}
+  /* Tirachinas (triangulo) */
+  .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
+  .drag-svg.show{display:block}
+  /* Shot type buttons (debajo de la porteria, no la tapan) */
+  .shot-types{position:absolute;right:4px;top:42%;display:flex;flex-direction:column;gap:4px;z-index:10}
+  .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:5px 7px;font-family:'Cinzel',serif;font-size:0.62rem;font-weight:700;letter-spacing:0.06em;border-radius:6px;cursor:pointer;min-width:74px;text-align:center;transition:all 0.15s}
+  .shot-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.15)}
+  .shot-btn.active{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,0.5)}
+  .shot-btn .shot-sub{display:block;font-family:'DM Sans',sans-serif;font-size:0.5rem;opacity:0.75;letter-spacing:0;font-weight:500;margin-top:1px;text-transform:lowercase}
+  .shot-btn.active .shot-sub{opacity:0.85}
+  /* Marker on ball strike point */
+  .strike-marker{position:absolute;width:14px;height:14px;border-radius:50%;background:#FF3030;border:2px solid #fff;pointer-events:none;z-index:13;transform:translate(-50%,-50%);display:none;box-shadow:0 0 10px rgba(255,48,48,0.9)}
+  .strike-marker.show{display:block}
+  /* Match info HUD (jugador vs portero) */
+  .match-hud{position:absolute;top:50px;left:0;right:0;display:flex;justify-content:space-between;padding:6px 12px;font-size:0.75rem;z-index:9;pointer-events:none}
+  .match-hud .who{background:rgba(0,31,63,0.85);padding:6px 10px;border-radius:6px;border:1px solid rgba(255,215,0,0.4);max-width:46%}
+  .match-hud .who .role{color:#FFD700;font-size:0.62rem;letter-spacing:0.1em;font-weight:900}
+  .match-hud .who .nm{color:#fff;font-weight:800;font-size:0.85rem;line-height:1.1}
+  .match-hud .who .stats{color:#fff;opacity:0.85;font-size:0.65rem;margin-top:2px}
+  /* Sorteo screen */
+  .sorteo-card{background:rgba(0,31,63,0.85);border:2px solid #FFD700;border-radius:12px;padding:16px 20px;margin:12px 0;min-width:260px}
+  .sorteo-card .role-label{color:#FFD700;font-size:0.7rem;letter-spacing:0.15em;font-weight:900;text-transform:uppercase}
+  .sorteo-card .nm{font-family:"Trebuchet MS",sans-serif;color:#fff;font-size:1.6rem;font-weight:900;margin:6px 0}
+  .sorteo-card .alias{color:#FFD700;font-style:italic;font-size:0.85rem;margin-bottom:10px}
+  .sorteo-card .stat-row{display:flex;justify-content:space-between;align-items:center;margin:4px 0}
+  .sorteo-card .stat-name{color:#fff;font-size:0.78rem;text-transform:uppercase;letter-spacing:0.05em;width:90px}
+  .sorteo-card .stat-bar{flex:1;height:8px;background:rgba(255,255,255,0.15);border-radius:4px;overflow:hidden;margin:0 8px}
+  .sorteo-card .stat-fill{height:100%;background:linear-gradient(90deg,#FFD700,#FF6B00);border-radius:4px;transition:width 0.4s}
+  .sorteo-card .stat-val{color:#FFD700;font-weight:900;font-size:0.85rem;width:24px;text-align:right}
+  .roll-anim{animation:roll-shake 0.4s infinite alternate}
+  @keyframes roll-shake{from{transform:rotate(-2deg) scale(0.99)}to{transform:rotate(2deg) scale(1.01)}}
+  /* Pausa de paradinha (jugador se detiene mid-carrera) */
+  .player.pausing{transform:rotate(3deg) translateX(-1%)}
+  .player.pausing .leg-l, .player.pausing .leg-r{animation:none!important;transform:rotate(0deg)!important}
+  .player.pausing .arm-l{animation:none!important;transform:rotate(15deg)!important}
+  .player.pausing .arm-r{animation:none!important;transform:rotate(-15deg)!important}
+  /* Celebraciones */
+  .player.cele-cr7{transform:translateY(-12%)}
+  .player.cele-cr7 .arm-l{transform:rotate(-15deg)!important;animation:none!important}
+  .player.cele-cr7 .arm-r{transform:rotate(15deg)!important;animation:none!important}
+  .player.cele-cr7 .leg-l{transform:rotate(-8deg)!important;animation:none!important}
+  .player.cele-cr7 .leg-r{transform:rotate(8deg)!important;animation:none!important}
+  .player.cele-mortal{animation:flip 1s cubic-bezier(0.4,0,0.6,1)}
+  @keyframes flip{0%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-30%) rotate(180deg)}100%{transform:translateY(0) rotate(360deg)}}
+  .player.cele-arquero .arm-l{transform:rotate(-95deg)!important;animation:none!important}
+  .player.cele-arquero .arm-r{transform:rotate(95deg)!important;animation:none!important}
+  .player.cele-arquero{transform:translateY(-3%)}
+  /* End screen */
+  .stars{font-size:2.4rem;color:#FFD700;margin:8px 0 16px;letter-spacing:0.4em}
+  .verdict{font-size:1.1rem;color:#FFD700;margin-bottom:24px;font-weight:700;letter-spacing:0.05em}
+  .final-score{font-size:5rem;font-weight:900;color:#fff;text-shadow:0 4px 16px rgba(0,0,0,0.6);margin:12px 0}
+  .final-score .of{font-size:2.2rem;color:#FFD700;opacity:0.9}
+</style>
+</head>
+<body>
+<div class="stage">
+
+  <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+  <div class="settings-modal" id="settings-modal">
+    <div class="settings-content">
+      <h3>Settings</h3>
+      <label><input type="checkbox" id="sound-toggle" checked onchange="toggleSound()"> Sound effects</label>
+      <h4>How to play</h4>
+      <p><strong>Touch the ball</strong> on the spot you want to strike (top, bottom, sides).</p>
+      <p><strong>Drag back</strong> like a slingshot. The triangle shows direction; longer drag = more power.</p>
+      <p><strong>Release</strong> to shoot. Striking the side of the ball aims wider but risks going out.</p>
+      <h4>Shot types (right column)</h4>
+      <p><strong>INSTEP</strong>: straight shot, default.</p>
+      <p><strong>CURL</strong>: curves toward the strike side.</p>
+      <p><strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.</p>
+      <p><strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.</p>
+      <button class="btn close-btn" onclick="toggleSettings()">CLOSE</button>
+    </div>
+  </div>
+
+  <!-- Pantalla 1: Inicio -->
+  <div id="screen-intro" class="screen active">
+    <h1>PENALTIES</h1>
+    <div class="sub">Bernabeu 2026</div>
+    <p style="margin-bottom:18px;font-size:1rem;opacity:0.9">Enter your player name:</p>
+    <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
+    <button class="btn" onclick="goToSorteo()">NEXT</button>
+  </div>
+
+  <!-- Pantalla 1b: Lineup (10 atacantes y 10 porteros en liza) -->
+  <div id="screen-sorteo" class="screen">
+    <h1 style="font-size:1.8rem">Tonight's Lineup</h1>
+    <div class="sub">Random 10 of each. Fate picks one.</div>
+    <div class="lineup-section">
+      <div class="lh">Keepers in play</div>
+      <div class="lineup-grid" id="grid-keepers"></div>
+    </div>
+    <div class="lineup-section">
+      <div class="lh">Shooters in play</div>
+      <div class="lineup-grid" id="grid-shooters"></div>
+    </div>
+    <div id="sorteo-result" style="display:none;width:100%;align-items:center;flex-direction:column">
+      <div class="sorteo-card" id="card-shooter"></div>
+      <div style="color:#FFD700;font-family:'Cinzel',serif;font-size:1.2rem;margin:2px 0">VS</div>
+      <div class="sorteo-card" id="card-keeper"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" id="btn-roll" onclick="rollMatch()">DRAW</button>
+      <button class="btn" id="btn-play" style="display:none" onclick="startMatch()">PLAY</button>
+    </div>
+  </div>
+
+  <!-- Pantalla 2: Juego -->
+  <div id="screen-game" class="screen">
+    <div class="hud">
+      <div class="name" id="hud-name">PLAYER</div>
+      <div class="shots" id="hud-shots">Penalty 1 / 5</div>
+      <div class="score" id="hud-score">0</div>
+    </div>
+    <div class="match-hud">
+      <div class="who"><div class="role">SHOOTER</div><div class="nm" id="match-shooter">--</div><div class="stats" id="match-shooter-stats"></div></div>
+      <div class="who"><div class="role">KEEPER</div><div class="nm" id="match-keeper">--</div><div class="stats" id="match-keeper-stats"></div></div>
+    </div>
+    <div class="shot-types" id="shot-types">
+      <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub">straight</span></button>
+      <button class="shot-btn" data-shot="curl" onclick="setShotType('curl')">CURL<span class="shot-sub">curve</span></button>
+      <button class="shot-btn" data-shot="panenka" onclick="setShotType('panenka')">PANENKA<span class="shot-sub">chip shot</span></button>
+      <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub">fake out keeper</span></button>
+    </div>
+    <div class="crossbar"></div>
+    <div class="goal" id="goal"></div>
+    <div class="keeper" id="keeper">
+      <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="135" rx="20" ry="3" fill="rgba(0,0,0,0.3)"/>
+        <rect x="32" y="40" width="36" height="58" rx="6" fill="#FF6B00" stroke="#001f3f" stroke-width="2"/>
+        <rect x="34" y="98" width="14" height="36" rx="3" fill="#001f3f"/>
+        <rect x="52" y="98" width="14" height="36" rx="3" fill="#001f3f"/>
+        <rect x="14" y="44" width="14" height="40" rx="3" fill="#FF6B00" stroke="#001f3f" stroke-width="2"/>
+        <rect x="72" y="44" width="14" height="40" rx="3" fill="#FF6B00" stroke="#001f3f" stroke-width="2"/>
+        <circle cx="21" cy="86" r="7" fill="#e8b994" stroke="#001f3f" stroke-width="2"/>
+        <circle cx="79" cy="86" r="7" fill="#e8b994" stroke="#001f3f" stroke-width="2"/>
+        <circle cx="50" cy="22" r="16" fill="#e8b994" stroke="#001f3f" stroke-width="2"/>
+        <path d="M34 18 Q50 4 66 18 L62 26 Q50 18 38 26 Z" fill="#2a1a0e"/>
+      </svg>
+    </div>
+    <div class="spot"></div>
+    <div class="ball" id="ball" onmousedown="startAim(event)" ontouchstart="startAim(event)">
+      <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="48" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
+        <polygon points="50,30 65,42 59,60 41,60 35,42" fill="#1a1a1a"/>
+        <polygon points="50,30 35,42 22,38 24,22 38,18" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="50,30 65,42 78,38 76,22 62,18" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="41,60 35,42 22,38 18,55 30,68" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="59,60 65,42 78,38 82,55 70,68" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="41,60 59,60 70,68 50,80 30,68" fill="none" stroke="#1a1a1a" stroke-width="1.5"/>
+        <polygon points="22,38 18,55 8,52 8,38 14,28" fill="#1a1a1a" opacity="0.85"/>
+        <polygon points="78,38 82,55 92,52 92,38 86,28" fill="#1a1a1a" opacity="0.85"/>
+        <polygon points="30,68 50,80 50,92 32,90 22,80" fill="#1a1a1a" opacity="0.85"/>
+        <ellipse cx="35" cy="30" rx="14" ry="9" fill="#fff" opacity="0.35"/>
+      </svg>
+    </div>
+    <div class="player" id="player">
+      <svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">
+        <ellipse cx="50" cy="138" rx="22" ry="3" fill="rgba(0,0,0,0.3)"/>
+        <g class="leg leg-l"><rect x="33" y="92" width="11" height="34" rx="3" fill="#e8b994" stroke="#001f3f" stroke-width="2"/><ellipse cx="38" cy="128" rx="9" ry="4" fill="#000"/></g>
+        <g class="leg leg-r"><rect x="56" y="92" width="11" height="34" rx="3" fill="#e8b994" stroke="#001f3f" stroke-width="2"/><ellipse cx="62" cy="128" rx="9" ry="4" fill="#000"/></g>
+        <rect x="30" y="78" width="40" height="18" rx="3" fill="#001f3f"/>
+        <rect x="30" y="38" width="40" height="42" rx="5" fill="#fff" stroke="#001f3f" stroke-width="2"/>
+        <text x="50" y="66" font-family="Trebuchet MS,sans-serif" font-weight="900" font-size="22" text-anchor="middle" fill="#001f3f">7</text>
+        <g class="arm arm-l"><rect x="18" y="40" width="11" height="36" rx="3" fill="#fff" stroke="#001f3f" stroke-width="2"/></g>
+        <g class="arm arm-r"><rect x="71" y="40" width="11" height="36" rx="3" fill="#fff" stroke="#001f3f" stroke-width="2"/></g>
+        <circle cx="50" cy="20" r="14" fill="#e8b994" stroke="#001f3f" stroke-width="2"/>
+        <path d="M36 18 Q50 2 64 18 L62 26 Q50 18 38 26 Z" fill="#2a1a0e"/>
+      </svg>
+    </div>
+    <div class="hint" id="hint">Touch the ball where you want to strike and drag back (more drag = more power). Release to shoot.</div>
+    <svg class="drag-svg" id="drag-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <polygon id="drag-poly" points="50,50 50,50 50,50" fill="#FFD700" fill-opacity="0.55" stroke="#FFD700" stroke-width="0.4" stroke-linejoin="round"/>
+    </svg>
+    <div class="strike-marker" id="strike-marker"></div>
+    <div class="result-overlay" id="result-overlay">
+      <div class="result-text" id="result-text">GOL!</div>
+      <div class="result-speed" id="result-speed"></div>
+    </div>
+  </div>
+
+  <!-- Pantalla 3: Final -->
+  <div id="screen-end" class="screen">
+    <h1 id="end-title">MATCH OVER</h1>
+    <div class="stars" id="end-stars"></div>
+    <div class="final-score"><span id="end-score">0</span><span class="of">/5</span></div>
+    <div class="verdict" id="end-verdict">GOALS</div>
+    <button class="btn" onclick="restart()">PLAY AGAIN</button>
+    <button class="btn btn-secondary" onclick="goHome()">CHANGE PLAYER</button>
+  </div>
+
+</div>
+
+<script>
+  let playerName = "CR7";
+  let score = 0;
+  let shotsTaken = 0;
+  const TOTAL_SHOTS = 5;
+  let shooting = false;
+
+  // Estado del gesto tirachinas
+  let aiming = false;
+  let strikeRelX = 0;
+  let strikeRelY = 0;
+  let dragStartX = 0, dragStartY = 0;
+  let dragDx = 0, dragDy = 0;
+  let dragDist = 0;
+  const MAX_DRAG = 180;
+  const MIN_DRAG = 25;
+
+  // Tipo de chute
+  let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
+  let paradinhaDive = null;  // {dive, zone} si esta activa
+
+  function setShotType(t){
+    if (shooting) return;
+    shotType = t;
+    document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === t));
+  }
+
+  function show(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('screen-'+id).classList.add('active');
+  }
+
+  // ====== TOP 20 SHOOTERS (essence names + estilo visual) ======
+  // hair: bald | short | long | curly | mohawk
+  // skin: light | medium | dark
+  const SHOOTERS = [
+    {name:'King',      dorsal:10, power:9,  precision:9,  nation:'Brazil',   alias:'O Rei',          hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
+    {name:'Magic',     dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Hand of God',    hair:'curly', skin:'medium', hairColor:'#1a1a1a'},
+    {name:'Genius',    dorsal:10, power:7,  precision:10, nation:'Argentina',alias:'Atomic flea',    hair:'short', skin:'light',  hairColor:'#3d2914'},
+    {name:'Tornado',   dorsal:7,  power:9,  precision:8,  nation:'Portugal', alias:'Goal machine',   hair:'short', skin:'medium', hairColor:'#3d2914'},
+    {name:'Vision',    dorsal:14, power:7,  precision:10, nation:'Holland',  alias:'Total football', hair:'curly', skin:'light',  hairColor:'#5d3a1f'},
+    {name:'Architect', dorsal:9,  power:8,  precision:9,  nation:'Argentina',alias:'Blond Arrow',    hair:'short', skin:'light',  hairColor:'#cda86d'},
+    {name:'Kaiser',    dorsal:5,  power:8,  precision:9,  nation:'Germany',  alias:'The Emperor',    hair:'short', skin:'light',  hairColor:'#3d2914'},
+    {name:'Elegance',  dorsal:10, power:7,  precision:10, nation:'France',   alias:'French maestro', hair:'bald',  skin:'light',  hairColor:'#3d2914'},
+    {name:'Phenomenon',dorsal:9,  power:9,  precision:8,  nation:'Brazil',   alias:'O Fenomeno',     hair:'mohawk',skin:'medium', hairColor:'#0a0a0a'},
+    {name:'Joy',       dorsal:7,  power:7,  precision:9,  nation:'Brazil',   alias:'Joy of people',  hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
+    {name:'Panther',   dorsal:10, power:9,  precision:8,  nation:'Portugal', alias:'Black Panther',  hair:'short', skin:'dark',   hairColor:'#0a0a0a'},
+    {name:'Cannon',    dorsal:10, power:10, precision:8,  nation:'Hungary',  alias:'Galloping Major',hair:'short', skin:'light',  hairColor:'#3d2914'},
+    {name:'Maestro',   dorsal:10, power:8,  precision:10, nation:'France',   alias:'Le Roi',         hair:'curly', skin:'light',  hairColor:'#3d2914'},
+    {name:'Dazzle',    dorsal:7,  power:7,  precision:10, nation:'N.Ireland',alias:'5th Beatle',     hair:'long',  skin:'light',  hairColor:'#3d2914'},
+    {name:'Artist',    dorsal:10, power:8,  precision:9,  nation:'Brazil',   alias:'Brazilian magic',hair:'long',  skin:'medium', hairColor:'#3d2914'},
+    {name:'Brain',     dorsal:6,  power:6,  precision:10, nation:'Spain',    alias:'Tiki-taka',      hair:'bald',  skin:'light',  hairColor:'#3d2914'},
+    {name:'Whisper',   dorsal:8,  power:6,  precision:10, nation:'Spain',    alias:'Don Andres',     hair:'bald',  skin:'light',  hairColor:'#cda86d'},
+    {name:'Bomber',    dorsal:13, power:9,  precision:9,  nation:'Germany',  alias:'Der Bomber',     hair:'short', skin:'light',  hairColor:'#3d2914'},
+    {name:'Beast',     dorsal:7,  power:9,  precision:8,  nation:'France',   alias:'Speed beast',    hair:'short', skin:'medium', hairColor:'#0a0a0a'},
+    {name:'Power',     dorsal:3,  power:10, precision:6,  nation:'Brazil',   alias:'Free-kick gun',  hair:'short', skin:'medium', hairColor:'#0a0a0a'}
+  ];
+  // ====== TOP 20 KEEPERS (con estilo visual) ======
+  const KEEPERS = [
+    {name:'Cat',       dorsal:1,  reach:8,  reflex:10, intuition:9,  nation:'USSR',    alias:'Black Spider',   hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#0a0a0a'},
+    {name:'Wall',      dorsal:1,  reach:9,  reflex:9,  intuition:9,  nation:'Italy',   alias:'Gigi forever',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FF6B00'},
+    {name:'Saint',     dorsal:1,  reach:7,  reflex:10, intuition:10, nation:'Spain',   alias:'San Iker',       hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#FFD700'},
+    {name:'Sweeper',   dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Libero modern',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
+    {name:'Storm',     dorsal:1,  reach:9,  reflex:8,  intuition:8,  nation:'Denmark', alias:'Great Dane',     hair:'curly',skin:'light', hairColor:'#cda86d',jersey:'#5fa8d3'},
+    {name:'Hero',      dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'England', alias:'1966 legend',    hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700'},
+    {name:'Iron',      dorsal:1,  reach:8,  reflex:9,  intuition:10, nation:'Italy',   alias:'Captain',        hair:'curly',skin:'light', hairColor:'#cccccc',jersey:'#1a3a8a'},
+    {name:'Titan',     dorsal:1,  reach:9,  reflex:9,  intuition:8,  nation:'Germany', alias:'Der Titan',      hair:'short',skin:'light', hairColor:'#cda86d',jersey:'#777777'},
+    {name:'Hands',     dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'Germany', alias:'Hands Cologne',  hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
+    {name:'Tower',     dorsal:1,  reach:10, reflex:8,  intuition:8,  nation:'Holland', alias:'Tall tower',     hair:'bald', skin:'light', hairColor:'#3d2914',jersey:'#cc4400'},
+    {name:'Bunker',    dorsal:13, reach:9,  reflex:8,  intuition:9,  nation:'Slovenia',alias:'Slovenian wall', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#1a8a3a'},
+    {name:'Helmet',    dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Czech',   alias:'The Helmet',     hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
+    {name:'Giant',     dorsal:21, reach:10, reflex:8,  intuition:7,  nation:'Italy',   alias:'Young giant',    hair:'short',skin:'light', hairColor:'#0a0a0a',jersey:'#1a3a8a'},
+    {name:'Fox',       dorsal:1,  reach:7,  reflex:9,  intuition:9,  nation:'France',  alias:'Cunning capt',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a3a8a'},
+    {name:'Reach',     dorsal:1,  reach:10, reflex:9,  intuition:8,  nation:'Belgium', alias:'Wingspan',       hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#FFD700'},
+    {name:'Eagle',     dorsal:1,  reach:8,  reflex:9,  intuition:9,  nation:'Spain',   alias:'Basque eagle',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#1a8a3a'},
+    {name:'Origin',    dorsal:1,  reach:7,  reflex:8,  intuition:10, nation:'Spain',   alias:'The original',   hair:'short',skin:'light', hairColor:'#3d2914',jersey:'#777777'},
+    {name:'Curtain',   dorsal:1,  reach:8,  reflex:9,  intuition:8,  nation:'USSR',    alias:'Iron curtain',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
+    {name:'Fortress',  dorsal:1,  reach:9,  reflex:9,  intuition:7,  nation:'Germany', alias:'Wall Cologne',   hair:'curly',skin:'light', hairColor:'#3d2914',jersey:'#cc0000'},
+    {name:'Spider',    dorsal:1,  reach:8,  reflex:10, intuition:8,  nation:'Italy',   alias:'Italian spider', hair:'short',skin:'light', hairColor:'#1a1a1a',jersey:'#7d7d7d'}
+  ];
+
+  // Colores de seleccion (camiseta, acento, pantalon)
+  const NATION_COLORS = {
+    Brazil:    {jersey:'#ffe600', accent:'#0a5e2c', shorts:'#0033a0'},
+    Argentina: {jersey:'#74acdf', accent:'#fff',    shorts:'#000'},
+    Spain:     {jersey:'#cc1f24', accent:'#FFD700', shorts:'#001f7f'},
+    France:    {jersey:'#1c2c5b', accent:'#fff',    shorts:'#fff'},
+    Germany:   {jersey:'#fff',    accent:'#000',    shorts:'#000'},
+    Portugal:  {jersey:'#aa1c1c', accent:'#0a5e2c', shorts:'#0a5e2c'},
+    Holland:   {jersey:'#ff7800', accent:'#000',    shorts:'#000'},
+    Italy:     {jersey:'#1a3a8a', accent:'#fff',    shorts:'#fff'},
+    England:   {jersey:'#fff',    accent:'#1a3a8a', shorts:'#1a3a8a'},
+    Hungary:   {jersey:'#cd2a3e', accent:'#fff',    shorts:'#fff'},
+    'N.Ireland':{jersey:'#1a8a3a',accent:'#fff',    shorts:'#fff'}
+  };
+  const SKIN_COLORS = { light:'#f4cba8', medium:'#c9956b', dark:'#5e3a23' };
+
+  // Genera el SVG de un jugador con su estilo
+  function buildPlayerSVG(s){
+    const c = NATION_COLORS[s.nation] || {jersey:'#fff',accent:'#001f3f',shorts:'#001f3f'};
+    const skin = SKIN_COLORS[s.skin] || SKIN_COLORS.light;
+    const hairColor = s.hairColor || '#2a1a0e';
+    let hairPath = '';
+    if (s.hair === 'short')  hairPath = '<path d="M36 18 Q50 2 64 18 L62 26 Q50 18 38 26 Z" fill="'+hairColor+'"/>';
+    else if (s.hair === 'long')  hairPath = '<path d="M30 16 Q50 -2 70 16 L72 38 Q66 32 66 24 Q60 22 50 24 Q40 22 34 24 Q34 32 28 38 Z" fill="'+hairColor+'"/>';
+    else if (s.hair === 'curly') hairPath = '<g fill="'+hairColor+'"><circle cx="38" cy="12" r="6"/><circle cx="50" cy="6" r="7"/><circle cx="62" cy="12" r="6"/><circle cx="34" cy="20" r="5"/><circle cx="66" cy="20" r="5"/></g>';
+    else if (s.hair === 'mohawk')hairPath = '<path d="M44 2 L56 2 L56 22 L44 22 Z" fill="'+hairColor+'"/>';
+    // bald: nada
+    const txtColor = (c.jersey === '#fff' || c.jersey === '#ffe600' || c.jersey === '#FFD700') ? '#001f3f' : '#fff';
+    return '<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">'+
+      '<ellipse cx="50" cy="138" rx="22" ry="3" fill="rgba(0,0,0,0.3)"/>'+
+      '<g class="leg leg-l"><rect x="33" y="92" width="11" height="34" rx="3" fill="'+skin+'" stroke="#001f3f" stroke-width="2"/><ellipse cx="38" cy="128" rx="9" ry="4" fill="#000"/></g>'+
+      '<g class="leg leg-r"><rect x="56" y="92" width="11" height="34" rx="3" fill="'+skin+'" stroke="#001f3f" stroke-width="2"/><ellipse cx="62" cy="128" rx="9" ry="4" fill="#000"/></g>'+
+      '<rect x="30" y="78" width="40" height="18" rx="3" fill="'+c.shorts+'"/>'+
+      '<rect x="30" y="38" width="40" height="42" rx="5" fill="'+c.jersey+'" stroke="'+c.accent+'" stroke-width="2"/>'+
+      '<text x="50" y="66" font-family="Trebuchet MS,sans-serif" font-weight="900" font-size="22" text-anchor="middle" fill="'+txtColor+'">'+s.dorsal+'</text>'+
+      '<g class="arm arm-l"><rect x="18" y="40" width="11" height="36" rx="3" fill="'+c.jersey+'" stroke="'+c.accent+'" stroke-width="2"/></g>'+
+      '<g class="arm arm-r"><rect x="71" y="40" width="11" height="36" rx="3" fill="'+c.jersey+'" stroke="'+c.accent+'" stroke-width="2"/></g>'+
+      '<circle cx="50" cy="20" r="14" fill="'+skin+'" stroke="#001f3f" stroke-width="2"/>'+
+      hairPath +
+    '</svg>';
+  }
+  function buildKeeperSVG(k){
+    const skin = SKIN_COLORS[k.skin] || SKIN_COLORS.light;
+    const hairColor = k.hairColor || '#2a1a0e';
+    const jersey = k.jersey || '#FF6B00';
+    let hairPath = '';
+    if (k.hair === 'short') hairPath = '<path d="M34 18 Q50 4 66 18 L62 26 Q50 18 38 26 Z" fill="'+hairColor+'"/>';
+    else if (k.hair === 'curly') hairPath = '<g fill="'+hairColor+'"><circle cx="38" cy="12" r="6"/><circle cx="50" cy="6" r="7"/><circle cx="62" cy="12" r="6"/></g>';
+    else if (k.hair === 'long')  hairPath = '<path d="M30 16 Q50 -2 70 16 L72 38 Q66 32 66 24 Q40 24 28 38 Z" fill="'+hairColor+'"/>';
+    return '<svg viewBox="0 0 100 140" xmlns="http://www.w3.org/2000/svg">'+
+      '<ellipse cx="50" cy="135" rx="20" ry="3" fill="rgba(0,0,0,0.3)"/>'+
+      '<rect x="32" y="40" width="36" height="58" rx="6" fill="'+jersey+'" stroke="#001f3f" stroke-width="2"/>'+
+      '<rect x="34" y="98" width="14" height="36" rx="3" fill="#001f3f"/>'+
+      '<rect x="52" y="98" width="14" height="36" rx="3" fill="#001f3f"/>'+
+      // Brazo izq con guante amarillo
+      '<g class="k-arm k-arm-l">'+
+        '<rect x="14" y="44" width="14" height="40" rx="3" fill="'+jersey+'" stroke="#001f3f" stroke-width="2"/>'+
+        '<circle cx="21" cy="88" r="11" fill="#FFD700" stroke="#001f3f" stroke-width="2.5"/>'+
+        '<line x1="14" y1="92" x2="28" y2="92" stroke="#001f3f" stroke-width="1" opacity="0.5"/>'+
+      '</g>'+
+      // Brazo der con guante amarillo
+      '<g class="k-arm k-arm-r">'+
+        '<rect x="72" y="44" width="14" height="40" rx="3" fill="'+jersey+'" stroke="#001f3f" stroke-width="2"/>'+
+        '<circle cx="79" cy="88" r="11" fill="#FFD700" stroke="#001f3f" stroke-width="2.5"/>'+
+        '<line x1="72" y1="92" x2="86" y2="92" stroke="#001f3f" stroke-width="1" opacity="0.5"/>'+
+      '</g>'+
+      '<circle cx="50" cy="22" r="14" fill="'+skin+'" stroke="#001f3f" stroke-width="2"/>'+
+      hairPath +
+    '</svg>';
+  }
+  let selectedShooter = null, selectedKeeper = null;
+  let poolShooters = [], poolKeepers = [];
+  let soundEnabled = true;
+
+  function toggleSettings(){
+    document.getElementById('settings-modal').classList.toggle('show');
+  }
+  function toggleSound(){
+    soundEnabled = document.getElementById('sound-toggle').checked;
+  }
+  function speak(text, opts){
+    if (!soundEnabled || !('speechSynthesis' in window)) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'es-ES';
+      u.rate = (opts && opts.rate) || 0.95;
+      u.pitch = (opts && opts.pitch) || 1.1;
+      u.volume = 1;
+      window.speechSynthesis.speak(u);
+    } catch(e){}
+  }
+  function shuffleArr(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
+
+  function goToSorteo(){
+    const v = document.getElementById('player-name').value.trim();
+    playerName = v ? v.toUpperCase() : "CR7";
+    // Pick 10 random shooters + 10 random keepers para esta partida
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 10);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 10);
+    renderLineup();
+    document.getElementById('sorteo-result').style.display = 'none';
+    document.getElementById('btn-roll').style.display = 'inline-block';
+    document.getElementById('btn-play').style.display = 'none';
+    show('sorteo');
+  }
+
+  function renderLineup(){
+    const gs = document.getElementById('grid-shooters');
+    const gk = document.getElementById('grid-keepers');
+    gs.innerHTML = poolShooters.map((s,i) =>
+      '<div class="lineup-card" data-i="'+i+'"><div class="ln">'+s.name+'</div><div class="lm">#'+s.dorsal+' · '+s.nation+'</div></div>'
+    ).join('');
+    gk.innerHTML = poolKeepers.map((k,i) =>
+      '<div class="lineup-card" data-i="'+i+'"><div class="ln">'+k.name+'</div><div class="lm">'+k.nation+'</div></div>'
+    ).join('');
+  }
+
+  function rollMatch(){
+    document.getElementById('btn-roll').style.display = 'none';
+    // Animacion: parpadear cards aleatoriamente, luego destacar la elegida
+    const sIdx = Math.floor(Math.random() * poolShooters.length);
+    const kIdx = Math.floor(Math.random() * poolKeepers.length);
+    selectedShooter = poolShooters[sIdx];
+    selectedKeeper  = poolKeepers[kIdx];
+
+    const sCards = document.querySelectorAll('#grid-shooters .lineup-card');
+    const kCards = document.querySelectorAll('#grid-keepers .lineup-card');
+
+    let frame = 0;
+    const flicker = setInterval(() => {
+      sCards.forEach(c => c.classList.remove('chosen'));
+      kCards.forEach(c => c.classList.remove('chosen'));
+      sCards[Math.floor(Math.random()*sCards.length)].classList.add('chosen');
+      kCards[Math.floor(Math.random()*kCards.length)].classList.add('chosen');
+      frame++;
+      if (frame > 10){
+        clearInterval(flicker);
+        sCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
+        kCards.forEach(c => { c.classList.remove('chosen'); c.classList.add('dimmed'); });
+        sCards[sIdx].classList.add('chosen'); sCards[sIdx].classList.remove('dimmed');
+        kCards[kIdx].classList.add('chosen'); kCards[kIdx].classList.remove('dimmed');
+        // Mostrar cards detalladas
+        const cardS = document.getElementById('card-shooter');
+        const cardK = document.getElementById('card-keeper');
+        cardS.innerHTML = renderShooterCard(selectedShooter);
+        cardK.innerHTML = renderKeeperCard(selectedKeeper);
+        document.getElementById('sorteo-result').style.display = 'flex';
+        document.getElementById('btn-play').style.display = 'inline-block';
+      }
+    }, 90);
+  }
+
+  function statBar(label, val){
+    const pct = val * 10;
+    return '<div class="stat-row"><div class="stat-name">'+label+'</div><div class="stat-bar"><div class="stat-fill" style="width:'+pct+'%"></div></div><div class="stat-val">'+val+'</div></div>';
+  }
+  function renderShooterCard(s){
+    return '<div class="role-label">Your shooter (#'+s.dorsal+')</div>'+
+      '<div class="nm">'+s.name+'</div>'+
+      '<div class="alias">'+s.alias+'</div>'+
+      statBar('Power', s.power)+
+      statBar('Precision', s.precision);
+  }
+  function renderKeeperCard(k){
+    return '<div class="role-label">The keeper</div>'+
+      '<div class="nm">'+k.name+'</div>'+
+      '<div class="alias">'+k.alias+'</div>'+
+      statBar('Reach', k.reach)+
+      statBar('Reflex', k.reflex)+
+      statBar('Intuition', k.intuition);
+  }
+
+  function startMatch(){
+    score = 0;
+    shotsTaken = 0;
+    document.getElementById('hud-name').textContent = playerName;
+    document.getElementById('match-shooter').textContent = selectedShooter.name + ' #' + selectedShooter.dorsal;
+    document.getElementById('match-keeper').textContent = selectedKeeper.name;
+    document.getElementById('match-shooter-stats').textContent = 'Pwr ' + selectedShooter.power + ' · Prec ' + selectedShooter.precision;
+    document.getElementById('match-keeper-stats').textContent = 'Reach ' + selectedKeeper.reach + ' · Reflex ' + selectedKeeper.reflex;
+    // Insertar SVG personalizado
+    document.getElementById('player').innerHTML = buildPlayerSVG(selectedShooter);
+    document.getElementById('keeper').innerHTML = buildKeeperSVG(selectedKeeper);
+    updateHud();
+    resetBall();
+    show('game');
+  }
+
+  function updateHud(){
+    document.getElementById('hud-score').textContent = score;
+    document.getElementById('hud-shots').textContent = 'Penalti ' + Math.min(shotsTaken+1, TOTAL_SHOTS) + ' / ' + TOTAL_SHOTS;
+  }
+
+  function resetBall(){
+    const ball = document.getElementById('ball');
+    ball.style.transition = 'none';
+    ball.style.left = '45.5%';
+    ball.style.top = '62%';
+    ball.style.width = '9%';
+    ball.style.opacity = '1';
+    ball.style.transform = 'rotate(0deg)';
+    // Force reflow
+    void ball.offsetWidth;
+    ball.style.transition = 'all 0.5s cubic-bezier(0.5,0,0.75,0)';
+    // Reset keeper to center
+    const keeper = document.getElementById('keeper');
+    keeper.style.left = '43%';
+    keeper.style.transform = 'rotate(0deg) translateY(0)';
+    // Reset transition speed of ball
+    ball.style.transition = 'all 0.5s cubic-bezier(0.5,0,0.75,0)';
+    // Reset player position and animations
+    const player = document.getElementById('player');
+    player.classList.remove('running','kicking','celebrate','cele-cr7','cele-mortal','cele-arquero');
+    player.style.left = '24%';
+    paradinhaDive = null;
+    // Reset keeper celebration state
+    const keeper = document.getElementById('keeper');
+    if (keeper) keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
+  }
+
+  // ====== TIRACHINAS: pointer events on ball ======
+  function getEventXY(ev){
+    if (ev.touches && ev.touches.length) return {x:ev.touches[0].clientX, y:ev.touches[0].clientY};
+    if (ev.changedTouches && ev.changedTouches.length) return {x:ev.changedTouches[0].clientX, y:ev.changedTouches[0].clientY};
+    return {x:ev.clientX, y:ev.clientY};
+  }
+
+  function startAim(ev){
+    if (shooting) return;
+    ev.preventDefault();
+    aiming = true;
+    // PARADINHA: el portero se compromete antes del chute
+    if (shotType === 'paradinha' && !paradinhaDive){
+      const keeper = document.getElementById('keeper');
+      const dive = Math.floor(Math.random() * 3);
+      let kLeft, zone;
+      if (dive === 0){ kLeft = '12%'; zone = [10, 38]; }
+      else if (dive === 1){ kLeft = '42%'; zone = [38, 62]; }
+      else { kLeft = '72%'; zone = [62, 90]; }
+      keeper.style.left = kLeft;
+      keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
+      keeper.classList.remove('dive-l','dive-c','dive-r');
+      keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+      paradinhaDive = {dive, zone};
+    }
+    const ball = document.getElementById('ball');
+    const r = ball.getBoundingClientRect();
+    const p = getEventXY(ev);
+    // Punto de golpeo relativo al centro del balon (-1..+1 en cada eje)
+    strikeRelX = ((p.x - (r.left + r.width/2)) / (r.width/2));
+    strikeRelY = ((p.y - (r.top + r.height/2)) / (r.height/2));
+    strikeRelX = Math.max(-1, Math.min(1, strikeRelX));
+    strikeRelY = Math.max(-1, Math.min(1, strikeRelY));
+    dragStartX = p.x; dragStartY = p.y;
+    dragDx = 0; dragDy = 0; dragDist = 0;
+
+    // Mostrar marcador en el balon (corregido a coordenadas del stage)
+    const stage = document.querySelector('.stage').getBoundingClientRect();
+    const m = document.getElementById('strike-marker');
+    m.style.left = (p.x - stage.left) + 'px';
+    m.style.top  = (p.y - stage.top)  + 'px';
+    m.classList.add('show');
+
+    document.addEventListener('mousemove', onAimMove, {passive:false});
+    document.addEventListener('mouseup', endAim, {passive:false});
+    document.addEventListener('touchmove', onAimMove, {passive:false});
+    document.addEventListener('touchend', endAim, {passive:false});
+  }
+
+  function onAimMove(ev){
+    if (!aiming) return;
+    ev.preventDefault();
+    const p = getEventXY(ev);
+    dragDx = p.x - dragStartX;
+    dragDy = p.y - dragStartY;
+    dragDist = Math.sqrt(dragDx*dragDx + dragDy*dragDy);
+
+    // Triangulo de tirachinas: apex en el balon, base atras (perpendicular al arrastre)
+    const stage = document.querySelector('.stage').getBoundingClientRect();
+    const dragSvg = document.getElementById('drag-svg');
+    const dragPoly = document.getElementById('drag-poly');
+
+    let p2x = p.x, p2y = p.y, p3x = p.x, p3y = p.y;
+    if (dragDist > 1) {
+      const nx = dragDx / dragDist, ny = dragDy / dragDist;
+      const perpX = -ny, perpY = nx;
+      const t = Math.min(1, dragDist / MAX_DRAG);
+      const halfW = 8 + t * 22; // base de 16 a 60 px
+      p2x = p.x + perpX * halfW;
+      p2y = p.y + perpY * halfW;
+      p3x = p.x - perpX * halfW;
+      p3y = p.y - perpY * halfW;
+    }
+
+    const apexX = ((dragStartX - stage.left) / stage.width) * 100;
+    const apexY = ((dragStartY - stage.top) / stage.height) * 100;
+    const tx2 = ((p2x - stage.left) / stage.width) * 100;
+    const ty2 = ((p2y - stage.top) / stage.height) * 100;
+    const tx3 = ((p3x - stage.left) / stage.width) * 100;
+    const ty3 = ((p3y - stage.top) / stage.height) * 100;
+    dragPoly.setAttribute('points', apexX+','+apexY+' '+tx2+','+ty2+' '+tx3+','+ty3);
+
+    const tt = Math.min(1, dragDist / MAX_DRAG);
+    const color = tt < 0.33 ? '#7CFC00' : (tt < 0.66 ? '#FFD700' : '#FF3030');
+    dragPoly.setAttribute('fill', color);
+    dragPoly.setAttribute('stroke', color);
+    dragPoly.setAttribute('fill-opacity', 0.45 + tt * 0.4);
+    dragSvg.classList.add('show');
+  }
+
+  function endAim(ev){
+    document.removeEventListener('mousemove', onAimMove);
+    document.removeEventListener('mouseup', endAim);
+    document.removeEventListener('touchmove', onAimMove);
+    document.removeEventListener('touchend', endAim);
+    document.getElementById('drag-svg').classList.remove('show');
+    document.getElementById('strike-marker').classList.remove('show');
+    if (!aiming) return;
+    aiming = false;
+    if (dragDist < MIN_DRAG){
+      return;
+    }
+    const power = Math.min(1, dragDist / MAX_DRAG);
+    doShoot(strikeRelX, strikeRelY, power);
+  }
+
+  // ====== DISPARO ======
+  function doShoot(sX, sY, power){
+    if (shooting) return;
+    shooting = true;
+
+    // ---- Mapeo base ----
+    // Coords del nuevo gol rectangular (top:14% height:22% -> 14..36)
+    const goalLeft = 3, goalRight = 97, goalTop = 14, goalBottom = 36;
+    const goalCx = 50, goalCy = 27;
+    let halfW = 47, halfH = 11;
+    let finalX = goalCx + sX * halfW;
+    let finalY = goalCy + sY * halfH;
+
+    // ---- Velocidad / spin base por potencia ----
+    let ballSpeedMs = Math.round(900 - power * 580);
+    let spinDeg     = Math.round(540 + power * 540);
+    let saveModifier = 0;          // ajuste adicional a la prob de parada
+
+    // ---- Efectos por tipo de chute ----
+    if (shotType === 'curl'){
+      // Rosca: amplifica el desvio lateral del strike
+      finalX += sX * 7;
+      saveModifier -= 0.10;        // mas dificil de parar
+    }
+    else if (shotType === 'panenka'){
+      // Vaselina: balon va al centro, lento, altura segun potencia (puede ir fuera por arriba)
+      finalX = 50 + (Math.random() - 0.5) * 10;
+      finalY = 19 - power * 17;    // potencia alta -> sale por arriba
+      ballSpeedMs = 900;
+      spinDeg = 360;
+      saveModifier += 0.00;
+    }
+    else if (shotType === 'paradinha'){
+      // El portero ya se ha lanzado en startAim. Resultado se calcula con paradinhaDive.
+    }
+    // 'instep' = sin modificaciones extra
+
+    // Ruido normal (panenka usa solo su propia logica)
+    if (shotType !== 'panenka'){
+      const extremeBonus = (Math.abs(sX) + Math.abs(sY)) * 3;
+      const noise = power * 5 + extremeBonus;
+      finalX += (Math.random() - 0.5) * noise * 2;
+      finalY += (Math.random() - 0.5) * noise * 1.4;
+    }
+
+    // ---- Decidir RESULTADO antes de animar (para que la animacion sea coherente) ----
+    let zone, kLeft, dive;
+    if (shotType === 'paradinha' && paradinhaDive){
+      dive = paradinhaDive.dive; zone = paradinhaDive.zone;
+      kLeft = ['12%','42%','72%'][dive];
+    } else {
+      dive = Math.floor(Math.random() * 3);
+      zone = [[10,38],[38,62],[62,90]][dive];
+      kLeft = ['12%','42%','72%'][dive];
+    }
+
+    // Bounds estrictos: el balon (radio ~3%) debe estar entero dentro del gol
+    const ballR = 3.5;
+    const insideGoal = (
+      finalX > goalLeft + ballR &&
+      finalX < goalRight - ballR &&
+      finalY > goalTop + ballR &&
+      finalY < goalBottom - ballR
+    );
+    let result;
+    if (!insideGoal){
+      result = 'fuera';
+    } else if (shotType === 'paradinha'){
+      const inZone = (finalX >= zone[0] && finalX <= zone[1]);
+      result = (Math.random() < (inZone ? 0.7 : 0.05)) ? 'parada' : 'gol';
+    } else {
+      let saveChance = 0.5 + saveModifier;
+      saveChance = Math.max(0.10, Math.min(0.90, saveChance));
+      result = (Math.random() < saveChance) ? 'parada' : 'gol';
+    }
+
+    // Si es parada, el balon va a las manos del portero (visualmente lo toca)
+    let ballEndX = finalX, ballEndY = finalY;
+    if (result === 'parada'){
+      ballEndX = parseFloat(kLeft) + 8;   // centro del portero (width 16% / 2)
+      ballEndY = 36 + (Math.random()-0.5) * 4; // a la altura de las manos
+    }
+
+    // ---- 1) CARRERA del jugador ----
+    const player = document.getElementById('player');
+    player.classList.add('running');
+    player.style.left = '38%';
+
+    let kickDelay = 520;
+    if (shotType === 'paradinha'){
+      // PARADINHA: stop a mitad de la carrera
+      kickDelay = 900;
+      setTimeout(() => {
+        player.classList.remove('running');
+        player.classList.add('pausing');
+      }, 280);
+      setTimeout(() => {
+        player.classList.remove('pausing');
+        player.classList.add('running');
+      }, 650);
+    }
+
+    setTimeout(() => {
+      // ---- 2) CHUTE ----
+      player.classList.remove('running','pausing');
+      player.classList.add('kicking');
+
+      // Mover portero (si no es paradinha, ya se movio antes)
+      if (shotType !== 'paradinha'){
+        const keeper = document.getElementById('keeper');
+        keeper.style.left = kLeft;
+        keeper.style.transform = (dive === 1 ? 'translateY(-15%)' : 'rotate(' + (dive===0?-25:25) + 'deg) translateY(-25%)');
+        keeper.classList.remove('dive-l','dive-c','dive-r');
+        keeper.classList.add(dive===0?'dive-l':(dive===1?'dive-c':'dive-r'));
+      }
+
+      // ---- 3) ANIMACION DEL BALON segun shot type ----
+      const ball = document.getElementById('ball');
+      const startX = 45.5, startY = 60;
+      if (shotType === 'curl'){
+        // Curl: pasa por punto intermedio desviado al lado opuesto del strike (curva)
+        const midX = (startX + ballEndX) / 2 + (sX > 0 ? -16 : 16);
+        const midY = (startY + ballEndY) / 2 - 4;
+        ball.style.transition = 'all ' + (ballSpeedMs * 0.5) + 'ms cubic-bezier(0.4,0,0.6,1)';
+        ball.style.left = (midX - 4.5) + '%';
+        ball.style.top = (midY - 4.5) + '%';
+        ball.style.width = '7%';
+        ball.style.transform = 'rotate(' + (spinDeg * 0.4) + 'deg)';
+        setTimeout(() => {
+          ball.style.transition = 'all ' + (ballSpeedMs * 0.5) + 'ms cubic-bezier(0.4,0,0.7,1)';
+          ball.style.left = (ballEndX - 4.5) + '%';
+          ball.style.top = (ballEndY - 4.5) + '%';
+          ball.style.width = '6%';
+          ball.style.transform = 'rotate(' + spinDeg + 'deg)';
+        }, ballSpeedMs * 0.5);
+      }
+      else if (shotType === 'panenka'){
+        // Panenka: SUBE primero (alto y centrado), luego BAJA al destino
+        const midX = (startX + ballEndX) / 2;
+        const midY = 4;  // muy alto (cerca del top de la pantalla)
+        ball.style.transition = 'all ' + (ballSpeedMs * 0.45) + 'ms cubic-bezier(0.2,0,0.6,1)';
+        ball.style.left = (midX - 4.5) + '%';
+        ball.style.top = (midY - 4.5) + '%';
+        ball.style.width = '7.5%';
+        ball.style.transform = 'rotate(' + (spinDeg * 0.3) + 'deg)';
+        setTimeout(() => {
+          ball.style.transition = 'all ' + (ballSpeedMs * 0.55) + 'ms cubic-bezier(0.4,0,0.8,1)';
+          ball.style.left = (ballEndX - 4.5) + '%';
+          ball.style.top = (ballEndY - 4.5) + '%';
+          ball.style.width = '6%';
+          ball.style.transform = 'rotate(' + spinDeg + 'deg)';
+        }, ballSpeedMs * 0.45);
+      }
+      else {
+        // Instep / Paradinha: linea recta
+        ball.style.transition = 'all ' + ballSpeedMs + 'ms cubic-bezier(0.5,0,0.75,0)';
+        ball.style.left = (ballEndX - 4.5) + '%';
+        ball.style.top = (ballEndY - 4.5) + '%';
+        ball.style.width = '6%';
+        ball.style.transform = 'rotate(' + spinDeg + 'deg)';
+      }
+
+      // ---- 4) RESULTADO ----
+      setTimeout(() => {
+        paradinhaDive = null;
+        showResult(result, finalX, ballSpeedMs);
+      }, ballSpeedMs + 20);
+    }, kickDelay);
+  }
+
+  function showResult(kind, finalX, ballSpeedMs){
+    const overlay = document.getElementById('result-overlay');
+    const text = document.getElementById('result-text');
+    text.className = 'result-text ' + kind;
+    // Velocidad: 11m / tiempo de viaje del balon, en kmh y mph
+    const speedEl = document.getElementById('result-speed');
+    if (ballSpeedMs && speedEl){
+      const ms = 11 / (ballSpeedMs / 1000);   // m/s
+      const kmh = Math.round(ms * 3.6);
+      const mph = Math.round(kmh * 0.621371);
+      speedEl.innerHTML = '<span class="num">'+kmh+'</span><span class="unit">km/h</span> · <span class="num">'+mph+'</span><span class="unit">mph</span>';
+      // forzar reanimacion
+      speedEl.style.animation = 'none';
+      void speedEl.offsetWidth;
+      speedEl.style.animation = '';
+    } else if (speedEl) {
+      speedEl.innerHTML = '';
+    }
+    const player = document.getElementById('player');
+    if (kind === 'gol'){
+      text.textContent = 'GOOOAL!'; score++;
+      player.classList.remove('kicking','running','cele-cr7','cele-mortal','cele-arquero');
+      const celes = ['cele-cr7','cele-mortal','cele-arquero'];
+      const pick = celes[Math.floor(Math.random() * celes.length)];
+      player.classList.add(pick);
+      speak('Goool!', {rate:0.85, pitch:1.3});
+    }
+    else if (kind === 'parada'){
+      text.textContent = 'SAVED!';
+      speak('Uuuy!', {rate:0.9, pitch:1.4});
+      // Portero celebra: levanta el brazo, scale up y dispara el balon al aire
+      setTimeout(() => {
+        const keeper = document.getElementById('keeper');
+        keeper.classList.add('k-cele');
+        keeper.style.transition = 'transform 0.55s cubic-bezier(0.34,1.56,0.64,1)';
+        keeper.style.transform = 'translateY(-15%) scale(1.12) rotate(0deg)';
+        // Balon al aire (kicked up)
+        const ball = document.getElementById('ball');
+        ball.style.transition = 'all 0.7s cubic-bezier(0.2,0,0.8,0.6)';
+        ball.style.top = '-15%';
+        ball.style.left = (parseFloat(ball.style.left) + (Math.random()-0.5) * 20) + '%';
+        ball.style.transform = 'rotate(900deg)';
+      }, 350);
+    }
+    else { text.textContent = 'OUT!'; speak('Uuuy!', {rate:0.9, pitch:1.4}); }
+    overlay.classList.add('show');
+    shotsTaken++;
+    updateHud();
+
+    setTimeout(() => {
+      overlay.classList.remove('show');
+      if (shotsTaken >= TOTAL_SHOTS){
+        endGame();
+      } else {
+        resetBall();
+        shooting = false;
+      }
+    }, 1300);
+  }
+
+  function endGame(){
+    document.getElementById('end-score').textContent = score;
+    let stars = '', verdict = '';
+    if (score === 5){ stars = '★★★★★'; verdict = 'TOP SCORER'; }
+    else if (score === 4){ stars = '★★★★☆'; verdict = 'STAR'; }
+    else if (score === 3){ stars = '★★★☆☆'; verdict = 'GOOD'; }
+    else if (score === 2){ stars = '★★☆☆☆'; verdict = 'KEEP TRAINING'; }
+    else if (score === 1){ stars = '★☆☆☆☆'; verdict = 'ALMOST...'; }
+    else { stars = '☆☆☆☆☆'; verdict = 'NEXT TIME'; }
+    document.getElementById('end-stars').textContent = stars;
+    document.getElementById('end-verdict').textContent = verdict;
+    show('end');
+  }
+
+  function restart(){
+    score = 0;
+    shotsTaken = 0;
+    updateHud();
+    resetBall();
+    shooting = false;
+    show('game');
+  }
+
+  function goHome(){
+    show('intro');
+  }
+
+  document.getElementById('player-name').addEventListener('keydown', e => {
+    if (e.key === 'Enter') goToSorteo();
+  });
+</script>
+</body>
+</html>
