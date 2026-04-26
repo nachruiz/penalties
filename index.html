@@ -761,11 +761,12 @@
     // y size es la fraccion del diametro del balon que ocupa el circulo de zona dulce.
     const foot = (selectedShooter && selectedShooter.foot) || 'R';
     const isLefty = foot === 'L';
-    if (shotType === 'pass')    return {x:50, y:50, size:0.80};   // 80% centro: muy facil
-    if (shotType === 'instep')  return {x:50, y:50, size:0.60};   // 60% centro
-    if (shotType === 'curl')    return isLefty ? {x:30, y:70, size:0.25} : {x:70, y:70, size:0.25};
-    if (shotType === 'trivela') return isLefty ? {x:70, y:70, size:0.25} : {x:30, y:70, size:0.25};
-    if (shotType === 'panenka') return {x:50, y:72, size:0.33};   // 33% abajo
+    if (shotType === 'pass')    return {x:50, y:50, size:0.80};
+    if (shotType === 'instep')  return {x:50, y:50, size:0.60};
+    // CURL/TRIVELA: circulo mas amplio (45%) y posicion menos extrema, para que sea jugable
+    if (shotType === 'curl')    return isLefty ? {x:32, y:62, size:0.48} : {x:68, y:62, size:0.48};
+    if (shotType === 'trivela') return isLefty ? {x:68, y:62, size:0.48} : {x:32, y:62, size:0.48};
+    if (shotType === 'panenka') return {x:50, y:65, size:0.50};
     // paradinha / fake / jorginho: mismo que instep
     return {x:50, y:50, size:0.60};
   }
