@@ -503,8 +503,8 @@
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
     <p style="margin:20px 0 6px;font-size:0.78rem;opacity:0.85;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.1em" data-i18n="difficulty">DIFFICULTY</p>
     <div id="diff-buttons" style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-bottom:8px">
-      <button class="btn-secondary diff-btn" data-diff="beginner" onclick="setDifficulty('beginner')" data-i18n="beginner">BEGINNER</button>
-      <button class="btn-secondary diff-btn active-diff" data-diff="intermediate" onclick="setDifficulty('intermediate')" data-i18n="intermediate">INTERMEDIATE</button>
+      <button class="btn-secondary diff-btn active-diff" data-diff="beginner" onclick="setDifficulty('beginner')" data-i18n="beginner">BEGINNER</button>
+      <button class="btn-secondary diff-btn" data-diff="intermediate" onclick="setDifficulty('intermediate')" data-i18n="intermediate">INTERMEDIATE</button>
       <button class="btn-secondary diff-btn" data-diff="expert" onclick="setDifficulty('expert')" data-i18n="expert">EXPERT</button>
     </div>
     <button class="btn" onclick="goToKeepersGallery()" data-i18n="next">NEXT</button>
@@ -717,7 +717,7 @@
   let paradinhaDive = null;
   let lastTapTime = 0;       // para detectar doble tap (tiro billar)
   let lastShotInfo = {};     // detalles del ultimo chute para explicar fueras
-  let difficulty = 'intermediate';   // 'beginner' | 'intermediate' | 'expert'
+  let difficulty = 'beginner';   // 'beginner' | 'intermediate' | 'expert' (por defecto el m&aacute;s f&aacute;cil para no desmoralizar)
   const DIFF_SAVE = {beginner:0.25, intermediate:0.45, expert:0.80};
   // Tamano del balon segun perspectiva: cerca del jugador grande, lejos pequeno
   function ballSizeForY(y){
@@ -1541,27 +1541,44 @@
       window.speechSynthesis.speak(u);
     } catch(e){}
   }
-  // 5 variaciones de gol y 5 de fallo para no repetir
+  // 8 variaciones de gol y 8 de fallo, sin repetir la inmediatamente anterior
   const GOAL_VOICES = [
-    {text:'Goooooooooooool!',     rate:0.55, pitch:1.2},
-    {text:'Goooool, gooool!',     rate:0.7,  pitch:1.4},
-    {text:'Gol, gol, gol!',       rate:1.1,  pitch:1.3},
-    {text:'Goooooooal!',          rate:0.5,  pitch:0.95},
-    {text:'Que goolazo!',         rate:0.85, pitch:1.25}
+    {text:'Goooooooooooool!',     rate:0.55, pitch:1.20},
+    {text:'Goooool, gooool!',     rate:0.70, pitch:1.40},
+    {text:'Gol, gol, gol!',       rate:1.10, pitch:1.30},
+    {text:'Goooooooal!',          rate:0.50, pitch:0.95},
+    {text:'Que goolazo!',         rate:0.85, pitch:1.25},
+    {text:'Vaya manera!',         rate:0.95, pitch:1.10},
+    {text:'Increible gol!',       rate:0.80, pitch:1.35},
+    {text:'Aqui esta!',           rate:1.00, pitch:1.50}
   ];
   const MISS_VOICES = [
     {text:'Oooooooooh!',          rate:0.55, pitch:0.85},
-    {text:'Aaaaaaaay!',           rate:0.6,  pitch:0.75},
+    {text:'Aaaaaaaay!',           rate:0.60, pitch:0.75},
     {text:'Que pena!',            rate:0.85, pitch:0.95},
-    {text:'Buaaaaa!',             rate:0.7,  pitch:0.65},
-    {text:'Casi, casi!',          rate:0.85, pitch:1.05}
+    {text:'Buaaaaa!',             rate:0.70, pitch:0.65},
+    {text:'Casi, casi!',          rate:0.85, pitch:1.05},
+    {text:'No puede ser!',        rate:0.95, pitch:0.80},
+    {text:'Increible fallo!',     rate:0.90, pitch:0.70},
+    {text:'Madre mia!',           rate:0.80, pitch:0.90}
   ];
+  let _lastGoalIdx = -1, _lastMissIdx = -1;
+  function pickRandomDistinct(arr, lastIdx){
+    if (arr.length <= 1) return 0;
+    let i;
+    do { i = Math.floor(Math.random() * arr.length); } while (i === lastIdx);
+    return i;
+  }
   function speakRandomGoal(){
-    const v = GOAL_VOICES[Math.floor(Math.random() * GOAL_VOICES.length)];
+    const i = pickRandomDistinct(GOAL_VOICES, _lastGoalIdx);
+    _lastGoalIdx = i;
+    const v = GOAL_VOICES[i];
     speak(v.text, {rate:v.rate, pitch:v.pitch});
   }
   function speakRandomMiss(){
-    const v = MISS_VOICES[Math.floor(Math.random() * MISS_VOICES.length)];
+    const i = pickRandomDistinct(MISS_VOICES, _lastMissIdx);
+    _lastMissIdx = i;
+    const v = MISS_VOICES[i];
     speak(v.text, {rate:v.rate, pitch:v.pitch});
   }
   function speakCrowd(text, count){
@@ -2074,6 +2091,9 @@
         document.querySelector('.stage').classList.remove('slowmo');
         const player = document.getElementById('player');
         player.classList.remove('pausing','kicking');
+        // Limpiar estado para que el siguiente FAKE funcione bien
+        paradinhaDive = null;
+        shooting = false;
         // Resultado: tarjeta amarilla por demora — fuera default
         lastShotInfo = {finalX:50, finalY:55, sX:0, sY:0, power:0, strikeY:0, shotType:'fake'};
         showResult('fuera', 50, 500);
@@ -2472,8 +2492,15 @@
     // FAKE: corre al balon -> finta con la pierna (sin tocar balon) -> camara lenta
     // -> selector de tipo de chute -> chute real con el tipo elegido.
     if (shotType === 'fake'){
+      // Defensiva: limpiar estado de un fake anterior por si quedo algo
+      paradinhaDive = null;
+      if (fakeCdTimer) { clearInterval(fakeCdTimer); fakeCdTimer = null; }
+      const fpEl = document.getElementById('fake-picker');
+      if (fpEl) fpEl.classList.remove('show');
+      document.querySelector('.stage').classList.remove('slowmo');
       const realSX = sX, realSY = sY, realPower = power;
       const player = document.getElementById('player');
+      player.classList.remove('pausing','kicking');
       player.classList.add('running');
       player.style.left = '38%';
       player.style.bottom = '14%';
