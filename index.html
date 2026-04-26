@@ -581,19 +581,42 @@
   function toggleHelp(){
     document.getElementById('help-tooltip').classList.toggle('show');
   }
-  // ====== BICYCLE KICK mini-game ======
+  // ====== BICYCLE KICK: balon al larguero -> rebota -> bicicleta en el aire ======
   let bicycleStage = 0;
   let bicycleScore1 = 0, bicycleScore2 = 0;
   function startBicycle(){
     if (shooting) return;
-    bicycleStage = 1;
+    shooting = true;
+    bicycleStage = 0;
     bicycleScore1 = 0; bicycleScore2 = 0;
-    document.getElementById('bicycle-stage').textContent = 'JUMP!';
-    document.getElementById('bicycle-instr').textContent = 'Tap when the indicator hits the green zone';
-    const ind = document.getElementById('bicycle-indicator');
-    ind.style.animation = 'none'; void ind.offsetWidth; ind.style.animation = '';
-    document.getElementById('bicycle-modal').classList.add('show');
+
+    const ball = document.getElementById('ball');
+    // FASE 1: balon sale disparado al LARGUERO (siempre)
+    ball.style.transition = 'all 600ms cubic-bezier(0.3,0,0.5,1)';
+    ball.style.left = '47%';
+    ball.style.top = '13%';   // chocando contra el larguero (goalTop=19, balon centro a 16)
+    ball.style.width = '6%';
+    ball.style.transform = 'rotate(180deg)';
+
+    // FASE 2: rebote del larguero, balon empieza a bajar
+    setTimeout(() => {
+      ball.style.transition = 'all 850ms cubic-bezier(0.4,0,0.6,1)';
+      ball.style.top = '38%';  // bajando despues de rebotar
+      ball.style.transform = 'rotate(540deg)';
+      // Mostrar JUMP mini-game ANTES de que la pelota llegue al jugador
+      setTimeout(() => {
+        bicycleStage = 1;
+        document.getElementById('bicycle-stage').textContent = 'JUMP!';
+        document.getElementById('bicycle-instr').textContent = 'The ball is coming down — time your jump';
+        const ind = document.getElementById('bicycle-indicator');
+        ind.style.animation = 'none'; void ind.offsetWidth;
+        ind.style.animationDuration = '1.1s';
+        ind.style.animation = '';
+        document.getElementById('bicycle-modal').classList.add('show');
+      }, 250);
+    }, 650);
   }
+
   function bicycleTap(){
     const ind = document.getElementById('bicycle-indicator');
     const bar = ind.parentElement;
@@ -601,50 +624,88 @@
     const barRect = bar.getBoundingClientRect();
     const pos = (indRect.left + indRect.width/2 - barRect.left) / barRect.width;
     const accuracy = Math.max(0, 1 - Math.abs(0.5 - pos) * 2.5);
+
     if (bicycleStage === 1){
       bicycleScore1 = accuracy;
-      bicycleStage = 2;
-      document.getElementById('bicycle-stage').textContent = 'KICK!';
-      document.getElementById('bicycle-instr').textContent = 'Now time the kick';
-      ind.style.animation = 'none'; void ind.offsetWidth;
-      ind.style.animationDuration = '1.0s';
-      ind.style.animation = '';
-    } else if (bicycleStage === 2){
+      bicycleStage = 0;
+      document.getElementById('bicycle-modal').classList.remove('show');
+
+      // El jugador SALTA
+      const player = document.getElementById('player');
+      player.style.transition = 'transform 500ms cubic-bezier(0.34,1.56,0.64,1)';
+      player.style.transform = 'translateY(-25%)';
+
+      // El balon sigue bajando un poco mas
+      const ball = document.getElementById('ball');
+      ball.style.transition = 'all 600ms ease-in';
+      ball.style.top = '50%';
+
+      // Mostrar KICK mini-game cuando el balon esta cerca del jugador
+      setTimeout(() => {
+        bicycleStage = 2;
+        document.getElementById('bicycle-stage').textContent = 'KICK!';
+        document.getElementById('bicycle-instr').textContent = 'Now! Time the bicycle kick';
+        const ind2 = document.getElementById('bicycle-indicator');
+        ind2.style.animation = 'none'; void ind2.offsetWidth;
+        ind2.style.animationDuration = '0.85s';
+        ind2.style.animation = '';
+        document.getElementById('bicycle-modal').classList.add('show');
+      }, 500);
+    }
+    else if (bicycleStage === 2){
       bicycleScore2 = accuracy;
+      bicycleStage = 0;
       document.getElementById('bicycle-modal').classList.remove('show');
       finishBicycle();
     }
   }
+
   function finishBicycle(){
     const combined = (bicycleScore1 + bicycleScore2) / 2;
-    bicycleStage = 0;
-    // Resultado segun precision combinada
-    let aimX, aimY, power;
+    const player = document.getElementById('player');
+    // BICICLETA EN EL AIRE: voltereta hacia atras
+    player.classList.add('cele-mortal');
+
+    // Donde acaba el balon segun la precision
+    let finalX, finalY, ballSpeedMs;
     if (combined > 0.75){
-      // Espectacular: chilena al angulo
-      aimX = (Math.random() > 0.5 ? 0.78 : -0.78);
-      aimY = -0.85;
-      power = 0.95;
+      finalX = 50 + (Math.random() > 0.5 ? 38 : -38);
+      finalY = 22;
+      ballSpeedMs = 380;
     } else if (combined > 0.45){
-      // OK: chute al palo, alto
-      aimX = (Math.random() - 0.5) * 1.4;
-      aimY = -0.7;
-      power = 0.7;
+      finalX = 50 + (Math.random() - 0.5) * 50;
+      finalY = 25;
+      ballSpeedMs = 500;
     } else {
-      // Fallo: balon se va loco (probable fuera)
-      aimX = (Math.random() - 0.5) * 2.6;
-      aimY = -1.3;
-      power = 0.4;
+      finalX = 50 + (Math.random() - 0.5) * 90;
+      finalY = 13;  // se va por arriba
+      ballSpeedMs = 450;
     }
-    // strike point neutro para que no afecte el bias
-    strikeRelX = 0; strikeRelY = 0;
-    const prev = shotType;
-    shotType = 'instep';
-    doShoot(aimX, aimY, power);
+
+    const ball = document.getElementById('ball');
+    ball.style.transition = 'all ' + ballSpeedMs + 'ms ease-out';
+    ball.style.left = (finalX - 3) + '%';
+    ball.style.top = (finalY - 3) + '%';
+    ball.style.transform = 'rotate(900deg)';
+
     setTimeout(() => {
-      shotType = prev;
-      document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === prev));
-    }, 100);
+      const goalLeft = 3, goalRight = 97, goalTop = 19, goalBottom = 40;
+      const ballR = 3.5;
+      const insideGoal = (finalX > goalLeft + ballR && finalX < goalRight - ballR &&
+                         finalY > goalTop + ballR && finalY < goalBottom - ballR);
+      let result;
+      if (!insideGoal) result = 'fuera';
+      else result = (Math.random() < 0.15) ? 'parada' : 'gol';
+      lastShotInfo = {finalX, finalY, sX:0, sY:0, power: combined, strikeY:0, shotType:'bicycle'};
+      showResult(result, finalX, ballSpeedMs);
+
+      setTimeout(() => {
+        player.classList.remove('cele-mortal');
+        player.style.transform = '';
+        shotType = 'instep';
+        document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+      }, 1400);
+    }, ballSpeedMs + 50);
   }
   function toggleSound(){
     soundEnabled = document.getElementById('sound-toggle').checked;
