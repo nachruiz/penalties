@@ -186,9 +186,13 @@
   <div id="screen-intro" class="screen active">
     <h1>PENALTIES</h1>
     <div class="sub">Bernabeu 2026</div>
-    <p style="margin-bottom:18px;font-size:1rem;opacity:0.9">Enter your player name:</p>
+    <p style="margin-bottom:14px;font-size:1rem;opacity:0.9">Enter your player name:</p>
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
-    <button class="btn" onclick="goToSorteo()">NEXT</button>
+    <p style="margin:18px 0 8px;font-size:0.85rem;opacity:0.85;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.1em">PICK YOUR ROLE</p>
+    <div style="display:flex;gap:14px;flex-wrap:wrap;justify-content:center">
+      <button class="btn" onclick="goToSorteo('shooter')">SHOOTER</button>
+      <button class="btn btn-secondary" onclick="alert('Keeper mode coming soon!')">KEEPER</button>
+    </div>
   </div>
 
   <!-- Pantalla 1b: Lineup (10 atacantes y 10 porteros en liza) -->
@@ -319,7 +323,8 @@
 
   // Tipo de chute
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
-  let paradinhaDive = null;  // {dive, zone} si esta activa
+  let paradinhaDive = null;
+  let lastTapTime = 0;       // para detectar doble tap (tiro billar)
 
   function setShotType(t){
     if (shooting) return;
@@ -597,9 +602,8 @@
     player.classList.remove('running','kicking','celebrate','cele-cr7','cele-mortal','cele-arquero');
     player.style.left = '24%';
     paradinhaDive = null;
-    // Reset keeper celebration state
-    const keeper = document.getElementById('keeper');
-    if (keeper) keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
+    // Reset keeper celebration state (keeper ya declarado arriba)
+    keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
   }
 
   // ====== TIRACHINAS: pointer events on ball ======
@@ -609,9 +613,44 @@
     return {x:ev.clientX, y:ev.clientY};
   }
 
+  function fireBilliard(ev){
+    if (shooting) return;
+    const ball = document.getElementById('ball');
+    const r = ball.getBoundingClientRect();
+    const p = getEventXY(ev);
+    let sX = (p.x - (r.left + r.width/2)) / (r.width/2);
+    sX = Math.max(-1, Math.min(1, sX));
+    // Billar: golpe IZQ -> balon va DER (invertimos)
+    const aimX = -sX;
+    // Siempre raso (parte baja del gol)
+    const aimY = 0.85;
+    const power = 0.18; // muy suave
+    // Forzar tipo INSTEP (ignorar curl/panenka/paradinha)
+    const prevType = shotType;
+    shotType = 'instep';
+    // Limpiar UI de aim
+    aiming = false;
+    document.getElementById('strike-marker').classList.remove('show');
+    document.getElementById('drag-svg').classList.remove('show');
+    document.removeEventListener('mousemove', onAimMove);
+    document.removeEventListener('mouseup', endAim);
+    document.removeEventListener('touchmove', onAimMove);
+    document.removeEventListener('touchend', endAim);
+    doShoot(aimX, aimY, power);
+    setTimeout(() => { shotType = prevType; }, 250);
+  }
+
   function startAim(ev){
     if (shooting) return;
     ev.preventDefault();
+    // Detectar doble tap -> tiro billar raso
+    const now = Date.now();
+    if (now - lastTapTime < 350){
+      lastTapTime = 0;
+      fireBilliard(ev);
+      return;
+    }
+    lastTapTime = now;
     aiming = true;
     // PARADINHA: el portero se compromete antes del chute
     if (shotType === 'paradinha' && !paradinhaDive){
