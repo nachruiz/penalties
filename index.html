@@ -68,6 +68,19 @@
   .stage.slowmo .ball, .stage.slowmo .player, .stage.slowmo .keeper{filter:saturate(1.2) brightness(1.05)}
   .stage.slowmo::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.3) 100%);pointer-events:none;z-index:25;animation:slowmo-flash 0.5s ease-out}
   @keyframes slowmo-flash{from{opacity:0}to{opacity:1}}
+  /* Tutorial (primera vez) */
+  .tutorial-modal{position:absolute;inset:0;background:rgba(0,0,0,0.92);z-index:80;display:none;align-items:center;justify-content:center;padding:18px}
+  .tutorial-modal.show{display:flex}
+  .tutorial-content{background:linear-gradient(180deg,#001f3f,#0a0f1f);border:2px solid #FFD700;border-radius:14px;padding:24px 22px;max-width:380px;width:100%;color:#fff;text-align:center;max-height:90vh;overflow-y:auto}
+  .tutorial-content h2{font-family:'Cinzel',serif;color:#FFD700;font-size:1.3rem;margin-bottom:10px;letter-spacing:0.08em}
+  .tutorial-icon{font-size:2.6rem;margin-bottom:8px}
+  .tutorial-content p{font-size:0.85rem;line-height:1.5;margin-bottom:8px;color:#eee}
+  .tutorial-content p strong{color:#FFD700}
+  .tutorial-nav{display:flex;justify-content:space-between;align-items:center;margin-top:16px;gap:10px}
+  .tutorial-nav .pages{color:#FFD700;font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.1em}
+  .tutorial-nav button{background:rgba(255,215,0,0.15);border:1.5px solid #FFD700;color:#FFD700;padding:8px 18px;font-family:'Cinzel',serif;font-size:0.78rem;font-weight:900;letter-spacing:0.08em;border-radius:6px;cursor:pointer}
+  .tutorial-nav button:hover{background:#FFD700;color:#001f3f}
+  .tutorial-nav button.skip{opacity:0.7;font-size:0.7rem;border-color:rgba(255,215,0,0.4)}
   /* Help button + tooltip */
   .help-btn{position:absolute;top:12px;left:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:30px;height:30px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .help-btn:hover{background:rgba(255,215,0,0.2)}
@@ -289,6 +302,9 @@
 <div class="stage">
 
   <button class="settings-btn" onclick="toggleSettings()">⚙</button>
+  <div class="tutorial-modal" id="tutorial-modal">
+    <div class="tutorial-content" id="tutorial-content"></div>
+  </div>
   <div class="fake-picker" id="fake-picker">
     <h3>SHOOT NOW!</h3>
     <p>Keeper committed — pick your real shot</p>
@@ -322,6 +338,7 @@
       <p><strong>CURL</strong>: curves toward the strike side.</p>
       <p><strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.</p>
       <p><strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.</p>
+      <button class="btn-secondary" style="margin-top:10px;width:100%" onclick="toggleSettings();showTutorial()">SHOW TUTORIAL</button>
       <button class="btn close-btn" onclick="toggleSettings()">CLOSE</button>
     </div>
   </div>
@@ -687,6 +704,42 @@
   }
   function toggleHelp(){
     document.getElementById('help-tooltip').classList.toggle('show');
+  }
+  // ====== TUTORIAL (primera vez) ======
+  const TUTORIAL_SLIDES = [
+    {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — save shots (coming soon).</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
+    {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where the ball will go — like billiards.</p><p>If you want the ball to fly RIGHT, touch the LEFT of the ball. If you want it LOW, touch the TOP. Touching BOTTOM lifts it (chip).</p><p>This is independent of your aim intent: the contact point overrides everything.</p>'},
+    {icon:'🎯💪', title:'SLINGSHOT: ARROW + POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your INTENT (combine with strike point for perfect execution).</p><p>The <strong>length of the drag</strong> is real shot power — but slightly modulated by shot type (panenka is always slow, instep is direct, etc).</p>'},
+    {icon:'🚲⏱️', title:'BICYCLE KICK', body:'<p>The bicycle kick is a <strong>2-step timing mini-game</strong> in slow motion:</p><p>1. <strong>JUMP</strong>: time your jump as the ball rebounds off the crossbar (3s countdown — miss it and the ball drops past you).</p><p>2. <strong>KICK</strong>: time the bicycle kick when the ball reaches your head (2s countdown).</p><p>Hit both perfectly = goal at the corner. Miss either = no goal.</p>'},
+    {icon:'🧲🔓', title:'DRAG TO UNLOCK', body:'<p>You can <strong>drag the player</strong> with your mouse/finger to reposition them.</p><p>If you drop the player in the <strong>center of the field</strong>, two new shot types unlock:</p><p><strong>CR7</strong> — side-step back to corner + classic instep.<br><strong>NEYMAR</strong> — side-step + 8 weird stutter steps before kicking.</p><p>Move the player back to the side and they hide again.</p>'}
+  ];
+  let tutorialIdx = 0;
+  function showTutorial(){
+    tutorialIdx = 0;
+    document.getElementById('tutorial-modal').classList.add('show');
+    renderTutorialSlide();
+  }
+  function renderTutorialSlide(){
+    const s = TUTORIAL_SLIDES[tutorialIdx];
+    const last = tutorialIdx === TUTORIAL_SLIDES.length - 1;
+    document.getElementById('tutorial-content').innerHTML =
+      '<div class="tutorial-icon">'+s.icon+'</div>'+
+      '<h2>'+s.title+'</h2>'+
+      s.body+
+      '<div class="tutorial-nav">'+
+        '<button class="skip" onclick="endTutorial()">SKIP</button>'+
+        '<span class="pages">'+(tutorialIdx+1)+' / '+TUTORIAL_SLIDES.length+'</span>'+
+        '<button onclick="'+(last?'endTutorial()':'nextTutorialSlide()')+'">'+(last?'GOT IT':'NEXT')+'</button>'+
+      '</div>';
+  }
+  function nextTutorialSlide(){
+    tutorialIdx++;
+    if (tutorialIdx >= TUTORIAL_SLIDES.length) endTutorial();
+    else renderTutorialSlide();
+  }
+  function endTutorial(){
+    document.getElementById('tutorial-modal').classList.remove('show');
+    try { localStorage.setItem('penalties_tutorial_seen', '1'); } catch(e){}
   }
   // ====== BICYCLE KICK: balon al larguero -> rebota -> camara lenta + bicicleta en el aire ======
   let bicycleStage = 0;
@@ -1907,12 +1960,14 @@
   document.getElementById('player-name').addEventListener('keydown', e => {
     if (e.key === 'Enter') goToKeepersGallery();
   });
-  // Cargar nombre y dificultad guardados
+  // Cargar nombre y dificultad guardados, y mostrar tutorial la primera vez
   try {
     const savedName = localStorage.getItem('penalties_name');
     if (savedName) document.getElementById('player-name').value = savedName;
     const savedDiff = localStorage.getItem('penalties_diff');
     if (savedDiff) setDifficulty(savedDiff);
+    const seenTut = localStorage.getItem('penalties_tutorial_seen');
+    if (!seenTut) setTimeout(showTutorial, 400);
   } catch(e){}
 
   // ====== Sombra del balon (perspectiva con linterna desde arriba) ======
