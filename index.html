@@ -43,17 +43,23 @@
   /* Settings button */
   .settings-btn{position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .settings-btn:hover{background:rgba(255,215,0,0.2)}
-  /* Bicycle kick mini-game */
-  .bicycle-modal{position:absolute;inset:0;background:rgba(0,0,0,0.85);display:none;align-items:center;justify-content:center;z-index:60;cursor:pointer}
-  .bicycle-modal.show{display:flex}
-  .bicycle-content{text-align:center;padding:30px;max-width:340px}
-  .bicycle-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:2rem;margin-bottom:18px;letter-spacing:0.1em}
-  .bicycle-content p{color:#fff;margin-bottom:18px;font-size:0.85rem;opacity:0.85}
-  .bicycle-bar{position:relative;width:280px;height:32px;background:rgba(255,255,255,0.08);border:2px solid #FFD700;border-radius:16px;overflow:hidden;margin:18px auto 8px}
-  .bicycle-zone{position:absolute;left:38%;top:0;bottom:0;width:24%;background:rgba(124,252,0,0.4)}
+  /* Bicycle kick mini-game (barra abajo, fuera del balon, con countdown) */
+  .bicycle-modal{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:2px solid #FFD700;border-radius:14px;display:none;z-index:60;cursor:pointer;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+  .bicycle-modal.show{display:block;animation:bm-pop 0.25s ease-out}
+  @keyframes bm-pop{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+  .bicycle-content{text-align:center;max-width:300px}
+  .bicycle-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:1.4rem;margin-bottom:6px;letter-spacing:0.1em}
+  .bicycle-content p{color:#fff;margin-bottom:8px;font-size:0.78rem;opacity:0.85}
+  .bicycle-bar{position:relative;width:240px;height:24px;background:rgba(255,255,255,0.08);border:2px solid #FFD700;border-radius:12px;overflow:hidden;margin:8px auto}
+  .bicycle-zone{position:absolute;left:40%;top:0;bottom:0;width:20%;background:rgba(124,252,0,0.45)}
   .bicycle-indicator{position:absolute;left:0;top:0;bottom:0;width:6px;background:#fff;box-shadow:0 0 12px #fff;border-radius:3px;animation:bicycle-move 1.4s infinite alternate linear}
   @keyframes bicycle-move{0%{left:0}100%{left:calc(100% - 6px)}}
-  .bicycle-hint{color:#FFD700;font-family:'Cinzel',serif;font-size:0.8rem;letter-spacing:0.1em;margin-top:14px}
+  .bicycle-hint{color:#FFD700;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.08em;margin-top:6px}
+  .bicycle-cd{position:absolute;top:-26px;right:8px;color:#FF3030;font-family:'Cinzel',serif;font-size:1.4rem;font-weight:900;text-shadow:0 0 10px #FF3030}
+  /* Slow motion overlay durante bicycle */
+  .stage.slowmo .ball, .stage.slowmo .player, .stage.slowmo .keeper{filter:saturate(1.2) brightness(1.05)}
+  .stage.slowmo::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.3) 100%);pointer-events:none;z-index:25;animation:slowmo-flash 0.5s ease-out}
+  @keyframes slowmo-flash{from{opacity:0}to{opacity:1}}
   /* Help button + tooltip */
   .help-btn{position:absolute;top:12px;left:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:30px;height:30px;font-size:0.9rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .help-btn:hover{background:rgba(255,215,0,0.2)}
@@ -163,12 +169,20 @@
   /* Tirachinas (triangulo) */
   .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
   .drag-svg.show{display:block}
-  /* Shot type buttons (2 columnas para que quepan todos en pantalla) */
-  .shot-types{position:absolute;right:3px;top:42%;display:grid;grid-template-columns:repeat(2,1fr);gap:3px;z-index:10;width:138px}
-  .shot-btn{background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.4);color:#fff;padding:3px 5px;font-family:'Cinzel',serif;font-size:0.55rem;font-weight:700;letter-spacing:0.04em;border-radius:5px;cursor:pointer;text-align:center;transition:all 0.15s}
+  /* Shot type buttons (+40% mas grandes, 2 columnas) */
+  .shot-types{position:absolute;right:4px;top:38%;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;z-index:10;width:194px}
+  .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:5px 7px;font-family:'Cinzel',serif;font-size:0.77rem;font-weight:700;letter-spacing:0.05em;border-radius:6px;cursor:pointer;text-align:center;transition:all 0.15s}
+  /* FAKE + BICYCLE: rojo (ilegales en penaltis reales) */
+  .shot-btn[data-shot="fake"], .shot-btn[data-shot="bicycle"]{background:rgba(140,30,30,0.9);border-color:rgba(255,100,100,0.5)}
+  .shot-btn[data-shot="fake"]:hover, .shot-btn[data-shot="bicycle"]:hover{background:rgba(180,40,40,0.95)}
+  .shot-btn[data-shot="fake"].active, .shot-btn[data-shot="bicycle"].active{background:linear-gradient(135deg,#ff6b6b,#c93030);color:#fff;border-color:#ff8888;box-shadow:0 0 10px rgba(255,100,100,0.6)}
+  /* CR7 + NEYMAR: verde (desbloqueables) */
+  .shot-btn[data-shot="cr7"], .shot-btn[data-shot="neymar"]{background:rgba(20,80,40,0.9);border-color:rgba(120,220,120,0.5)}
+  .shot-btn[data-shot="cr7"]:hover, .shot-btn[data-shot="neymar"]:hover{background:rgba(30,110,55,0.95)}
+  .shot-btn[data-shot="cr7"].active, .shot-btn[data-shot="neymar"].active{background:linear-gradient(135deg,#7CFC00,#2d6a17);color:#001f3f;border-color:#7CFC00;box-shadow:0 0 10px rgba(124,252,0,0.6)}
   .shot-btn:hover{border-color:#FFD700;background:rgba(255,215,0,0.15)}
   .shot-btn.active{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700;box-shadow:0 0 10px rgba(255,215,0,0.5)}
-  .shot-btn .shot-sub{display:block;font-family:'DM Sans',sans-serif;font-size:0.42rem;opacity:0.7;letter-spacing:0;font-weight:500;margin-top:0;text-transform:lowercase;line-height:1.1}
+  .shot-btn .shot-sub{display:block;font-family:'DM Sans',sans-serif;font-size:0.59rem;opacity:0.75;letter-spacing:0;font-weight:500;margin-top:1px;text-transform:lowercase;line-height:1.1}
   .shot-btn.active .shot-sub{opacity:0.85}
   /* Marker on ball strike point */
   .strike-marker{position:absolute;width:14px;height:14px;border-radius:50%;background:#FF3030;border:2px solid #fff;pointer-events:none;z-index:13;transform:translate(-50%,-50%);display:none;box-shadow:0 0 10px rgba(255,48,48,0.9)}
@@ -219,6 +233,7 @@
 
   <button class="settings-btn" onclick="toggleSettings()">⚙</button>
   <div class="bicycle-modal" id="bicycle-modal" onclick="bicycleTap()">
+    <div class="bicycle-cd" id="bicycle-cd"></div>
     <div class="bicycle-content">
       <h3 id="bicycle-stage">JUMP!</h3>
       <p id="bicycle-instr">Tap when the indicator hits the green zone</p>
@@ -581,40 +596,97 @@
   function toggleHelp(){
     document.getElementById('help-tooltip').classList.toggle('show');
   }
-  // ====== BICYCLE KICK: balon al larguero -> rebota -> bicicleta en el aire ======
+  // ====== BICYCLE KICK: balon al larguero -> rebota -> camara lenta + bicicleta en el aire ======
   let bicycleStage = 0;
   let bicycleScore1 = 0, bicycleScore2 = 0;
+  let bicycleTimer = null, bicycleCdTimer = null;
+
+  function clearBicycleTimers(){
+    if (bicycleTimer) { clearTimeout(bicycleTimer); bicycleTimer = null; }
+    if (bicycleCdTimer) { clearInterval(bicycleCdTimer); bicycleCdTimer = null; }
+  }
+  function startBicycleCountdown(seconds, onExpire){
+    const cdEl = document.getElementById('bicycle-cd');
+    let remaining = seconds;
+    cdEl.textContent = remaining;
+    bicycleCdTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0){
+        clearInterval(bicycleCdTimer); bicycleCdTimer = null;
+        cdEl.textContent = '';
+        onExpire();
+      } else {
+        cdEl.textContent = remaining;
+      }
+    }, 1000);
+  }
   function startBicycle(){
     if (shooting) return;
     shooting = true;
     bicycleStage = 0;
     bicycleScore1 = 0; bicycleScore2 = 0;
+    clearBicycleTimers();
+
+    // CAMARA LENTA (overlay + animaciones mas lentas)
+    document.querySelector('.stage').classList.add('slowmo');
 
     const ball = document.getElementById('ball');
-    // FASE 1: balon sale disparado al LARGUERO (siempre)
-    ball.style.transition = 'all 600ms cubic-bezier(0.3,0,0.5,1)';
+    // FASE 1: balon va al LARGUERO (slow motion)
+    ball.style.transition = 'all 1100ms cubic-bezier(0.3,0,0.5,1)';
     ball.style.left = '47%';
-    ball.style.top = '13%';   // chocando contra el larguero (goalTop=19, balon centro a 16)
+    ball.style.top = '13%';
     ball.style.width = '6%';
     ball.style.transform = 'rotate(180deg)';
 
-    // FASE 2: rebote del larguero, balon empieza a bajar
-    setTimeout(() => {
-      ball.style.transition = 'all 850ms cubic-bezier(0.4,0,0.6,1)';
-      ball.style.top = '38%';  // bajando despues de rebotar
+    // FASE 2: rebote, balon empieza a caer (lento)
+    bicycleTimer = setTimeout(() => {
+      ball.style.transition = 'all 1500ms cubic-bezier(0.4,0,0.6,1)';
+      ball.style.top = '38%';
       ball.style.transform = 'rotate(540deg)';
-      // Mostrar JUMP mini-game ANTES de que la pelota llegue al jugador
-      setTimeout(() => {
+      // Mostrar JUMP mini-game ANTES de que la pelota llegue
+      bicycleTimer = setTimeout(() => {
         bicycleStage = 1;
         document.getElementById('bicycle-stage').textContent = 'JUMP!';
-        document.getElementById('bicycle-instr').textContent = 'The ball is coming down — time your jump';
+        document.getElementById('bicycle-instr').textContent = 'Ball coming — time your jump';
         const ind = document.getElementById('bicycle-indicator');
         ind.style.animation = 'none'; void ind.offsetWidth;
-        ind.style.animationDuration = '1.1s';
+        ind.style.animationDuration = '1.6s';
         ind.style.animation = '';
         document.getElementById('bicycle-modal').classList.add('show');
-      }, 250);
-    }, 650);
+        // Countdown 3 segundos para saltar; si se acaba, falla
+        startBicycleCountdown(3, () => bicycleAutoFail('jump'));
+      }, 350);
+    }, 1150);
+  }
+
+  function bicycleAutoFail(stage){
+    document.getElementById('bicycle-modal').classList.remove('show');
+    clearBicycleTimers();
+    bicycleStage = 0;
+    document.querySelector('.stage').classList.remove('slowmo');
+    // Animar balon como un fallo
+    const ball = document.getElementById('ball');
+    if (stage === 'jump'){
+      // Balon cae al suelo sin que saltes -> rebote en suelo, no gol
+      ball.style.transition = 'all 700ms cubic-bezier(0.4,0,0.6,1)';
+      ball.style.left = '47%';
+      ball.style.top = '70%';  // cae al suelo cerca del jugador
+    } else {
+      // Saltaste pero no pateaste a tiempo -> balon te pasa por encima
+      ball.style.transition = 'all 600ms ease-in';
+      ball.style.left = '47%';
+      ball.style.top = '85%';  // sigue cayendo, queda atras
+    }
+    setTimeout(() => {
+      lastShotInfo = {finalX:50, finalY:70, sX:0, sY:0, power:0, strikeY:0, shotType:'bicycle'};
+      showResult('fuera', 50, 700);
+      setTimeout(() => {
+        const player = document.getElementById('player');
+        player.style.transform = '';
+        shotType = 'instep';
+        document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+      }, 1400);
+    }, 750);
   }
 
   function bicycleTap(){
@@ -628,33 +700,36 @@
     if (bicycleStage === 1){
       bicycleScore1 = accuracy;
       bicycleStage = 0;
+      clearBicycleTimers();
       document.getElementById('bicycle-modal').classList.remove('show');
 
-      // El jugador SALTA
+      // SALTA el jugador (slow motion)
       const player = document.getElementById('player');
-      player.style.transition = 'transform 500ms cubic-bezier(0.34,1.56,0.64,1)';
+      player.style.transition = 'transform 800ms cubic-bezier(0.34,1.56,0.64,1)';
       player.style.transform = 'translateY(-25%)';
 
-      // El balon sigue bajando un poco mas
+      // Balon sigue bajando lento
       const ball = document.getElementById('ball');
-      ball.style.transition = 'all 600ms ease-in';
+      ball.style.transition = 'all 900ms ease-in';
       ball.style.top = '50%';
 
-      // Mostrar KICK mini-game cuando el balon esta cerca del jugador
-      setTimeout(() => {
+      // KICK mini-game
+      bicycleTimer = setTimeout(() => {
         bicycleStage = 2;
         document.getElementById('bicycle-stage').textContent = 'KICK!';
-        document.getElementById('bicycle-instr').textContent = 'Now! Time the bicycle kick';
+        document.getElementById('bicycle-instr').textContent = 'Ball reaching head — time the kick';
         const ind2 = document.getElementById('bicycle-indicator');
         ind2.style.animation = 'none'; void ind2.offsetWidth;
-        ind2.style.animationDuration = '0.85s';
+        ind2.style.animationDuration = '1.2s';
         ind2.style.animation = '';
         document.getElementById('bicycle-modal').classList.add('show');
-      }, 500);
+        startBicycleCountdown(2, () => bicycleAutoFail('kick'));
+      }, 700);
     }
     else if (bicycleStage === 2){
       bicycleScore2 = accuracy;
       bicycleStage = 0;
+      clearBicycleTimers();
       document.getElementById('bicycle-modal').classList.remove('show');
       finishBicycle();
     }
@@ -662,6 +737,7 @@
 
   function finishBicycle(){
     const combined = (bicycleScore1 + bicycleScore2) / 2;
+    document.querySelector('.stage').classList.remove('slowmo');
     const player = document.getElementById('player');
     // BICICLETA EN EL AIRE: voltereta hacia atras
     player.classList.add('cele-mortal');
