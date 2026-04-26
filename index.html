@@ -56,14 +56,15 @@
   .fake-picker-buttons button:hover{background:rgba(255,215,0,0.2)}
   .fake-cd{position:fixed;top:30%;left:50%;transform:translateX(-50%);color:#FFD700;font-family:'Cinzel',serif;font-size:6rem;font-weight:900;text-shadow:0 0 24px #FF3030,0 0 50px #FF3030,0 6px 12px rgba(0,0,0,0.8);z-index:70;pointer-events:none;line-height:1;animation:cd-pulse 0.5s ease-out}
   @keyframes cd-pulse{from{transform:translateX(-50%) scale(1.4);opacity:0}to{transform:translateX(-50%) scale(1);opacity:1}}
-  /* Bicycle kick mini-game (barra abajo, fuera del balon, con countdown) */
-  .bicycle-modal{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:2px solid #FFD700;border-radius:14px;display:none;z-index:60;cursor:pointer;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+  /* Bicycle kick mini-game: pegado debajo del bloque de shot-types (derecha por defecto, izda en bonus zurdo) */
+  .bicycle-modal{position:absolute;right:4px;bottom:6%;width:232px;background:rgba(0,0,0,0.9);border:2px solid #FFD700;border-radius:12px;display:none;z-index:60;cursor:pointer;padding:10px 12px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
+  .bicycle-modal.lefty-side{right:auto;left:4px}
   .bicycle-modal.show{display:block;animation:bm-pop 0.25s ease-out}
-  @keyframes bm-pop{from{opacity:0;transform:translateX(-50%) translateY(20px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
-  .bicycle-content{text-align:center;max-width:300px}
-  .bicycle-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:1.4rem;margin-bottom:6px;letter-spacing:0.1em}
-  .bicycle-content p{color:#fff;margin-bottom:8px;font-size:0.78rem;opacity:0.85}
-  .bicycle-bar{position:relative;width:240px;height:24px;background:rgba(255,255,255,0.08);border:2px solid #FFD700;border-radius:12px;overflow:hidden;margin:8px auto}
+  @keyframes bm-pop{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .bicycle-content{text-align:center}
+  .bicycle-content h3{font-family:'Cinzel',serif;color:#FFD700;font-size:1.15rem;margin-bottom:4px;letter-spacing:0.1em}
+  .bicycle-content p{color:#fff;margin-bottom:6px;font-size:0.7rem;opacity:0.85;line-height:1.15}
+  .bicycle-bar{position:relative;width:100%;height:22px;background:rgba(255,255,255,0.08);border:2px solid #FFD700;border-radius:11px;overflow:hidden;margin:6px auto}
   .bicycle-zone{position:absolute;left:40%;top:0;bottom:0;width:20%;background:rgba(124,252,0,0.45)}
   .bicycle-indicator{position:absolute;left:0;top:0;bottom:0;width:6px;background:#fff;box-shadow:0 0 12px #fff;border-radius:3px;animation:bicycle-move 1.4s infinite alternate linear}
   @keyframes bicycle-move{0%{left:0}100%{left:calc(100% - 6px)}}
@@ -773,6 +774,7 @@
   let bicycleStage = 0;
   let bicycleScore1 = 0, bicycleScore2 = 0;
   let bicycleTimer = null, bicycleCdTimer = null;
+  let bicycleTargetX = 48;   // X% donde rebota y donde caera la pelota
 
   function clearBicycleTimers(){
     if (bicycleTimer) { clearTimeout(bicycleTimer); bicycleTimer = null; }
@@ -800,22 +802,33 @@
     bicycleScore1 = 0; bicycleScore2 = 0;
     clearBicycleTimers();
 
+    // Punto de rebote variable: cerca del centro pero no siempre el mismo (38% - 58%)
+    bicycleTargetX = 38 + Math.random() * 20;
+
     // CAMARA LENTA (overlay + animaciones mas lentas)
     document.querySelector('.stage').classList.add('slowmo');
 
     const ball = document.getElementById('ball');
-    // FASE 1: balon va al LARGUERO (slow motion) - se hace MAS PEQUENO (lejos)
+    // FASE 1: balon va al LARGUERO en el punto bicycleTargetX (slow motion)
     ball.style.transition = 'all 1100ms cubic-bezier(0.3,0,0.5,1)';
-    ball.style.left = '48%';
+    ball.style.left = (bicycleTargetX - 1.75) + '%';   // -1.75 = mitad de width 3.5%
     ball.style.top = '13%';
     ball.style.width = '3.5%';   // muy pequeno = muy lejos contra larguero
     ball.style.transform = 'rotate(180deg)';
 
-    // FASE 2: rebote, balon empieza a caer creciendo (mas grande = mas cerca)
+    // El JUGADOR se desplaza automaticamente en paralelo, alineandose con bicycleTargetX
+    // (centrado bajo el balon: player width 18% -> left = targetX - 9)
+    const player = document.getElementById('player');
+    const isLeftyB0 = (selectedShooter && selectedShooter.foot === 'L');
+    const playerLandingX = bicycleTargetX - 9 + (isLeftyB0 ? 4 : -4); // ligero offset segun pie
+    player.style.transition = 'left 2400ms cubic-bezier(0.4,0,0.6,1)';
+    player.style.left = playerLandingX + '%';
+
+    // FASE 2: rebote, balon empieza a caer creciendo (mas grande = mas cerca) en el mismo X
     bicycleTimer = setTimeout(() => {
       ball.style.transition = 'all 1500ms cubic-bezier(0.4,0,0.6,1)';
       ball.style.top = '38%';
-      ball.style.left = '46%';
+      ball.style.left = (bicycleTargetX - 3) + '%';   // -3 = mitad de width 6%
       ball.style.width = '6%';
       ball.style.transform = 'rotate(540deg)';
       // Mostrar JUMP mini-game ANTES de que la pelota llegue
@@ -844,12 +857,12 @@
     if (stage === 'jump'){
       // Balon cae al suelo sin que saltes -> rebote en suelo, no gol
       ball.style.transition = 'all 700ms cubic-bezier(0.4,0,0.6,1)';
-      ball.style.left = '47%';
+      ball.style.left = (bicycleTargetX - 3) + '%';
       ball.style.top = '70%';  // cae al suelo cerca del jugador
     } else {
       // Saltaste pero no pateaste a tiempo -> balon te pasa por encima
       ball.style.transition = 'all 600ms ease-in';
-      ball.style.left = '47%';
+      ball.style.left = (bicycleTargetX - 3) + '%';
       ball.style.top = '85%';  // sigue cayendo, queda atras
     }
     setTimeout(() => {
@@ -857,7 +870,10 @@
       showResult('fuera', 50, 700);
       setTimeout(() => {
         const player = document.getElementById('player');
+        player.style.transition = '';
         player.style.transform = '';
+        player.style.left = '';
+        player.style.bottom = '';
         shotType = 'instep';
         document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
       }, 1400);
@@ -878,28 +894,33 @@
       clearBicycleTimers();
       document.getElementById('bicycle-modal').classList.remove('show');
 
-      // SALTA el jugador (slow motion)
+      // SALTA el jugador POR ENCIMA del punto donde rebota (bicycleTargetX)
+      // El player width:18% -> left = targetX - 9 para quedar centrado
       const player = document.getElementById('player');
-      player.style.transition = 'transform 800ms cubic-bezier(0.34,1.56,0.64,1)';
-      player.style.transform = 'translateY(-25%)';
+      player.style.transition = 'left 400ms ease-out, bottom 800ms cubic-bezier(0.34,1.56,0.64,1), transform 800ms cubic-bezier(0.34,1.56,0.64,1)';
+      const isLeftyB = (selectedShooter && selectedShooter.foot === 'L');
+      player.style.left = (bicycleTargetX - 9) + '%';
+      player.style.bottom = '38%';
+      player.style.transform = 'rotate(' + (isLeftyB ? 8 : -8) + 'deg)';
 
-      // Balon sigue bajando lento
+      // Camara lenta MAS lenta: el balon baja despacio justo encima del jugador (mismo X)
       const ball = document.getElementById('ball');
-      ball.style.transition = 'all 900ms ease-in';
-      ball.style.top = '50%';
+      ball.style.transition = 'all 1600ms ease-in';
+      ball.style.top = '40%';
+      ball.style.left = (bicycleTargetX - 3) + '%';
 
-      // KICK mini-game
+      // KICK mini-game (esperamos a que el jugador este arriba)
       bicycleTimer = setTimeout(() => {
         bicycleStage = 2;
         document.getElementById('bicycle-stage').textContent = 'KICK!';
         document.getElementById('bicycle-instr').textContent = 'Ball reaching head — time the kick';
         const ind2 = document.getElementById('bicycle-indicator');
         ind2.style.animation = 'none'; void ind2.offsetWidth;
-        ind2.style.animationDuration = '1.2s';
+        ind2.style.animationDuration = '1.4s';
         ind2.style.animation = '';
         document.getElementById('bicycle-modal').classList.add('show');
-        startBicycleCountdown(2, () => bicycleAutoFail('kick'));
-      }, 700);
+        startBicycleCountdown(3, () => bicycleAutoFail('kick'));
+      }, 850);
     }
     else if (bicycleStage === 2){
       bicycleScore2 = accuracy;
@@ -911,27 +932,41 @@
   }
 
   function finishBicycle(){
-    const combined = (bicycleScore1 + bicycleScore2) / 2;
     document.querySelector('.stage').classList.remove('slowmo');
     const player = document.getElementById('player');
     // BICICLETA EN EL AIRE: piernas pedaleando + voltereta
     player.classList.remove('cele-mortal','cele-cr7','cele-arquero');
     player.classList.add('bicycle-kick');
 
-    // Donde acaba el balon segun la precision
-    let finalX, finalY, ballSpeedMs;
-    if (combined > 0.75){
+    // Reglas estrictas: si fallas el SALTO (score1<0.4) o el REMATE (score2<0.4) -> imposible gol.
+    // Solo se puede meter si aciertas AMBAS barras.
+    const jumpHit = bicycleScore1 >= 0.4;
+    const kickHit = bicycleScore2 >= 0.4;
+    const combined = (bicycleScore1 + bicycleScore2) / 2;
+
+    let finalX, finalY, ballSpeedMs, forceMiss = false;
+    if (!jumpHit){
+      // No llegaste al balon -> se va por encima/atras tuyo, fuera seguro
+      finalX = 50 + (Math.random() - 0.5) * 60;
+      finalY = 10;  // muy alto, claramente por encima del larguero
+      ballSpeedMs = 520;
+      forceMiss = true;
+    } else if (!kickHit){
+      // Saltaste pero mistimed el remate -> chuta mal, fuera seguro
+      finalX = 50 + (Math.random() > 0.5 ? 1 : -1) * (55 + Math.random()*35);  // muy a un lado
+      finalY = 30;
+      ballSpeedMs = 480;
+      forceMiss = true;
+    } else if (combined > 0.85){
+      // Ambas perfectas -> escuadra
       finalX = 50 + (Math.random() > 0.5 ? 38 : -38);
       finalY = 22;
       ballSpeedMs = 380;
-    } else if (combined > 0.45){
+    } else {
+      // Ambas decentes -> gol normal dentro
       finalX = 50 + (Math.random() - 0.5) * 50;
       finalY = 25;
       ballSpeedMs = 500;
-    } else {
-      finalX = 50 + (Math.random() - 0.5) * 90;
-      finalY = 13;  // se va por arriba
-      ballSpeedMs = 450;
     }
 
     const ball = document.getElementById('ball');
@@ -941,19 +976,26 @@
     ball.style.transform = 'rotate(900deg)';
 
     setTimeout(() => {
-      const goalLeft = 3, goalRight = 97, goalTop = 19, goalBottom = 40;
-      const ballR = 3.5;
-      const insideGoal = (finalX > goalLeft + ballR && finalX < goalRight - ballR &&
-                         finalY > goalTop + ballR && finalY < goalBottom - ballR);
       let result;
-      if (!insideGoal) result = 'fuera';
-      else result = (Math.random() < 0.15) ? 'parada' : 'gol';
-      lastShotInfo = {finalX, finalY, sX:0, sY:0, power: combined, strikeY:0, shotType:'bicycle'};
+      if (forceMiss){
+        result = 'fuera';
+      } else {
+        const goalLeft = 3, goalRight = 97, goalTop = 19, goalBottom = 40;
+        const ballR = 3.5;
+        const insideGoal = (finalX > goalLeft + ballR && finalX < goalRight - ballR &&
+                           finalY > goalTop + ballR && finalY < goalBottom - ballR);
+        if (!insideGoal) result = 'fuera';
+        else result = (Math.random() < 0.15) ? 'parada' : 'gol';
+      }
+      lastShotInfo = {finalX, finalY, sX:0, sY:0, power: combined, strikeY:0, shotType:'bicycle', jumpHit, kickHit};
       showResult(result, finalX, ballSpeedMs);
 
       setTimeout(() => {
         player.classList.remove('bicycle-kick','cele-mortal');
+        player.style.transition = '';
         player.style.transform = '';
+        player.style.left = '';
+        player.style.bottom = '';
         shotType = 'instep';
         document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
       }, 1400);
@@ -2245,6 +2287,7 @@
           // Si el jugador es zurdo, mover el panel a la izquierda
           const isLefty = (selectedShooter && selectedShooter.foot === 'L');
           document.getElementById('shot-types').classList.toggle('bonus-lefty', isLefty);
+          document.getElementById('bicycle-modal').classList.toggle('lefty-side', isLefty);
           alert('🎉 BONUS UNLOCKED!\n\nYou scored from all 5 shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
           resetBall();
           shooting = false;
