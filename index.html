@@ -38,24 +38,16 @@
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
   .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
   .diff-btn.active-diff{background:linear-gradient(135deg,#FFD700,#c9a000)!important;color:#001f3f!important;border-color:#FFD700!important;box-shadow:0 0 12px rgba(255,215,0,0.5)}
-  /* Portada con fondo limpio (cielo nocturno -> cesped). El hero va como banner detras del titulo, no de fondo de toda la pantalla */
+  /* Hero a pantalla completa del intro: el golpeo se ve entero detras de TODO el contenido (titulo, BERNABEU, input...) */
   #screen-intro{
     isolation:isolate; overflow:hidden;
-    background: linear-gradient(180deg, #04081a 0%, #06142a 35%, #0a2a18 70%, #0e3a22 100%);
-  }
-  /* Banner con la foto hero detras de "LEGENDS PENALTIES", a todo lo ancho del stage */
-  .title-banner{
-    position:relative;
-    width:calc(100% + 48px); /* compensa el padding 24px del .screen para llegar de borde a borde */
-    margin:-24px -24px 18px; /* sale del padding lateral y del padding superior */
-    padding:36px 16px 28px;
+    padding-bottom:42px; /* espacio para el copyright */
     background:
-      linear-gradient(180deg, rgba(0,0,0,0.35) 0%, rgba(0,0,0,0.55) 60%, rgba(0,5,15,0.85) 100%),
-      url('hero.jpg') center 35%/cover no-repeat;
-    border-bottom:1px solid rgba(255,215,0,0.3);
-    box-shadow:0 6px 24px rgba(0,0,0,0.5);
+      linear-gradient(180deg, rgba(0,5,15,0.45) 0%, rgba(0,5,15,0.55) 50%, rgba(0,5,15,0.85) 100%),
+      url('hero.jpg') center top / cover no-repeat;
   }
-  .title-banner h1{margin:0}
+  /* No queremos el wrapper banner: el H1 va suelto, sin franja, sin borde dorado */
+  .title-banner{display:contents}
   /* Asegurar que el contenido (titulo, input, etc) queda por encima del overlay del hero */
   #screen-intro > *{ position:relative; z-index:2; }
   /* Pie de copyright pegado al borde inferior del stage */
