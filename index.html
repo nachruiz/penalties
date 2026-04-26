@@ -953,10 +953,10 @@
       return;
     }
     const power = Math.min(1, dragDist / MAX_DRAG);
-    // SLINGSHOT: direccion = OPUESTO al arrastre (linea media del triangulo, apex -> base)
-    const dirX = -dragDx / dragDist;   // -1..+1
-    const dirY = -dragDy / dragDist;   // -1..+1
-    doShoot(dirX, dirY, power);
+    // SLINGSHOT: direccion = OPUESTO al arrastre (sin normalizar -> magnitud del aim = magnitud del pull)
+    const aimX = Math.max(-1, Math.min(1, -dragDx / MAX_DRAG));
+    const aimY = Math.max(-1, Math.min(1, -dragDy / MAX_DRAG));
+    doShoot(aimX, aimY, power);
   }
 
   // ====== DISPARO ======
