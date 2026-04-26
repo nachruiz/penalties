@@ -298,7 +298,7 @@
   .assist-toggle.lefty-side{left:auto;right:8px}
   .assist-toggle.on{background:linear-gradient(135deg,#3a8aff,#1a4aaf);color:#fff;border-color:#5aa8ff;box-shadow:0 0 10px rgba(80,160,255,0.6)}
   /* Circulo azul transparente sobre la zona dulce del balon (cuando el asistente est&aacute; ON) */
-  .assist-circle{position:absolute;border:2.5px solid #5aa8ff;border-radius:50%;z-index:11;pointer-events:none;display:none;box-shadow:0 0 10px rgba(80,160,255,0.7),inset 0 0 8px rgba(80,160,255,0.4);background:rgba(80,160,255,0.22)}
+  .assist-circle{position:absolute;border:2.5px solid #5aa8ff;border-radius:50%;z-index:13;pointer-events:none;display:none;box-shadow:0 0 12px rgba(80,160,255,0.85),inset 0 0 10px rgba(80,160,255,0.45);background:rgba(80,160,255,0.28)}
   .assist-circle.show{display:block;animation:assist-pulse 1s ease-in-out infinite alternate}
   @keyframes assist-pulse{from{opacity:0.7;box-shadow:0 0 6px rgba(80,160,255,0.5),inset 0 0 6px rgba(80,160,255,0.3)}to{opacity:1;box-shadow:0 0 14px rgba(80,160,255,0.9),inset 0 0 10px rgba(80,160,255,0.55)}}
   /* Shot-types panel: cuadrante INFERIOR del lado opuesto al lanzador, para no tapar la trayectoria */
@@ -511,6 +511,18 @@
     <div class="copyright-foot">&copy; 2026 Khoru Creative S.L. &mdash; All rights reserved</div>
   </div>
 
+  <!-- Pantalla de explicaci&oacute;n previa al sorteo -->
+  <div id="screen-explain" class="screen">
+    <h1 style="font-size:1.5rem" data-i18n="explainTitle">Tonight's draw</h1>
+    <div class="sub" data-i18n="explainSub">How the lineup works</div>
+    <div style="max-width:420px;width:100%;text-align:left">
+      <p style="margin:14px 0;font-size:0.95rem;line-height:1.4" data-i18n="explainP1">The game features <strong>20 legendary goalkeepers</strong> and <strong>20 legendary strikers</strong>.</p>
+      <p style="margin:14px 0;font-size:0.95rem;line-height:1.4" data-i18n="explainP2">For each session, fate randomly picks <strong>6 of each</strong> to enter the lineup.</p>
+      <p style="margin:14px 0;font-size:0.95rem;line-height:1.4" data-i18n="explainP3">Then a single pairing is drawn from those 6 &mdash; one striker vs one keeper. <strong>That&rsquo;s your match.</strong></p>
+    </div>
+    <button class="btn" onclick="goToKeepersFromExplain()" data-i18n="explainContinue">CONTINUE</button>
+  </div>
+
   <!-- Galeria 1: KEEPERS in play (avatares grandes) -->
   <div id="screen-keepers-gallery" class="screen gallery-screen">
     <h1 data-i18n="keepers">KEEPERS</h1>
@@ -627,9 +639,9 @@
     </div>
     <div class="spot"></div>
     <button class="assist-toggle" id="assist-toggle" onclick="toggleAssist()">ASSIST: OFF</button>
-    <div class="assist-circle" id="assist-circle"></div>
     <div class="ball-shadow" id="ball-shadow"></div>
     <div class="ball" id="ball" onmousedown="startAim(event)" ontouchstart="startAim(event)">
+      <div class="assist-circle" id="assist-circle"></div>
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
         <circle cx="50" cy="50" r="48" fill="#fff" stroke="#1a1a1a" stroke-width="1"/>
         <polygon points="50,30 65,42 59,60 41,60 35,42" fill="#1a1a1a"/>
@@ -745,36 +757,40 @@
     btn.textContent = 'ASSIST: ' + (assistOn ? 'ON' : 'OFF');
   }
   function getSweetSpot(){
-    // Devuelve {x,y} en % dentro del balon (0-100, 50/50 = centro). Depende del tipo y del pie.
+    // Devuelve {x, y, size} donde x,y son % dentro del balon (50/50 = centro)
+    // y size es la fraccion del diametro del balon que ocupa el circulo de zona dulce.
     const foot = (selectedShooter && selectedShooter.foot) || 'R';
     const isLefty = foot === 'L';
-    if (shotType === 'curl')    return isLefty ? {x:25, y:50} : {x:75, y:50};
-    if (shotType === 'trivela') return isLefty ? {x:75, y:50} : {x:25, y:50};
-    if (shotType === 'panenka') return {x:50, y:75};   // media-baja
-    if (shotType === 'pass')    return {x:50, y:30};   // mitad-alta -> raso
-    return {x:50, y:50};   // instep / paradinha / fake / jorginho
+    if (shotType === 'pass')    return {x:50, y:50, size:0.80};   // 80% centro: muy facil
+    if (shotType === 'instep')  return {x:50, y:50, size:0.60};   // 60% centro
+    if (shotType === 'curl')    return isLefty ? {x:30, y:70, size:0.25} : {x:70, y:70, size:0.25};
+    if (shotType === 'trivela') return isLefty ? {x:70, y:70, size:0.25} : {x:30, y:70, size:0.25};
+    if (shotType === 'panenka') return {x:50, y:72, size:0.33};   // 33% abajo
+    // paradinha / fake / jorginho: mismo que instep
+    return {x:50, y:50, size:0.60};
   }
   function updateAssistCircle(){
     const circle = document.getElementById('assist-circle');
     if (!circle) return;
-    if (!assistOn || gameMode === 'keeper' || shooting){ circle.classList.remove('show'); return; }
-    const ball = document.getElementById('ball');
-    const stage = document.querySelector('.stage');
-    if (!ball || !stage) return;
-    const ballRect = ball.getBoundingClientRect();
-    const stageRect = stage.getBoundingClientRect();
-    if (stageRect.width === 0 || ballRect.width === 0) return;
-    // Calculo en PIXELES (mas fiable que % cuando el aspect ratio puede fallar)
+    // El circulo es HIJO del balon, asi que se mueve con el. Solo lo ocultamos en modo keeper.
+    if (!assistOn || gameMode === 'keeper'){ circle.classList.remove('show'); return; }
     const ss = getSweetSpot();
-    const sizePx = ballRect.width * 0.45;
-    const cxPx = (ballRect.left - stageRect.left) + (ss.x / 100) * ballRect.width;
-    const cyPx = (ballRect.top  - stageRect.top)  + (ss.y / 100) * ballRect.height;
-    circle.style.left   = (cxPx - sizePx/2) + 'px';
-    circle.style.top    = (cyPx - sizePx/2) + 'px';
-    circle.style.width  = sizePx + 'px';
-    circle.style.height = sizePx + 'px';
-    circle.style.aspectRatio = '';   // limpiar por si quedaba
+    const sizePct = ss.size * 100;   // % del ancho del balon
+    circle.style.left   = (ss.x - sizePct/2) + '%';
+    circle.style.top    = (ss.y - sizePct/2) + '%';
+    circle.style.width  = sizePct + '%';
+    circle.style.height = sizePct + '%';
     circle.classList.add('show');
+  }
+  // Comprueba si el strike point cae dentro del circulo de zona dulce (en coords [-1,1] del balon)
+  function strikeInSweetSpot(){
+    const ss = getSweetSpot();
+    const ssCx = (ss.x - 50) / 50;   // -1..+1
+    const ssCy = (ss.y - 50) / 50;
+    const ssR  = ss.size;            // radio en unidades [-1,1]
+    const dx = strikeRelX - ssCx;
+    const dy = strikeRelY - ssCy;
+    return Math.sqrt(dx*dx + dy*dy) <= ssR;
   }
 
   function show(id){
@@ -953,6 +969,11 @@
       stPanenka:'<strong>PANENKA</strong>: chip shot, slow and high. Goes out if too powerful.',
       stParadinha:'<strong>PARADINHA</strong>: keeper commits before you shoot. Aim opposite his dive.',
       celeRandom:'RANDOM', whyLabel:'Why?',
+      explainTitle:"Tonight's draw", explainSub:'How the lineup works',
+      explainP1:'The game features <strong>20 legendary goalkeepers</strong> and <strong>20 legendary strikers</strong>.',
+      explainP2:'For each session, fate randomly picks <strong>6 of each</strong> to enter the lineup.',
+      explainP3:'Then a single pairing is drawn from those 6 &mdash; one striker vs one keeper. <strong>That&rsquo;s your match.</strong>',
+      explainContinue:'CONTINUE',
       subPass:'inside foot, low', subInstep:'straight', subCurl:'curve', subTrivela:'outside foot',
       subPanenka:'chip shot', subParadinha:'stutter step', subFake:'feint, no shot',
       subJorginho:'stutter hop', subBicycle:'overhead bonus', subCr7:'side-step + instep', subNeymar:'side-step + crazy stutter',
@@ -1003,6 +1024,11 @@
       stPanenka:'<strong>PANENKA</strong>: vaselina, lenta y alta. Se va fuera si pasas de potencia.',
       stParadinha:'<strong>PARADINHA</strong>: el portero se compromete antes. Apunta al lado contrario.',
       celeRandom:'AZAR', whyLabel:'&iquest;Por qu&eacute;?',
+      explainTitle:'Sorteo de hoy', explainSub:'C&oacute;mo funciona la alineaci&oacute;n',
+      explainP1:'El juego cuenta con <strong>20 porteros leyenda</strong> y <strong>20 lanzadores leyenda</strong>.',
+      explainP2:'En cada sesi&oacute;n el destino elige al azar <strong>a 6 de cada uno</strong> para entrar en la alineaci&oacute;n.',
+      explainP3:'Luego se sortea una &uacute;nica pareja entre esos 6 &mdash; un lanzador contra un portero. <strong>Ese ser&aacute; tu partido.</strong>',
+      explainContinue:'CONTINUAR',
       subPass:'interior, raso', subInstep:'recto', subCurl:'rosca', subTrivela:'con el exterior',
       subPanenka:'vaselina', subParadinha:'parada antes', subFake:'amago, sin tiro',
       subJorginho:'saltito previo', subBicycle:'chilena bonus', subCr7:'paso lateral + zurriagazo', subNeymar:'paso lateral + tartamudeo',
@@ -1053,6 +1079,11 @@
       stPanenka:'<strong>PANENKA</strong>&nbsp;: piqu&eacute;e, lente et haute. Sort si trop forte.',
       stParadinha:'<strong>PARADINHA</strong>&nbsp;: le gardien plonge avant. Vise &agrave; l\'oppos&eacute;.',
       celeRandom:'AL&Eacute;A', whyLabel:'Pourquoi&nbsp;?',
+      explainTitle:'Tirage du soir', explainSub:'Comment fonctionne la composition',
+      explainP1:'Le jeu compte <strong>20 gardiens l&eacute;gendaires</strong> et <strong>20 tireurs l&eacute;gendaires</strong>.',
+      explainP2:'&Agrave; chaque session, le destin choisit au hasard <strong>6 de chaque</strong> pour entrer dans la composition.',
+      explainP3:'Puis un seul duel est tir&eacute; parmi ces 6 &mdash; un tireur contre un gardien. <strong>C&rsquo;est ton match.</strong>',
+      explainContinue:'CONTINUER',
       subPass:'int&eacute;rieur, ras', subInstep:'droit', subCurl:'enroul&eacute;', subTrivela:'ext&eacute;rieur',
       subPanenka:'piqu&eacute;e', subParadinha:'arr&ecirc;t-relance', subFake:'feinte, sans tir',
       subJorginho:'petit saut', subBicycle:'bicyclette bonus', subCr7:'pas de c&ocirc;t&eacute; + frappe', subNeymar:'pas de c&ocirc;t&eacute; + course folle',
@@ -1103,6 +1134,11 @@
       stPanenka:'<strong>PANENKA</strong>: Heber, langsam und hoch. Geht raus bei zu viel Power.',
       stParadinha:'<strong>PARADINHA</strong>: Torwart legt sich vorher fest. Ziele entgegengesetzt.',
       celeRandom:'ZUFALL', whyLabel:'Warum?',
+      explainTitle:'Auslosung heute', explainSub:'Wie die Aufstellung funktioniert',
+      explainP1:'Das Spiel umfasst <strong>20 legend&auml;re Torw&auml;rte</strong> und <strong>20 legend&auml;re Sch&uuml;tzen</strong>.',
+      explainP2:'In jeder Session w&auml;hlt das Schicksal zuf&auml;llig <strong>6 von jeder Seite</strong> f&uuml;r die Aufstellung aus.',
+      explainP3:'Dann wird aus diesen 6 ein einziges Duell gezogen &mdash; ein Sch&uuml;tze gegen einen Torwart. <strong>Das ist dein Spiel.</strong>',
+      explainContinue:'WEITER',
       subPass:'Innenseite, flach', subInstep:'gerade', subCurl:'angeschnitten', subTrivela:'Au&szlig;enrist',
       subPanenka:'Heber', subParadinha:'Stop &amp; Schuss', subFake:'Finte, kein Schuss',
       subJorginho:'kleiner H&uuml;pfer', subBicycle:'Fallr&uuml;ckzieher Bonus', subCr7:'Seitschritt + Vollspann', subNeymar:'Seitschritt + verr&uuml;ckte Schritte',
@@ -1153,6 +1189,11 @@
       stPanenka:'<strong>PANENKA</strong>: cavadinha, lenta e alta. Vai fora com pot&ecirc;ncia a mais.',
       stParadinha:'<strong>PARADINHA</strong>: o GR compromete-se antes. Aponta ao lado contr&aacute;rio.',
       celeRandom:'ALEAT&Oacute;RIO', whyLabel:'Porqu&ecirc;?',
+      explainTitle:'Sorteio de hoje', explainSub:'Como funciona o onze',
+      explainP1:'O jogo conta com <strong>20 guarda-redes lend&aacute;rios</strong> e <strong>20 rematadores lend&aacute;rios</strong>.',
+      explainP2:'Em cada sess&atilde;o o destino escolhe ao acaso <strong>6 de cada</strong> para entrar no onze.',
+      explainP3:'Depois sorteia-se um &uacute;nico par entre esses 6 &mdash; um rematador contra um guarda-redes. <strong>Esse &eacute; o teu jogo.</strong>',
+      explainContinue:'CONTINUAR',
       subPass:'interior, rasteiro', subInstep:'reto', subCurl:'efeito', subTrivela:'com o exterior',
       subPanenka:'cavadinha', subParadinha:'paragem antes', subFake:'finta, sem remate',
       subJorginho:'saltinho', subBicycle:'bicicleta b&oacute;nus', subCr7:'passo lateral + chuto', subNeymar:'passo lateral + tartamudez',
@@ -1248,17 +1289,11 @@
   function endTutorial(){
     document.getElementById('tutorial-modal').classList.remove('show');
     try { localStorage.setItem('penalties_tutorial_seen', '1'); } catch(e){}
-    // Si veniamos de la portada (NEXT del intro), continuamos directo al flujo
+    // Si veniamos de la portada (NEXT del intro), continuamos a la pantalla de explicacion
     if (tutorialFromIntro){
       tutorialFromIntro = false;
-      _continueAfterIntro();
+      show('explain');
     }
-  }
-  function _continueAfterIntro(){
-    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
-    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
-    renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
-    show('keepers-gallery');
   }
   // ====== BICYCLE KICK: balon al larguero -> rebota -> camara lenta + bicicleta en el aire ======
   let bicycleStage = 0;
@@ -1611,12 +1646,27 @@
   function shuffleArr(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 
   function goToKeepersGallery(){
+    // Llamado desde NEXT en la portada
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
     try { localStorage.setItem('penalties_name', playerName); } catch(e){}
-    // Tras meter el nombre, el tutorial es OBLIGATORIO. Al cerrarlo, continua solo al flujo.
-    tutorialFromIntro = true;
-    showTutorial();
+    // Tutorial: SOLO la primera vez. Despu&eacute;s siempre disponible en Settings.
+    let seenTut = false;
+    try { seenTut = !!localStorage.getItem('penalties_tutorial_seen'); } catch(e){}
+    if (!seenTut){
+      tutorialFromIntro = true;
+      showTutorial();
+      return;
+    }
+    // Tutorial ya visto -> directo a la explicaci&oacute;n del sorteo
+    show('explain');
+  }
+  function goToKeepersFromExplain(){
+    // Llamado desde el bot&oacute;n CONTINUE del screen-explain
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
+    renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
+    show('keepers-gallery');
   }
   function goToShootersGallery(){
     renderGalleryCards('grid-s-gallery', poolShooters, 'shooter');
@@ -2542,6 +2592,37 @@
       const noise = power * 2.5 + extremeBonus;
       finalX += (Math.random() - 0.5) * noise * 1.5;
       finalY += (Math.random() - 0.5) * noise * 0.9;
+    }
+
+    // ====== REGLA DE LA ZONA DULCE ======
+    // Si el strike point cae FUERA del circulo de la zona dulce, el balon se va FUERA.
+    // Excepcion: curl/trivela con aim al lado contrario al strike pueden colar como fluke (descontrolado).
+    // Solo aplica a tiros "normales": instep/pass/curl/trivela/panenka.
+    const NORMAL_TYPES = ['pass','instep','curl','trivela','panenka'];
+    if (NORMAL_TYPES.indexOf(shotType) >= 0){
+      const inSweet = strikeInSweetSpot();
+      if (!inSweet){
+        let flukeIn = false;
+        if ((shotType === 'curl' || shotType === 'trivela') &&
+            Math.sign(sX) !== 0 && Math.sign(sX) !== Math.sign(strikeRelX) && Math.abs(sX) > 0.3){
+          // Flecha apuntando a un lado y strike en el opuesto -> 30% de fluke goal pero direccion descontrolada
+          if (Math.random() < 0.3){
+            flukeIn = true;
+            finalX = 18 + Math.random() * 64;   // dentro del marco horizontalmente, posicion al azar
+            finalY = 24 + Math.random() * 12;   // dentro del marco vertical
+          }
+        }
+        if (!flukeIn){
+          // Forzado fuera: por arriba o por un lado
+          if (Math.random() < 0.5){
+            finalY = 8 + Math.random() * 8;     // < goalTop -> sale por arriba
+            finalX = 30 + Math.random() * 40;
+          } else {
+            finalX = Math.random() < 0.5 ? -3 + Math.random() * 4 : 97 + Math.random() * 4;
+            finalY = 22 + Math.random() * 12;
+          }
+        }
+      }
     }
 
     // ---- Decidir RESULTADO antes de animar (para que la animacion sea coherente) ----
