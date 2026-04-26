@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Penalties</title>
+<title>Legends Penalties</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   html,body{height:100%;overflow:hidden;background:#0a3d1f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none}
@@ -11,7 +11,7 @@
   .stage{position:relative;width:100vw;max-width:560px;aspect-ratio:9/16;max-height:100vh;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%);overflow:hidden;border:0;box-shadow:0 0 40px rgba(0,0,0,0.6)}
   .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
   .screen.active{display:flex}
-  h1{font-family:"Trebuchet MS",sans-serif;font-size:clamp(2.4rem,8vw,3.6rem);color:#fff;letter-spacing:0.05em;margin-bottom:8px;text-shadow:0 2px 6px rgba(0,0,0,0.6)}
+  h1{font-family:"Trebuchet MS",sans-serif;font-size:clamp(1.9rem,7vw,3.1rem);color:#fff;letter-spacing:0.04em;margin-bottom:8px;text-shadow:0 2px 6px rgba(0,0,0,0.6);line-height:1.1;text-align:center}
   .sub{color:#FFD700;font-size:1rem;margin-bottom:32px;letter-spacing:0.1em;text-transform:uppercase}
   input[type=text]{background:rgba(255,255,255,0.95);color:#001f3f;font-size:1.4rem;font-weight:700;text-align:center;padding:14px 18px;border-radius:8px;border:none;width:80%;max-width:320px;letter-spacing:0.05em;text-transform:uppercase}
   input:focus{outline:3px solid #FFD700}
@@ -20,11 +20,13 @@
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
   .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
   .diff-btn.active-diff{background:linear-gradient(135deg,#FFD700,#c9a000)!important;color:#001f3f!important;border-color:#FFD700!important;box-shadow:0 0 12px rgba(255,215,0,0.5)}
-  /* Language picker */
+  /* Language picker (botones oscuros legibles) */
   .lang-picker{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:30}
-  .lang-flag{background:rgba(255,255,255,0.1);border:1.5px solid rgba(255,255,255,0.3);border-radius:6px;padding:3px 7px;font-size:1.15rem;cursor:pointer;line-height:1;transition:all 0.15s}
-  .lang-flag:hover{background:rgba(255,255,255,0.22)}
-  .lang-flag.active{background:rgba(255,215,0,0.25);border-color:#FFD700;box-shadow:0 0 8px rgba(255,215,0,0.4)}
+  .lang-flag{background:#001f3f;border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:5px 9px;font-size:1.1rem;color:#fff;cursor:pointer;line-height:1;display:flex;align-items:center;gap:5px;transition:all 0.15s;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.05em}
+  .lang-flag .lcode{font-size:0.65rem;color:#fff;opacity:0.9}
+  .lang-flag:hover{background:#0a2e5c}
+  .lang-flag.active{background:linear-gradient(135deg,#FFD700,#c9a000);border-color:#FFD700;color:#001f3f;box-shadow:0 0 10px rgba(255,215,0,0.55)}
+  .lang-flag.active .lcode{color:#001f3f}
   /* Celebration picker (en settings) */
   .cele-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 4px}
   .cele-grid button{background:rgba(255,255,255,0.08);border:1.5px solid rgba(255,215,0,0.35);color:#fff;border-radius:7px;padding:6px 4px;font-family:'Cinzel',serif;font-size:0.7rem;letter-spacing:0.04em;cursor:pointer;transition:all 0.15s}
@@ -395,13 +397,13 @@
   <!-- Pantalla 1: Inicio -->
   <div id="screen-intro" class="screen active">
     <div class="lang-picker" id="lang-picker">
-      <button class="lang-flag active" data-lang="en" onclick="setLang('en')" title="English">&#x1F1EC;&#x1F1E7;</button>
-      <button class="lang-flag" data-lang="es" onclick="setLang('es')" title="Espa&ntilde;ol">&#x1F1EA;&#x1F1F8;</button>
-      <button class="lang-flag" data-lang="fr" onclick="setLang('fr')" title="Fran&ccedil;ais">&#x1F1EB;&#x1F1F7;</button>
-      <button class="lang-flag" data-lang="de" onclick="setLang('de')" title="Deutsch">&#x1F1E9;&#x1F1EA;</button>
-      <button class="lang-flag" data-lang="pt" onclick="setLang('pt')" title="Portugu&ecirc;s">&#x1F1F5;&#x1F1F9;</button>
+      <button class="lang-flag active" data-lang="en" onclick="setLang('en')" title="English">&#x1F1EC;&#x1F1E7;<span class="lcode">EN</span></button>
+      <button class="lang-flag" data-lang="es" onclick="setLang('es')" title="Espa&ntilde;ol">&#x1F1EA;&#x1F1F8;<span class="lcode">ES</span></button>
+      <button class="lang-flag" data-lang="fr" onclick="setLang('fr')" title="Fran&ccedil;ais">&#x1F1EB;&#x1F1F7;<span class="lcode">FR</span></button>
+      <button class="lang-flag" data-lang="de" onclick="setLang('de')" title="Deutsch">&#x1F1E9;&#x1F1EA;<span class="lcode">DE</span></button>
+      <button class="lang-flag" data-lang="pt" onclick="setLang('pt')" title="Portugu&ecirc;s">&#x1F1F5;&#x1F1F9;<span class="lcode">PT</span></button>
     </div>
-    <h1>PENALTIES</h1>
+    <h1>LEGENDS PENALTIES</h1>
     <div class="sub">Bernabeu 2026</div>
     <p style="margin-bottom:18px;font-size:1rem;opacity:0.9" data-i18n="enterName">Enter your player name:</p>
     <input type="text" id="player-name" maxlength="14" placeholder="CR7" autocomplete="off" autocapitalize="characters">
