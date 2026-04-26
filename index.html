@@ -43,14 +43,16 @@
   /* Settings button */
   .settings-btn{position:absolute;top:12px;right:12px;z-index:30;background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);color:#FFD700;border-radius:50%;width:34px;height:34px;font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-family:'Cinzel',serif;font-weight:900}
   .settings-btn:hover{background:rgba(255,215,0,0.2)}
-  /* Fake shot picker (despues de la finta, en camara lenta) */
-  .fake-picker{position:absolute;bottom:8%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.92);border:2px solid #FFD700;border-radius:14px;padding:14px 18px;z-index:60;display:none;min-width:300px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.6)}
-  .fake-picker.show{display:block;animation:bm-pop 0.25s ease-out}
-  .fake-picker h3{color:#FFD700;font-family:'Cinzel',serif;font-size:1.1rem;letter-spacing:0.1em;margin-bottom:4px}
-  .fake-picker p{color:#fff;font-size:0.72rem;opacity:0.8;margin-bottom:10px}
-  .fake-picker-buttons{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-  .fake-picker-buttons button{background:rgba(0,31,63,0.9);border:1.5px solid rgba(255,215,0,0.5);color:#fff;padding:7px 4px;font-family:'Cinzel',serif;font-size:0.6rem;font-weight:700;letter-spacing:0.04em;border-radius:5px;cursor:pointer}
+  /* Fake shot picker (espejo de shot-types, en camara lenta, a la IZQUIERDA) */
+  .fake-picker{position:absolute;left:4px;top:46%;background:rgba(0,0,0,0.92);border:2px solid #FFD700;border-radius:12px;padding:10px 12px;z-index:60;display:none;width:232px;text-align:center;box-shadow:0 4px 24px rgba(0,0,0,0.6)}
+  .fake-picker.show{display:block;animation:fake-pop 0.25s ease-out}
+  @keyframes fake-pop{from{opacity:0;transform:translateX(-15px)}to{opacity:1;transform:translateX(0)}}
+  .fake-picker h3{color:#FFD700;font-family:'Cinzel',serif;font-size:0.95rem;letter-spacing:0.08em;margin-bottom:3px}
+  .fake-picker p{color:#fff;font-size:0.65rem;opacity:0.8;margin-bottom:8px}
+  .fake-picker-buttons{display:grid;grid-template-columns:repeat(2,1fr);gap:5px}
+  .fake-picker-buttons button{background:rgba(0,31,63,0.9);border:1.5px solid rgba(255,215,0,0.5);color:#fff;padding:8px 5px;font-family:'Cinzel',serif;font-size:0.78rem;font-weight:700;letter-spacing:0.05em;border-radius:6px;cursor:pointer}
   .fake-picker-buttons button:hover{background:rgba(255,215,0,0.2)}
+  .fake-cd{position:absolute;top:-22px;right:8px;color:#FF3030;font-family:'Cinzel',serif;font-size:1.6rem;font-weight:900;text-shadow:0 0 12px #FF3030,0 2px 4px rgba(0,0,0,0.6)}
   /* Bicycle kick mini-game (barra abajo, fuera del balon, con countdown) */
   .bicycle-modal{position:absolute;bottom:6%;left:50%;transform:translateX(-50%);background:rgba(0,0,0,0.85);border:2px solid #FFD700;border-radius:14px;display:none;z-index:60;cursor:pointer;padding:14px 20px;box-shadow:0 4px 20px rgba(0,0,0,0.6)}
   .bicycle-modal.show{display:block;animation:bm-pop 0.25s ease-out}
@@ -144,8 +146,8 @@
   @keyframes weird-leg-r{0%{transform:rotate(-15deg)}100%{transform:rotate(55deg)}}
   .player.weird-paradinha.running{animation:weird-bob 0.16s infinite alternate ease-in-out!important}
   @keyframes weird-bob{0%{transform:translateY(0)}100%{transform:translateY(-7%)}}
-  /* NEYMAR stutter: saltitos cortos casi sin avanzar, rodillas altas */
-  .player.neymar-stutter{animation:ney-bob 0.18s infinite alternate ease-in-out!important}
+  /* NEYMAR stutter: saltitos cortos casi sin avanzar, rodillas altas. z-index alto para tapar el balon. */
+  .player.neymar-stutter{animation:ney-bob 0.18s infinite alternate ease-in-out!important;z-index:13!important}
   @keyframes ney-bob{0%{transform:translateY(0)}100%{transform:translateY(-9%)}}
   .player.neymar-stutter .leg-l{animation:ney-leg-l 0.18s infinite alternate ease-in-out!important}
   .player.neymar-stutter .leg-r{animation:ney-leg-r 0.18s infinite alternate ease-in-out!important}
@@ -312,8 +314,9 @@
     <div class="tutorial-content" id="tutorial-content"></div>
   </div>
   <div class="fake-picker" id="fake-picker">
+    <div class="fake-cd" id="fake-cd"></div>
     <h3>SHOOT NOW!</h3>
-    <p>Keeper committed — pick your real shot</p>
+    <p>Keeper committed — pick fast!</p>
     <div class="fake-picker-buttons">
       <button onclick="pickFakeShot('pass')">PASS</button>
       <button onclick="pickFakeShot('instep')">INSTEP</button>
@@ -1363,14 +1366,55 @@
 
   // ====== FAKE SHOT PICKER (despues del fake, eliges chute real) ======
   let fakePickerData = {};
+  let fakeCdTimer = null;
+
+  function startFakePicker(){
+    // Mover el balon al PIE del jugador (no sobre la camiseta)
+    const player = document.getElementById('player');
+    const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+    const ball = document.getElementById('ball');
+    ball.style.transition = 'all 200ms ease-out';
+    ball.style.left = (isLefty ? 50 : 42) + '%';
+    ball.style.top = '78%';
+    ball.style.width = '7%';
+    document.getElementById('fake-picker').classList.add('show');
+    // Cuenta atras grande, corta (2 segundos)
+    let remaining = 2;
+    document.getElementById('fake-cd').textContent = remaining;
+    if (fakeCdTimer) clearInterval(fakeCdTimer);
+    fakeCdTimer = setInterval(() => {
+      remaining--;
+      if (remaining <= 0){
+        clearInterval(fakeCdTimer); fakeCdTimer = null;
+        document.getElementById('fake-cd').textContent = '';
+        // Auto-fail: el portero ya esta en posicion y el balon se queda parado
+        document.getElementById('fake-picker').classList.remove('show');
+        document.querySelector('.stage').classList.remove('slowmo');
+        const player = document.getElementById('player');
+        player.classList.remove('pausing','kicking');
+        // Resultado: tarjeta amarilla por demora — fuera default
+        lastShotInfo = {finalX:50, finalY:55, sX:0, sY:0, power:0, strikeY:0, shotType:'fake'};
+        showResult('fuera', 50, 500);
+        setTimeout(() => {
+          shotType = 'instep';
+          document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
+        }, 100);
+      } else {
+        document.getElementById('fake-cd').textContent = remaining;
+      }
+    }, 1000);
+  }
+
   function pickFakeShot(type){
+    if (fakeCdTimer) { clearInterval(fakeCdTimer); fakeCdTimer = null; }
+    document.getElementById('fake-cd').textContent = '';
     document.getElementById('fake-picker').classList.remove('show');
     document.querySelector('.stage').classList.remove('slowmo');
     const player = document.getElementById('player');
     player.classList.remove('pausing');
     shooting = false;
     shotType = type;
-    doShoot(fakePickerData.sX, fakePickerData.sY, fakePickerData.power);
+    doShoot(fakePickerData.sX, fakePickerData.sY, fakePickerData.power, {skipRun: true});
     setTimeout(() => {
       shotType = 'instep';
       document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
@@ -1589,9 +1633,10 @@
   }
 
   // ====== DISPARO ======
-  function doShoot(sX, sY, power){
+  function doShoot(sX, sY, power, opts){
     if (shooting) return;
     shooting = true;
+    opts = opts || {};
 
     // CR7: pasitos laterales lentos hasta la esquina + INSTEP normal (sin paradinha).
     if (shotType === 'cr7'){
@@ -1632,20 +1677,33 @@
       player.style.bottom = '0';
       setTimeout(() => {
         player.classList.remove('side-stepping');
-        // FASE 2: 8 saltitos casi en sitio, avanzando MUY POCO en cada uno
+        // FASE 2: 8 saltitos casi en sitio. Tras el paso 4 -> paradiña LARGA (doble).
         player.classList.add('neymar-stutter');
         player.style.transition = 'left 0.30s cubic-bezier(0.4,0,0.6,1), bottom 0.30s cubic-bezier(0.4,0,0.6,1)';
         const totalSteps = 8;
         const stepDx = (endVal - startVal) / totalSteps;
         const stepDy = 14 / totalSteps;
-        let step = 0;
-        const stepInt = setInterval(() => {
-          step++;
-          player.style.left = (startVal + stepDx * step) + '%';
-          player.style.bottom = (stepDy * step) + '%';
-          if (step >= totalSteps){
-            clearInterval(stepInt);
-            // FASE 3: portero se compromete + chute REAL
+        const stepGap = 360;
+        const longParadinha = 1100; // doble de un pause normal (~500ms)
+
+        function neymarStep(n){
+          player.style.left = (startVal + stepDx * n) + '%';
+          player.style.bottom = (stepDy * n) + '%';
+          if (n === 4){
+            // Pausa larga estilo paradiña doble
+            setTimeout(() => {
+              player.classList.remove('neymar-stutter');
+              player.classList.add('pausing');
+              setTimeout(() => {
+                player.classList.remove('pausing');
+                player.classList.add('neymar-stutter');
+                neymarStep(n + 1);
+              }, longParadinha);
+            }, stepGap);
+          } else if (n < totalSteps){
+            setTimeout(() => neymarStep(n + 1), stepGap);
+          } else {
+            // FASE 3: portero se compromete + chute REAL (siempre PASS raso)
             setTimeout(() => {
               player.classList.remove('neymar-stutter');
               player.style.transition = '';
@@ -1660,7 +1718,7 @@
               paradinhaDive = {dive: dive, zone: zones[dive]};
               shooting = false;
               const prev = shotType;
-              shotType = 'instep';
+              shotType = 'pass';   // NEYMAR siempre acaba en pase raso
               doShoot(realSX, realSY, realPower, {skipRun: true});
               setTimeout(() => {
                 shotType = prev;
@@ -1668,7 +1726,8 @@
               }, 100);
             }, 280);
           }
-        }, 360);  // 360ms por saltito x 8 = ~2.9 segundos
+        }
+        neymarStep(1);
       }, 1700);
       return;
     }
@@ -1697,12 +1756,12 @@
         paradinhaDive = {dive: dive, zone: zones[dive]};
       }, 600);
       setTimeout(() => {
-        // CAMARA LENTA + selector de chute
+        // CAMARA LENTA + selector de chute con countdown corto
         document.querySelector('.stage').classList.add('slowmo');
         player.classList.remove('kicking');
         player.classList.add('pausing');
         fakePickerData = {sX: realSX, sY: realSY, power: realPower};
-        document.getElementById('fake-picker').classList.add('show');
+        startFakePicker();
       }, 950);
       return;
     }
@@ -1838,7 +1897,6 @@
     // ---- 1) CARRERA del jugador (DIAGONAL hacia el balon) ----
     const player = document.getElementById('player');
     const isLefty = (selectedShooter && selectedShooter.foot === 'L');
-    player.classList.add('running');
     player.classList.toggle('lefty', isLefty);
 
     // Posicion final del run (diagonal): el jugador se acerca y SUBE hacia el balon
@@ -1847,8 +1905,12 @@
     const runBottom = '14%';
 
     let kickDelay = 520;
-    if (shotType === 'paradinha'){
+    if (opts.skipRun){
+      // El jugador ya esta en posicion (NEYMAR/FAKE post-finta). Patear inmediato.
+      kickDelay = 80;
+    } else if (shotType === 'paradinha'){
       // PARADINHA: arranca -> casi se para a mitad -> coge carrerilla -> chuta
+      player.classList.add('running');
       player.style.left = runMidLeft;
       player.style.bottom = '7%';
       setTimeout(() => {
@@ -1863,6 +1925,7 @@
       }, 880);
       kickDelay = 1250;
     } else {
+      player.classList.add('running');
       player.style.left = runLeft;
       player.style.bottom = runBottom;
     }
