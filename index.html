@@ -213,8 +213,10 @@
   .keeper-zones button{width:56px;height:56px;background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#FFD700;font-size:1.5rem;border-radius:8px;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center}
   .keeper-zones button:hover{background:rgba(255,215,0,0.2)}
   .keeper-zones button.picked{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700}
-  /* Shot type buttons (+60% total, centrados entre porteria y borde inferior) */
-  .shot-types{position:absolute;right:4px;top:46%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;z-index:10;width:232px}
+  /* Shot type buttons (subidos para no tapar la cabeza del jugador) */
+  .shot-types{position:absolute;right:4px;top:42%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;z-index:10;width:232px}
+  /* En modo bonus + zurdo, el bicycle se mueve a la IZQUIERDA para no tapar al jugador (que esta a la dcha) */
+  .shot-types.bonus-lefty{right:auto;left:4px}
   .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:6px 9px;font-family:'Cinzel',serif;font-size:0.92rem;font-weight:700;letter-spacing:0.05em;border-radius:7px;cursor:pointer;text-align:center;transition:all 0.15s}
   /* FAKE + BICYCLE: rojo (ilegales en penaltis reales) */
   .shot-btn[data-shot="fake"], .shot-btn[data-shot="bicycle"]{background:rgba(140,30,30,0.9);border-color:rgba(255,100,100,0.5)}
@@ -1244,6 +1246,7 @@
         b.style.display = '';
       }
     });
+    document.getElementById('shot-types').classList.remove('bonus-lefty');
     document.getElementById('hud-name').textContent = playerName;
     document.getElementById('match-shooter').textContent = selectedShooter.name + ' #' + selectedShooter.dorsal;
     document.getElementById('match-keeper').textContent = selectedKeeper.name;
@@ -1917,10 +1920,11 @@
       // PASS: solo pequeno ruido en X, NUNCA en Y para mantener raso siempre
       finalX += (Math.random() - 0.5) * 4;
     } else if (shotType !== 'panenka'){
-      const extremeBonus = (Math.abs(sX) + Math.abs(sY)) * 3;
-      const noise = power * 5 + extremeBonus;
-      finalX += (Math.random() - 0.5) * noise * 2;
-      finalY += (Math.random() - 0.5) * noise * 1.4;
+      // Ruido reducido: la pelota debe ir mas donde apuntas, no a su antojo
+      const extremeBonus = (Math.abs(sX) + Math.abs(sY)) * 1.5;
+      const noise = power * 2.5 + extremeBonus;
+      finalX += (Math.random() - 0.5) * noise * 1.5;
+      finalY += (Math.random() - 0.5) * noise * 0.9;
     }
 
     // ---- Decidir RESULTADO antes de animar (para que la animacion sea coherente) ----
@@ -2225,12 +2229,14 @@
         if (gameMode === 'shooter' && scoredRows.size >= 5){
           bonusMode = true;
           bonusAttempts = 0;
-          // Mostrar BICYCLE button + ocultar resto + alert
           document.querySelectorAll('.shot-btn').forEach(b => {
             b.style.display = b.dataset.shot === 'bicycle' ? '' : 'none';
           });
           document.querySelector('.shot-btn[data-shot="bicycle"]').classList.add('active');
           shotType = 'bicycle';
+          // Si el jugador es zurdo, mover el panel a la izquierda
+          const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+          document.getElementById('shot-types').classList.toggle('bonus-lefty', isLefty);
           alert('🎉 BONUS UNLOCKED!\n\nYou scored from all 5 shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
           resetBall();
           shooting = false;
