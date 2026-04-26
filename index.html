@@ -305,6 +305,12 @@
   .keeper.dive-br .k-arm-l{transform:rotate(90deg)!important;animation:none!important}
   .keeper.dive-br .k-arm-r{transform:rotate(45deg)!important;animation:none!important}
   /* Shot type buttons (subidos para no tapar la cabeza del jugador) */
+  /* Asistente de golpeo: toggle + circulo verde sobre la zona dulce del balon */
+  .assist-toggle{position:absolute;top:96px;left:8px;z-index:30;background:rgba(0,31,63,0.88);border:1.5px solid rgba(124,252,0,0.55);color:#9aff5a;border-radius:6px;padding:5px 9px;font-size:0.62rem;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;line-height:1}
+  .assist-toggle.on{background:linear-gradient(135deg,#7CFC00,#4a9a00);color:#001f3f;border-color:#7CFC00;box-shadow:0 0 10px rgba(124,252,0,0.55)}
+  .assist-circle{position:absolute;border:2.5px solid #7CFC00;border-radius:50%;z-index:11;pointer-events:none;display:none;box-shadow:0 0 10px rgba(124,252,0,0.7),inset 0 0 8px rgba(124,252,0,0.4);background:rgba(124,252,0,0.18)}
+  .assist-circle.show{display:block;animation:assist-pulse 1s ease-in-out infinite alternate}
+  @keyframes assist-pulse{from{opacity:0.7;box-shadow:0 0 6px rgba(124,252,0,0.5),inset 0 0 6px rgba(124,252,0,0.3)}to{opacity:1;box-shadow:0 0 14px rgba(124,252,0,0.9),inset 0 0 10px rgba(124,252,0,0.5)}}
   /* Shot-types panel: cuadrante INFERIOR del lado opuesto al lanzador, para no tapar la trayectoria */
   .shot-types{position:absolute;right:4px;bottom:2%;display:grid;grid-template-columns:repeat(2,1fr);gap:4px;z-index:10;width:200px;max-height:46%;overflow:visible}
   .shot-types .shot-btn{padding:5px 7px;font-size:0.82rem}
@@ -367,7 +373,8 @@
   @keyframes bicycle-leg-r{0%{transform:rotate(-30deg)}100%{transform:rotate(85deg)}}
   .player.bicycle-kick .arm-l{animation:none!important;transform:rotate(-90deg)!important}
   .player.bicycle-kick .arm-r{animation:none!important;transform:rotate(90deg)!important}
-  /* Jorginho: salto con piernas abiertas en el aire */
+  /* Jorginho: salto con piernas abiertas en el aire (siempre por encima del balon) */
+  .player.jorginho-jump,.player.jorginho-forward{z-index:14!important}
   .player.jorginho-jump{transform:translateY(-65%) rotate(-3deg) scale(1.06)!important;transition:transform 0.5s cubic-bezier(0.34,1.7,0.5,1)!important}
   .player.jorginho-jump .leg-l{transform:rotate(-50deg)!important;animation:none!important}
   .player.jorginho-jump .leg-r{transform:rotate(50deg)!important;animation:none!important}
@@ -626,6 +633,8 @@
       </svg>
     </div>
     <div class="spot"></div>
+    <button class="assist-toggle" id="assist-toggle" onclick="toggleAssist()">ASSIST: OFF</button>
+    <div class="assist-circle" id="assist-circle"></div>
     <div class="ball-shadow" id="ball-shadow"></div>
     <div class="ball" id="ball" onmousedown="startAim(event)" ontouchstart="startAim(event)">
       <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
@@ -724,6 +733,57 @@
     if (shooting) return;
     shotType = t;
     document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === t));
+    updateAssistCircle();
+  }
+
+  // ====== ASISTENTE DE GOLPEO (zona dulce sobre el balon) ======
+  let assistOn = false;
+  try { assistOn = localStorage.getItem('penalties_assist') === '1'; } catch(e){}
+  function toggleAssist(){
+    assistOn = !assistOn;
+    try { localStorage.setItem('penalties_assist', assistOn ? '1' : '0'); } catch(e){}
+    refreshAssistToggleUI();
+    updateAssistCircle();
+  }
+  function refreshAssistToggleUI(){
+    const btn = document.getElementById('assist-toggle');
+    if (!btn) return;
+    btn.classList.toggle('on', assistOn);
+    btn.textContent = 'ASSIST: ' + (assistOn ? 'ON' : 'OFF');
+  }
+  function getSweetSpot(){
+    // Devuelve {x,y} en % dentro del balon (0-100, 50/50 = centro). Depende del tipo y del pie.
+    const foot = (selectedShooter && selectedShooter.foot) || 'R';
+    const isLefty = foot === 'L';
+    if (shotType === 'curl')    return isLefty ? {x:25, y:50} : {x:75, y:50};
+    if (shotType === 'trivela') return isLefty ? {x:75, y:50} : {x:25, y:50};
+    if (shotType === 'panenka') return {x:50, y:75};   // media-baja
+    if (shotType === 'pass')    return {x:50, y:30};   // mitad-alta -> raso
+    return {x:50, y:50};   // instep / paradinha / fake / jorginho
+  }
+  function updateAssistCircle(){
+    const circle = document.getElementById('assist-circle');
+    if (!circle) return;
+    if (!assistOn || gameMode === 'keeper' || shooting){ circle.classList.remove('show'); return; }
+    const ball = document.getElementById('ball');
+    const stage = document.querySelector('.stage');
+    if (!ball || !stage) return;
+    const ballRect = ball.getBoundingClientRect();
+    const stageRect = stage.getBoundingClientRect();
+    if (stageRect.width === 0) return;
+    const ballLeftPct = ((ballRect.left - stageRect.left) / stageRect.width) * 100;
+    const ballTopPct = ((ballRect.top - stageRect.top) / stageRect.height) * 100;
+    const ballWPct = (ballRect.width / stageRect.width) * 100;
+    const ballHPct = (ballRect.height / stageRect.height) * 100;
+    const ss = getSweetSpot();
+    const cxPct = ballLeftPct + (ss.x / 100) * ballWPct;
+    const cyPct = ballTopPct + (ss.y / 100) * ballHPct;
+    const sizePct = ballWPct * 0.42;
+    circle.style.left = (cxPct - sizePct/2) + '%';
+    circle.style.top = (cyPct - sizePct/2) + '%';
+    circle.style.width = sizePct + '%';
+    circle.style.aspectRatio = '1';
+    circle.classList.add('show');
   }
 
   function show(id){
@@ -1750,14 +1810,19 @@
       // Modo Keeper: ocultar shot-types y help, mostrar zone grid
       document.getElementById('shot-types').style.display = 'none';
       document.getElementById('shot-types-special').style.display = 'none';
+      document.getElementById('assist-toggle').style.display = 'none';
+      document.getElementById('assist-circle').classList.remove('show');
       document.getElementById('keeper-zones').classList.add('show');
       show('game');
       setTimeout(triggerCpuShot, 1400);
     } else {
       document.getElementById('shot-types').style.display = '';
       document.getElementById('shot-types-special').style.display = '';
+      document.getElementById('assist-toggle').style.display = '';
       document.getElementById('keeper-zones').classList.remove('show');
       show('game');
+      refreshAssistToggleUI();
+      setTimeout(updateAssistCircle, 100);
     }
   }
 
@@ -1928,6 +1993,8 @@
     paradinhaDive = null;
     // Reset keeper celebration state (keeper ya declarado arriba)
     keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
+    // Refrescar el circulo del asistente al reposicionar el balon
+    setTimeout(updateAssistCircle, 50);
   }
 
   // ====== FAKE SHOT PICKER (despues del fake, eliges chute real) ======
@@ -1944,8 +2011,9 @@
     ball.style.top = '78%';
     ball.style.width = '7%';
     document.getElementById('fake-picker').classList.add('show');
-    // Cuenta atras grande centrada, corta (2 segundos)
-    let remaining = 2;
+    // Cuenta atras grande: 5s en beginner, 3s en intermedio, 2s en experto
+    const cdSeconds = (difficulty === 'beginner') ? 5 : (difficulty === 'expert' ? 2 : 3);
+    let remaining = cdSeconds;
     const cdEl = document.getElementById('fake-cd');
     cdEl.textContent = remaining;
     cdEl.style.animation = 'none'; void cdEl.offsetWidth; cdEl.style.animation = '';
@@ -2136,6 +2204,8 @@
     document.addEventListener('mouseup', endAim, {passive:false});
     document.addEventListener('touchmove', onAimMove, {passive:false});
     document.addEventListener('touchend', endAim, {passive:false});
+    // Ocultar el circulo del asistente mientras se apunta
+    document.getElementById('assist-circle').classList.remove('show');
   }
 
   function onAimMove(ev){
@@ -2307,9 +2377,10 @@
       const isLeftyJ = (selectedShooter && selectedShooter.foot === 'L');
       const player = document.getElementById('player');
       player.classList.add('running');
-      // Posicion DETRAS del balon
+      // Posicion DETRAS del balon (de donde sale el salto)
       const startLeft = isLeftyJ ? 56 : 32;
-      const forwardLeft = isLeftyJ ? 51 : 37;   // pequena progresi&oacute;n hacia el balon
+      // Aterriza DELANTE del balon (mas cerca de la porteria) para no quedar tras la pelota
+      const forwardLeft = isLeftyJ ? 42 : 46;
       player.style.left = startLeft + '%';
       player.style.bottom = '6%';
       setTimeout(() => {
@@ -2416,25 +2487,46 @@
     }
     else if (shotType === 'curl'){
       // CURL (interior del pie): hacia adentro/centro.
-      // Lefty: curva izda -> dcha (+X). Righty: dcha -> izda (-X).
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
       const curlDir = isLefty ? +1 : -1;
       finalX += curlDir * (8 + power * 4);
+      // Tolerancia: si el strike point esta muy al borde pero apuntabas al medio, sigue siendo gol curvado al lado
+      // (clamp dentro del marco salvo que el aim original ya fuera muy desviado)
+      if (Math.abs(sX) < 0.4){
+        const goalSafeL = 8, goalSafeR = 92;
+        finalX = Math.max(goalSafeL, Math.min(goalSafeR, finalX));
+      }
       saveModifier -= 0.10;
     }
     else if (shotType === 'trivela'){
-      // TRIVELA (exterior del pie): justo lo contrario al curl.
-      // Lefty: curva dcha -> izda (-X). Righty: izda -> dcha (+X).
+      // TRIVELA (exterior del pie): contrario al curl.
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
       const triDir = isLefty ? -1 : +1;
       finalX += triDir * (8 + power * 4);
+      // Misma tolerancia que curl
+      if (Math.abs(sX) < 0.4){
+        const goalSafeL = 8, goalSafeR = 92;
+        finalX = Math.max(goalSafeL, Math.min(goalSafeR, finalX));
+      }
       saveModifier -= 0.08;
     }
     else if (shotType === 'panenka'){
-      // Vaselina: balon va al centro, SIEMPRE muy suave. Bajada de 20% de altura general.
-      finalX = 50 + (Math.random() - 0.5) * 10;
-      finalY = 31 - power * 6;     // power=0 -> 31 (media-baja), power=1 -> 25 (alta pero no al larguero)
-      finalY += (Math.random() - 0.5) * 4;
+      // PANENKA: el strike point manda. Si tocas un lado, balon va al OPUESTO (efecto billar exagerado).
+      // strikeRelX -1 (golpeas a la izda) -> balon a la dcha (+X). strikeRelX +1 -> balon a la izda (-X).
+      finalX = 50 + (-strikeRelX) * 38;
+      finalX += (Math.random() - 0.5) * 4;
+      // Y: media altura por defecto, ligero ajuste por potencia
+      finalY = 30 - power * 3;
+      finalY += (Math.random() - 0.5) * 2;
+      // Solo se va por encima del larguero si potencia ALTA + golpeas muy abajo en el balon (strikeRelY > 0.6)
+      const goesOver = (power > 0.7 && strikeRelY > 0.6);
+      // Mantener panenka SIEMPRE dentro de la porteria salvo el caso 'goesOver'
+      finalX = Math.max(8, Math.min(92, finalX));
+      if (goesOver){
+        finalY = 12;   // por encima del larguero
+      } else {
+        finalY = Math.max(22, Math.min(38, finalY));
+      }
       ballSpeedMs = Math.min(1300, Math.round(ballSpeedMs * 1.6));
       spinDeg = 360;
     }
