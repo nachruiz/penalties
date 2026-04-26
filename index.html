@@ -112,8 +112,8 @@
   .role-pick-card .ricon{font-size:2.8rem;margin-bottom:6px}
   .role-pick-card .rname{font-family:'Cinzel',serif;color:#FFD700;font-size:1.1rem;letter-spacing:0.1em;font-weight:900}
   .role-pick-card .rdesc{color:#fff;opacity:0.75;font-size:0.7rem;margin-top:6px;letter-spacing:0.05em}
-  /* Ball (svg) */
-  .ball{position:absolute;width:9%;aspect-ratio:1;left:45.5%;top:60%;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);z-index:11;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.4))}
+  /* Ball (svg) - encima del punto de penalti, asomando justo por debajo */
+  .ball{position:absolute;width:9%;aspect-ratio:1;left:45.5%;top:67%;transition:all 0.5s cubic-bezier(0.5,0,0.75,0);z-index:11;filter:drop-shadow(0 4px 4px rgba(0,0,0,0.4))}
   .ball svg{width:100%;height:100%;display:block;transition:transform 0.3s}
   /* Penalty spot */
   .spot{position:absolute;width:4%;aspect-ratio:1;left:48%;top:72%;background:#fff;border-radius:50%;opacity:0.4;z-index:5}
@@ -1082,7 +1082,7 @@
     const ball = document.getElementById('ball');
     ball.style.transition = 'none';
     ball.style.left = '45.5%';
-    ball.style.top = '62%';
+    ball.style.top = '67%';
     ball.style.width = '9%';
     ball.style.opacity = '1';
     ball.style.transform = 'rotate(0deg)';
@@ -1625,7 +1625,7 @@
 
       // ---- 3) ANIMACION DEL BALON segun shot type ----
       const ball = document.getElementById('ball');
-      const startX = 45.5, startY = 60;
+      const startX = 45.5, startY = 67;
       if (shotType === 'curl' || shotType === 'trivela'){
         // CURL e TRIVELA: ambos curvan visualmente. La direccion depende del PIE, no del aim.
         const isLefty = (selectedShooter && selectedShooter.foot === 'L');
