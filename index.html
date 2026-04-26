@@ -348,6 +348,18 @@
   @keyframes bicycle-leg-r{0%{transform:rotate(-30deg)}100%{transform:rotate(85deg)}}
   .player.bicycle-kick .arm-l{animation:none!important;transform:rotate(-90deg)!important}
   .player.bicycle-kick .arm-r{animation:none!important;transform:rotate(90deg)!important}
+  /* Jorginho: salto con piernas abiertas en el aire */
+  .player.jorginho-jump{transform:translateY(-65%) rotate(-3deg) scale(1.06)!important;transition:transform 0.5s cubic-bezier(0.34,1.7,0.5,1)!important}
+  .player.jorginho-jump .leg-l{transform:rotate(-50deg)!important;animation:none!important}
+  .player.jorginho-jump .leg-r{transform:rotate(50deg)!important;animation:none!important}
+  .player.jorginho-jump .arm-l{transform:rotate(-55deg)!important;animation:none!important}
+  .player.jorginho-jump .arm-r{transform:rotate(55deg)!important;animation:none!important}
+  /* Jorginho: aterrizaje con leve inclinaci&oacute;n adelante, piernas se cierran */
+  .player.jorginho-forward{transform:translateY(-15%) rotate(7deg) scale(1.02)!important;transition:transform 0.3s ease-out, left 0.3s ease-out!important}
+  .player.jorginho-forward .leg-l{transform:rotate(-15deg)!important;animation:none!important}
+  .player.jorginho-forward .leg-r{transform:rotate(20deg)!important;animation:none!important}
+  .player.jorginho-forward .arm-l{transform:rotate(-25deg)!important;animation:none!important}
+  .player.jorginho-forward .arm-r{transform:rotate(15deg)!important;animation:none!important}
   /* Pausa de paradinha (jugador se detiene mid-carrera) */
   .player.pausing{transform:rotate(3deg) translateX(-1%)}
   .player.pausing .leg-l, .player.pausing .leg-r{animation:none!important;transform:rotate(0deg)!important}
@@ -872,6 +884,17 @@
       subPass:'inside foot, low', subInstep:'straight', subCurl:'curve', subTrivela:'outside foot',
       subPanenka:'chip shot', subParadinha:'stutter step', subFake:'feint, no shot',
       subJorginho:'stutter hop', subBicycle:'overhead bonus', subCr7:'side-step + instep', subNeymar:'side-step + crazy stutter',
+      whyJustWide:'Just wide of the goal',
+      whyJustWideDir:'Just wide &mdash; check your direction',
+      whyPanenkaPower:'Panenka with too much power &mdash; over the bar',
+      whyStruckLow:'You struck too low on the ball &mdash; lifted too much',
+      whyHighPower:'Aimed too high with too much power',
+      whyOverBar:'Sailed over the crossbar',
+      whyTooLow:'Too low &mdash; hit the ground past the goal',
+      whyCloseLeftPost:'Aimed too close to the left post',
+      whyWideLeft:'Drifted wide on the left',
+      whyCloseRightPost:'Aimed too close to the right post',
+      whyWideRight:'Drifted wide on the right',
       tutorial: [
         {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>LEGENDS PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — pick a zone to dive when the CPU shoots.</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
         {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where it goes — like billiards.</p><p>Want it to fly RIGHT? Touch the LEFT of the ball. Want it LOW? Touch the TOP. Touching BOTTOM lifts it (chip).</p>'},
@@ -911,6 +934,17 @@
       subPass:'interior, raso', subInstep:'recto', subCurl:'rosca', subTrivela:'con el exterior',
       subPanenka:'vaselina', subParadinha:'parada antes', subFake:'amago, sin tiro',
       subJorginho:'saltito previo', subBicycle:'chilena bonus', subCr7:'paso lateral + zurriagazo', subNeymar:'paso lateral + tartamudeo',
+      whyJustWide:'Rozado el palo, fuera por poco',
+      whyJustWideDir:'Fuera por muy poco &mdash; revisa la direcci&oacute;n',
+      whyPanenkaPower:'Panenka con demasiada potencia &mdash; por encima del larguero',
+      whyStruckLow:'Golpeaste muy abajo en el bal&oacute;n &mdash; se elev&oacute; demasiado',
+      whyHighPower:'Apuntaste muy arriba con demasiada potencia',
+      whyOverBar:'Por encima del larguero',
+      whyTooLow:'Demasiado bajo &mdash; clavado al suelo pasada la porter&iacute;a',
+      whyCloseLeftPost:'Apuntaste muy pegado al palo izquierdo',
+      whyWideLeft:'Se fue desviado por la izquierda',
+      whyCloseRightPost:'Apuntaste muy pegado al palo derecho',
+      whyWideRight:'Se fue desviado por la derecha',
       tutorial: [
         {icon:'⚽🥅', title:'BIENVENIDO', body:'<p>Esto es <strong>LOS PENALTIS DE LAS LEYENDAS</strong>. Elige un rol en la pantalla inicial:</p><p><strong>LANZADOR</strong> — chuta contra los porteros.<br><strong>PORTERO</strong> — elige una zona para tirarte cuando dispare la CPU.</p><p>Elige dificultad: Principiante (25% paradas), Intermedio (45%), Experto (80%).</p>'},
         {icon:'⚽👆', title:'PUNTO DE GOLPEO', body:'<p>El <strong>punto donde tocas el bal&oacute;n</strong> manda la trayectoria — como en el billar.</p><p>&iquest;Quieres que vaya a la DERECHA? Toca la IZQUIERDA del bal&oacute;n. &iquest;Que vaya BAJA? Toca ARRIBA. Tocar ABAJO la levanta (vaselina).</p>'},
@@ -950,6 +984,17 @@
       subPass:'int&eacute;rieur, ras', subInstep:'droit', subCurl:'enroul&eacute;', subTrivela:'ext&eacute;rieur',
       subPanenka:'piqu&eacute;e', subParadinha:'arr&ecirc;t-relance', subFake:'feinte, sans tir',
       subJorginho:'petit saut', subBicycle:'bicyclette bonus', subCr7:'pas de c&ocirc;t&eacute; + frappe', subNeymar:'pas de c&ocirc;t&eacute; + course folle',
+      whyJustWide:'&Agrave; c&ocirc;t&eacute; du cadre, de peu',
+      whyJustWideDir:'&Agrave; c&ocirc;t&eacute; de peu &mdash; v&eacute;rifie la direction',
+      whyPanenkaPower:'Panenka trop puissante &mdash; au-dessus de la barre',
+      whyStruckLow:'Tu as frapp&eacute; trop bas le ballon &mdash; trop lev&eacute;',
+      whyHighPower:'Vis&eacute; trop haut avec trop de puissance',
+      whyOverBar:'Au-dessus de la barre transversale',
+      whyTooLow:'Trop bas &mdash; au sol derri&egrave;re le but',
+      whyCloseLeftPost:'Vis&eacute; trop pr&egrave;s du poteau gauche',
+      whyWideLeft:'D&eacute;vi&eacute; sur la gauche',
+      whyCloseRightPost:'Vis&eacute; trop pr&egrave;s du poteau droit',
+      whyWideRight:'D&eacute;vi&eacute; sur la droite',
       tutorial: [
         {icon:'⚽🥅', title:'BIENVENUE', body:'<p>Voici <strong>LES PENALTYS DES L&Eacute;GENDES</strong>. Choisis un r&ocirc;le sur l\'&eacute;cran de d&eacute;part&nbsp;:</p><p><strong>TIREUR</strong> — tire contre les gardiens.<br><strong>GARDIEN</strong> — choisis une zone pour plonger quand la CPU tire.</p><p>Difficult&eacute;&nbsp;: D&eacute;butant (25% d\'arr&ecirc;ts), Interm&eacute;diaire (45%), Expert (80%).</p>'},
         {icon:'⚽👆', title:'POINT D\'IMPACT', body:'<p>L\'<strong>endroit o&ugrave; tu touches le ballon</strong> d&eacute;termine la trajectoire — comme au billard.</p><p>Tu veux qu\'il parte &agrave; DROITE&nbsp;? Touche la GAUCHE. Bas&nbsp;? Touche le HAUT. Toucher le BAS le l&egrave;ve (piqu&eacute;e).</p>'},
@@ -989,6 +1034,17 @@
       subPass:'Innenseite, flach', subInstep:'gerade', subCurl:'angeschnitten', subTrivela:'Au&szlig;enrist',
       subPanenka:'Heber', subParadinha:'Stop &amp; Schuss', subFake:'Finte, kein Schuss',
       subJorginho:'kleiner H&uuml;pfer', subBicycle:'Fallr&uuml;ckzieher Bonus', subCr7:'Seitschritt + Vollspann', subNeymar:'Seitschritt + verr&uuml;ckte Schritte',
+      whyJustWide:'Knapp am Tor vorbei',
+      whyJustWideDir:'Knapp vorbei &mdash; pr&uuml;f deine Richtung',
+      whyPanenkaPower:'Panenka mit zu viel Kraft &mdash; &uuml;ber die Latte',
+      whyStruckLow:'Zu tief am Ball getroffen &mdash; zu hoch geflogen',
+      whyHighPower:'Zu hoch gezielt mit zu viel Kraft',
+      whyOverBar:'&Uuml;ber die Latte gesegelt',
+      whyTooLow:'Zu tief &mdash; im Boden hinter dem Tor',
+      whyCloseLeftPost:'Zu nah am linken Pfosten gezielt',
+      whyWideLeft:'Links daneben gezogen',
+      whyCloseRightPost:'Zu nah am rechten Pfosten gezielt',
+      whyWideRight:'Rechts daneben gezogen',
       tutorial: [
         {icon:'⚽🥅', title:'WILLKOMMEN', body:'<p>Das ist <strong>ELFMETER DER LEGENDEN</strong>. W&auml;hle eine Rolle:</p><p><strong>SCH&Uuml;TZE</strong> — schie&szlig;e gegen Torw&auml;rte.<br><strong>TORWART</strong> — w&auml;hle eine Zone zum Hechten, wenn die CPU schie&szlig;t.</p><p>Schwierigkeit: Anf&auml;nger (25% Paraden), Mittel (45%), Experte (80%).</p>'},
         {icon:'⚽👆', title:'TREFFPUNKT', body:'<p>Wo du <strong>den Ball ber&uuml;hrst</strong>, bestimmt die Flugbahn — wie beim Billard.</p><p>Soll er nach RECHTS? Tippe LINKS am Ball. TIEF? Tippe OBEN. Tippe UNTEN, hebt sich der Ball (Heber).</p>'},
@@ -1028,6 +1084,17 @@
       subPass:'interior, rasteiro', subInstep:'reto', subCurl:'efeito', subTrivela:'com o exterior',
       subPanenka:'cavadinha', subParadinha:'paragem antes', subFake:'finta, sem remate',
       subJorginho:'saltinho', subBicycle:'bicicleta b&oacute;nus', subCr7:'passo lateral + chuto', subNeymar:'passo lateral + tartamudez',
+      whyJustWide:'Por muito pouco fora',
+      whyJustWideDir:'Fora por pouco &mdash; revisa a dire&ccedil;&atilde;o',
+      whyPanenkaPower:'Cavadinha com pot&ecirc;ncia a mais &mdash; por cima da barra',
+      whyStruckLow:'Bateste demasiado em baixo na bola &mdash; subiu de mais',
+      whyHighPower:'Apontaste muito alto com pot&ecirc;ncia a mais',
+      whyOverBar:'Por cima da barra',
+      whyTooLow:'Demasiado baixo &mdash; cravado no ch&atilde;o atr&aacute;s da baliza',
+      whyCloseLeftPost:'Apontaste muito perto do poste esquerdo',
+      whyWideLeft:'Saiu desviada pela esquerda',
+      whyCloseRightPost:'Apontaste muito perto do poste direito',
+      whyWideRight:'Saiu desviada pela direita',
       tutorial: [
         {icon:'⚽🥅', title:'BEM-VINDO', body:'<p>Isto &eacute; <strong>OS PEN&Aacute;LTIS DAS LENDAS</strong>. Escolhe um papel:</p><p><strong>REMATADOR</strong> — remata contra os GR.<br><strong>GUARDA-REDES</strong> — escolhe a zona para te atirares quando a CPU remata.</p><p>Dificuldade: Principiante (25% defesas), Interm&eacute;dio (45%), Perito (80%).</p>'},
         {icon:'⚽👆', title:'PONTO DE IMPACTO', body:'<p>Onde <strong>tocas a bola</strong> determina para onde vai — como no bilhar.</p><p>Queres que v&aacute; &agrave; DIREITA? Toca &agrave; ESQUERDA. BAIXA? Toca em CIMA. Tocar EM BAIXO eleva-a (cavadinha).</p>'},
@@ -2212,14 +2279,17 @@
       const isLeftyJ = (selectedShooter && selectedShooter.foot === 'L');
       const player = document.getElementById('player');
       player.classList.add('running');
-      // Posicion DETRAS del balon: mas abajo en pantalla y un poco al lado (no tapando)
-      player.style.left = (isLeftyJ ? 56 : 32) + '%';
-      player.style.bottom = '6%';   // claramente detras (mas cerca del jugador, no de la porteria)
+      // Posicion DETRAS del balon
+      const startLeft = isLeftyJ ? 56 : 32;
+      const forwardLeft = isLeftyJ ? 51 : 37;   // pequena progresi&oacute;n hacia el balon
+      player.style.left = startLeft + '%';
+      player.style.bottom = '6%';
       setTimeout(() => {
-        // SALTO EXAGERADO desde detras de la pelota
+        // SALTO con piernas ABIERTAS en el aire
         player.classList.remove('running');
-        player.style.transition = 'transform 0.55s cubic-bezier(0.34,1.7,0.5,1)';
-        player.style.transform = 'translateY(-50%) rotate(10deg) scale(1.05)';
+        player.style.transform = '';   // dejar que la clase CSS controle
+        player.style.transition = '';
+        player.classList.add('jorginho-jump');
         // Portero se lanza
         const keeper = document.getElementById('keeper');
         const dive = Math.floor(Math.random() * 3);
@@ -2232,12 +2302,14 @@
         paradinhaDive = {dive: dive, zone: zones[dive]};
       }, 550);
       setTimeout(() => {
-        // Aterrizaje suave en el aire (mantener leve elevacion)
-        player.style.transition = 'transform 0.25s ease-out';
-        player.style.transform = 'translateY(-5%)';
-      }, 1100);
+        // Justo antes de aterrizar: ligera inclinaci&oacute;n hacia adelante + nudge hacia el bal&oacute;n
+        player.classList.remove('jorginho-jump');
+        player.classList.add('jorginho-forward');
+        player.style.left = forwardLeft + '%';
+      }, 1050);
       setTimeout(() => {
-        // Soft pass de interior
+        // Aterriza y chuta (soft pass de interior)
+        player.classList.remove('jorginho-forward');
         player.style.transform = '';
         player.style.transition = '';
         shooting = false;
@@ -2531,29 +2603,24 @@
   }
 
   function explainOut(info){
-    if (!info || info.finalY === undefined) return 'Just wide of the goal';
+    if (!info || info.finalY === undefined) return t('whyJustWide');
     const {finalX, finalY, sX, sY, power, strikeY, shotType} = info;
-    // Por encima del larguero
     if (finalY < 19){
-      if (shotType === 'panenka' && power > 0.7) return 'Panenka with too much power — over the bar';
-      if (strikeY > 0.4) return 'You struck too low on the ball — lifted too much';
-      if (sY < -0.7 && power > 0.6) return 'Aimed too high with too much power';
-      return 'Sailed over the crossbar';
+      if (shotType === 'panenka' && power > 0.7) return t('whyPanenkaPower');
+      if (strikeY > 0.4) return t('whyStruckLow');
+      if (sY < -0.7 && power > 0.6) return t('whyHighPower');
+      return t('whyOverBar');
     }
-    // Por debajo (raro)
-    if (finalY > 40){
-      return 'Too low — hit the ground past the goal';
-    }
-    // Lateral fuera
+    if (finalY > 40) return t('whyTooLow');
     if (finalX < 3){
-      if (Math.abs(sX) > 0.85) return 'Aimed too close to the left post';
-      return 'Drifted wide on the left';
+      if (Math.abs(sX) > 0.85) return t('whyCloseLeftPost');
+      return t('whyWideLeft');
     }
     if (finalX > 97){
-      if (Math.abs(sX) > 0.85) return 'Aimed too close to the right post';
-      return 'Drifted wide on the right';
+      if (Math.abs(sX) > 0.85) return t('whyCloseRightPost');
+      return t('whyWideRight');
     }
-    return 'Just wide of the goal — check your direction';
+    return t('whyJustWideDir');
   }
 
   function showResult(kind, finalX, ballSpeedMs){
