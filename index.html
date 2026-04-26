@@ -6,9 +6,10 @@
 <title>Legends Penalties</title>
 <style>
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-  html,body{height:100%;overflow:hidden;background:#0a3d1f;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none}
-  body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%)}
-  .stage{position:relative;width:100vw;max-width:560px;aspect-ratio:9/16;max-height:100vh;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%);overflow:hidden;border:0;box-shadow:0 0 40px rgba(0,0,0,0.6)}
+  html,body{height:100%;overflow:hidden;background:#04060a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none}
+  /* Fondo oscuro tipo letterbox para desktop: la zona fuera del stage queda en negro mate */
+  body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0e1320 0%,#04060a 100%)}
+  .stage{position:relative;width:100vw;max-width:560px;aspect-ratio:9/16;max-height:100vh;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%);overflow:hidden;border:0;box-shadow:0 0 60px rgba(0,0,0,0.85),0 0 0 1px rgba(255,215,0,0.08)}
   .screen{position:absolute;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center}
   .screen.active{display:flex}
   h1{font-family:"Trebuchet MS",sans-serif;font-size:clamp(1.9rem,7vw,3.1rem);color:#fff;letter-spacing:0.04em;margin-bottom:8px;text-shadow:0 2px 6px rgba(0,0,0,0.6);line-height:1.1;text-align:center}
@@ -20,6 +21,12 @@
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
   .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
   .diff-btn.active-diff{background:linear-gradient(135deg,#FFD700,#c9a000)!important;color:#001f3f!important;border-color:#FFD700!important;box-shadow:0 0 12px rgba(255,215,0,0.5)}
+  /* Hero de Unsplash en la portada (motivo futbol/penalty) con overlay oscuro para legibilidad */
+  #screen-intro{
+    background:
+      linear-gradient(180deg, rgba(0,8,20,0.55) 0%, rgba(0,8,20,0.7) 55%, rgba(0,8,20,0.92) 100%),
+      url('https://images.unsplash.com/photo-1551958219-acbc608c6377?auto=format&fit=crop&w=900&q=70') center 30%/cover no-repeat;
+  }
   /* Language picker (botones oscuros legibles) */
   .lang-picker{position:absolute;top:14px;left:50%;transform:translateX(-50%);display:flex;gap:6px;z-index:30}
   .lang-flag{background:#001f3f;border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:5px 9px;font-size:1.1rem;color:#fff;cursor:pointer;line-height:1;display:flex;align-items:center;gap:5px;transition:all 0.15s;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.05em}
@@ -231,6 +238,37 @@
   .keeper-zones button{width:56px;height:56px;background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#FFD700;font-size:1.5rem;border-radius:8px;cursor:pointer;font-weight:900;display:flex;align-items:center;justify-content:center}
   .keeper-zones button:hover{background:rgba(255,215,0,0.2)}
   .keeper-zones button.picked{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border-color:#FFD700}
+  /* Pre-pick (esperando al disparo): pulso amarillo, sin compromiso visual del portero */
+  .keeper-zones button.prepicked{background:rgba(255,215,0,0.25);border-color:#FFD700;color:#FFD700;animation:prepick-pulse 0.9s infinite alternate}
+  @keyframes prepick-pulse{from{box-shadow:0 0 0 rgba(255,215,0,0)}to{box-shadow:0 0 14px rgba(255,215,0,0.7)}}
+  /* Modo keeper: dive por zona con anatomia distinta. Top = brazos arriba, mid = lados, escuadras = mano cambiada */
+  .keeper.dive-tl{transform:translate(-25%,-32%) rotate(-12deg)!important}
+  .keeper.dive-tl .k-arm-r{transform:rotate(-135deg)!important;animation:none!important}
+  .keeper.dive-tl .k-arm-l{transform:rotate(-25deg)!important;animation:none!important}
+  .keeper.dive-tc{transform:translateY(-30%) scale(1.05)!important}
+  .keeper.dive-tc .k-arm-l{transform:rotate(-160deg)!important;animation:none!important}
+  .keeper.dive-tc .k-arm-r{transform:rotate(160deg)!important;animation:none!important}
+  .keeper.dive-tr{transform:translate(25%,-32%) rotate(12deg)!important}
+  .keeper.dive-tr .k-arm-l{transform:rotate(135deg)!important;animation:none!important}
+  .keeper.dive-tr .k-arm-r{transform:rotate(25deg)!important;animation:none!important}
+  .keeper.dive-ml{transform:translateX(-25%) rotate(-8deg)!important}
+  .keeper.dive-ml .k-arm-l{transform:rotate(-90deg)!important;animation:none!important}
+  .keeper.dive-ml .k-arm-r{transform:rotate(-90deg)!important;animation:none!important}
+  .keeper.dive-mc{transform:none!important}
+  .keeper.dive-mc .k-arm-l{transform:rotate(-90deg)!important;animation:none!important}
+  .keeper.dive-mc .k-arm-r{transform:rotate(90deg)!important;animation:none!important}
+  .keeper.dive-mr{transform:translateX(25%) rotate(8deg)!important}
+  .keeper.dive-mr .k-arm-l{transform:rotate(90deg)!important;animation:none!important}
+  .keeper.dive-mr .k-arm-r{transform:rotate(90deg)!important;animation:none!important}
+  .keeper.dive-bl{transform:translate(-28%,15%) rotate(-50deg)!important}
+  .keeper.dive-bl .k-arm-l{transform:rotate(-45deg)!important;animation:none!important}
+  .keeper.dive-bl .k-arm-r{transform:rotate(-90deg)!important;animation:none!important}
+  .keeper.dive-bc{transform:translateY(15%) scale(0.92)!important}
+  .keeper.dive-bc .k-arm-l{transform:rotate(-30deg)!important;animation:none!important}
+  .keeper.dive-bc .k-arm-r{transform:rotate(30deg)!important;animation:none!important}
+  .keeper.dive-br{transform:translate(28%,15%) rotate(50deg)!important}
+  .keeper.dive-br .k-arm-l{transform:rotate(90deg)!important;animation:none!important}
+  .keeper.dive-br .k-arm-r{transform:rotate(45deg)!important;animation:none!important}
   /* Shot type buttons (subidos para no tapar la cabeza del jugador) */
   .shot-types{position:absolute;right:4px;top:42%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;z-index:10;width:232px}
   /* En modo bonus + zurdo, el bicycle se mueve a la IZQUIERDA para no tapar al jugador (que esta a la dcha) */
@@ -1484,35 +1522,42 @@
   let cpuShotPending = false;
   let userPickedZone = null;
   let cpuTargetZone = null;
+  let keeperCanDive = false;   // El portero solo se compromete cuando arranca el disparo (o tras un truco)
+  const ALL_DIVE_CLASSES = ['dive-l','dive-c','dive-r','dive-tl','dive-tc','dive-tr','dive-ml','dive-mc','dive-mr','dive-bl','dive-bc','dive-br'];
 
   const ZONE_POS = {
     tl:{x:14, y:22}, tc:{x:50, y:22}, tr:{x:86, y:22},
     ml:{x:14, y:28}, mc:{x:50, y:28}, mr:{x:86, y:28},
     bl:{x:14, y:35}, bc:{x:50, y:35}, br:{x:86, y:35}
   };
-  const KEEPER_DIVE_POS = {
-    tl:{left:'12%', tx:'rotate(-30deg) translateY(-30%)'},
-    tc:{left:'42%', tx:'translateY(-25%) scale(1.05)'},
-    tr:{left:'72%', tx:'rotate(30deg) translateY(-30%)'},
-    ml:{left:'12%', tx:'rotate(-22deg) translateY(-12%)'},
-    mc:{left:'42%', tx:'translateY(0)'},
-    mr:{left:'72%', tx:'rotate(22deg) translateY(-12%)'},
-    bl:{left:'12%', tx:'rotate(-50deg) translateY(8%)'},
-    bc:{left:'42%', tx:'translateY(8%) scale(0.92)'},
-    br:{left:'72%', tx:'rotate(50deg) translateY(8%)'}
+  const KEEPER_DIVE_LEFT = {
+    tl:'12%', tc:'42%', tr:'72%',
+    ml:'12%', mc:'42%', mr:'72%',
+    bl:'12%', bc:'42%', br:'72%'
   };
+
+  function applyKeeperDive(zone){
+    const keeper = document.getElementById('keeper');
+    keeper.style.transition = 'left 0.35s cubic-bezier(0.34,1.56,0.64,1), transform 0.35s cubic-bezier(0.34,1.56,0.64,1)';
+    keeper.style.left = KEEPER_DIVE_LEFT[zone];
+    keeper.style.transform = '';   // Que la clase CSS controle el transform y los brazos
+    keeper.classList.remove.apply(keeper.classList, ALL_DIVE_CLASSES);
+    keeper.classList.add('dive-' + zone);
+  }
 
   function triggerCpuShot(){
     if (shotsTaken >= TOTAL_SHOTS) return;
     cpuShotPending = true;
+    keeperCanDive = false;
     userPickedZone = null;
-    document.querySelectorAll('.keeper-zones button').forEach(b => b.classList.remove('picked'));
+    document.querySelectorAll('.keeper-zones button').forEach(b => b.classList.remove('picked','prepicked'));
     // Reset keeper a posicion central
     const keeper = document.getElementById('keeper');
     keeper.style.transition = 'all 0.4s ease-out';
     keeper.style.left = '43%';
     keeper.style.transform = '';
-    keeper.classList.remove('k-cele','k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5','dive-l','dive-c','dive-r');
+    keeper.classList.remove('k-cele','k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5');
+    keeper.classList.remove.apply(keeper.classList, ALL_DIVE_CLASSES);
     // CPU pick (random)
     const zones = Object.keys(ZONE_POS);
     cpuTargetZone = zones[Math.floor(Math.random() * zones.length)];
@@ -1521,23 +1566,46 @@
     player.classList.add('running');
     player.style.left = '38%';
     player.style.bottom = '14%';
-    setTimeout(cpuKick, 1800);
+    // 30% de los tiros la CPU hace TRUCO (paradinha): pausa que permite al portero comprometerse antes
+    const doTrick = Math.random() < 0.3;
+    if (doTrick){
+      // Carrera corta + pausa visible (paradinha) -> el portero PUEDE saltar antes
+      setTimeout(() => {
+        player.classList.remove('running');
+        keeperCanDive = true;          // Truco: el portero ya puede comprometerse
+        if (userPickedZone) applyKeeperDive(userPickedZone);
+        // Si el portero ya estaba pre-picked, marcar visual de comprometido
+        document.querySelectorAll('.keeper-zones button').forEach(b => {
+          if (b.classList.contains('prepicked')){ b.classList.remove('prepicked'); b.classList.add('picked'); }
+        });
+        setTimeout(cpuKick, 850);
+      }, 1100);
+    } else {
+      // Disparo normal: portero NO puede dive antes del kick
+      setTimeout(cpuKick, 1800);
+    }
   }
 
   function keeperDive(zone){
     if (!cpuShotPending) return;
     userPickedZone = zone;
-    document.querySelectorAll('.keeper-zones button').forEach(b => b.classList.toggle('picked', b.dataset.zone === zone));
-    // Mover el portero visualmente al instante
-    const keeper = document.getElementById('keeper');
-    const p = KEEPER_DIVE_POS[zone];
-    keeper.style.transition = 'all 0.35s cubic-bezier(0.34,1.56,0.64,1)';
-    keeper.style.left = p.left;
-    keeper.style.transform = p.tx;
+    if (keeperCanDive){
+      document.querySelectorAll('.keeper-zones button').forEach(b => { b.classList.remove('prepicked'); b.classList.toggle('picked', b.dataset.zone === zone); });
+      applyKeeperDive(zone);
+    } else {
+      // Pre-pick: solo registra la intencion, no mueve al portero
+      document.querySelectorAll('.keeper-zones button').forEach(b => { b.classList.remove('picked'); b.classList.toggle('prepicked', b.dataset.zone === zone); });
+    }
   }
 
   function cpuKick(){
     cpuShotPending = false;
+    keeperCanDive = true;
+    // Si el portero habia pre-picked y aun no se aplico el dive, aplicarlo ahora (al kick)
+    if (userPickedZone){
+      document.querySelectorAll('.keeper-zones button').forEach(b => { b.classList.remove('prepicked'); b.classList.toggle('picked', b.dataset.zone === userPickedZone); });
+      applyKeeperDive(userPickedZone);
+    }
     const player = document.getElementById('player');
     player.classList.remove('running');
     player.classList.add('kicking');
@@ -1559,8 +1627,7 @@
     let ballEndX = target.x, ballEndY = target.y;
     if (result === 'parada'){
       // Balon va a las manos del portero
-      const kp = KEEPER_DIVE_POS[userZone];
-      ballEndX = parseFloat(kp.left) + 7;
+      ballEndX = parseFloat(KEEPER_DIVE_LEFT[userZone]) + 7;
       ballEndY = ZONE_POS[userZone].y;
     }
     // Animar
@@ -1685,6 +1752,7 @@
   let pdStartX, pdStartY, pdStartLeft, pdStartBottom;
   function startPlayerDrag(ev){
     if (shooting || aiming) return;
+    if (gameMode === 'keeper') return;   // En modo keeper el jugador es CPU
     ev.preventDefault();
     ev.stopPropagation();
     playerDragging = true;
@@ -1778,6 +1846,7 @@
 
   function startAim(ev){
     if (shooting) return;
+    if (gameMode === 'keeper') return;   // En modo keeper el balon lo lanza la CPU
     ev.preventDefault();
     // Detectar doble tap -> tiro billar raso
     const now = Date.now();
