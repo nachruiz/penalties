@@ -101,13 +101,14 @@
   .settings-content p{font-size:0.82rem;line-height:1.4;color:#ddd;margin:6px 0}
   .settings-content p strong{color:#FFD700}
   .settings-content .close-btn{margin-top:14px;width:100%}
-  /* Lineup screen (mini cards en sorteo) */
-  .lineup-section{width:100%;max-width:480px;margin:6px 0}
-  .lineup-section .lh{color:#FFD700;font-family:'Cinzel',serif;font-size:0.78rem;letter-spacing:0.12em;margin-bottom:6px;text-align:center;text-transform:uppercase}
-  .lineup-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
-  .lineup-card{background:rgba(0,31,63,0.7);border:1.5px solid rgba(255,215,0,0.25);border-radius:6px;padding:6px 4px;text-align:center;font-size:0.62rem;line-height:1.05;transition:all 0.25s}
-  .lineup-card .ln{font-family:'Cinzel',serif;color:#fff;font-weight:700;font-size:0.7rem}
-  .lineup-card .lm{color:rgba(255,215,0,0.7);font-size:0.55rem;margin-top:1px}
+  /* Lineup screen (3 cols x 2 rows = 6, simetrico para keepers y shooters) */
+  .lineup-section{width:100%;max-width:420px;margin:8px 0}
+  .lineup-section .lh{color:#FFD700;font-family:'Cinzel',serif;font-size:0.85rem;letter-spacing:0.12em;margin-bottom:8px;text-align:center;text-transform:uppercase}
+  .lineup-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+  .lineup-card{background:rgba(0,31,63,0.75);border:1.5px solid rgba(255,215,0,0.3);border-radius:8px;padding:10px 6px;text-align:center;line-height:1.1;transition:all 0.25s}
+  .lineup-card .lflag{font-size:1.2rem;line-height:1;margin-bottom:2px}
+  .lineup-card .ln{font-family:'Cinzel',serif;color:#fff;font-weight:700;font-size:0.85rem}
+  .lineup-card .lm{color:rgba(255,215,0,0.8);font-size:0.65rem;margin-top:2px}
   .lineup-card.chosen{background:linear-gradient(135deg,#FFD700,#c9a000);border-color:#FFD700;box-shadow:0 0 12px rgba(255,215,0,0.7);transform:scale(1.06)}
   .lineup-card.chosen .ln,.lineup-card.chosen .lm{color:#001f3f}
   .lineup-card.dimmed{opacity:0.35}
@@ -1081,8 +1082,8 @@
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
     try { localStorage.setItem('penalties_name', playerName); } catch(e){}
-    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
-    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);   // 3x2 simetrico
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);    // 3x2 simetrico
     renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
     show('keepers-gallery');
   }
@@ -1153,10 +1154,18 @@
     const gs = document.getElementById('grid-shooters');
     const gk = document.getElementById('grid-keepers');
     gs.innerHTML = poolShooters.map((s,i) =>
-      '<div class="lineup-card" data-i="'+i+'"><div class="ln">'+s.name+'</div><div class="lm">#'+s.dorsal+' · '+s.nation+'</div></div>'
+      '<div class="lineup-card" data-i="'+i+'">'+
+        '<div class="lflag">'+flag(s.nation)+'</div>'+
+        '<div class="ln">'+s.name+'</div>'+
+        '<div class="lm">#'+s.dorsal+' · '+s.nation+'</div>'+
+      '</div>'
     ).join('');
     gk.innerHTML = poolKeepers.map((k,i) =>
-      '<div class="lineup-card" data-i="'+i+'"><div class="ln">'+k.name+'</div><div class="lm">'+k.nation+'</div></div>'
+      '<div class="lineup-card" data-i="'+i+'">'+
+        '<div class="lflag">'+flag(k.nation)+'</div>'+
+        '<div class="ln">'+k.name+'</div>'+
+        '<div class="lm">'+k.nation+'</div>'+
+      '</div>'
     ).join('');
   }
 
