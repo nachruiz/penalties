@@ -787,7 +787,8 @@
     const ss = getSweetSpot();
     const ssCx = (ss.x - 50) / 50;   // -1..+1
     const ssCy = (ss.y - 50) / 50;
-    const ssR  = ss.size;            // radio en unidades [-1,1]
+    // ss.size es la fraccion del DIAMETRO del balon que ocupa el circulo. Radio = size/2.
+    const ssR  = ss.size / 2;
     const dx = strikeRelX - ssCx;
     const dy = strikeRelY - ssCy;
     return Math.sqrt(dx*dx + dy*dy) <= ssR;
@@ -1675,11 +1676,18 @@
       showTutorial();
       return;
     }
-    // Tutorial ya visto -> directo a la explicaci&oacute;n del sorteo
-    show('explain');
+    // Pantalla de explicaci&oacute;n del sorteo: SOLO la primera vez. Despues va directo a porteros.
+    let seenExplain = false;
+    try { seenExplain = !!localStorage.getItem('penalties_explain_seen'); } catch(e){}
+    if (!seenExplain){
+      show('explain');
+      return;
+    }
+    goToKeepersFromExplain();
   }
   function goToKeepersFromExplain(){
-    // Llamado desde el bot&oacute;n CONTINUE del screen-explain
+    // Llamado desde el bot&oacute;n CONTINUE del screen-explain (o atajo si ya se vio antes)
+    try { localStorage.setItem('penalties_explain_seen', '1'); } catch(e){}
     poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
     poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
     renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
@@ -1705,6 +1713,19 @@
   let bonusMode = false;
   let bonusAttempts = 0;
   const BONUS_TOTAL = 3;
+  // Reglas de desbloqueo de la chilena segun dificultad.
+  // Siempre OBLIGATORIO marcar gol con cr7 o neymar (fila r5) para activar el bonus.
+  // requiredRows: total de filas distintas a tocar (incluyendo r5).
+  const BICYCLE_UNLOCK = {
+    beginner:     {requiredRows: 3, requireRow: 'r5'},  // r5 + 2 mas cualesquiera
+    intermediate: {requiredRows: 4, requireRow: 'r5'},  // r5 + 3 mas
+    expert:       {requiredRows: 5, requireRow: 'r5'}   // las 5 filas (regla original)
+  };
+  function bicycleUnlocked(){
+    const rule = BICYCLE_UNLOCK[difficulty] || BICYCLE_UNLOCK.intermediate;
+    if (rule.requireRow && !scoredRows.has(rule.requireRow)) return false;
+    return scoredRows.size >= rule.requiredRows;
+  }
 
   function awardBicycleCard(){
     let profile = {};
@@ -2554,7 +2575,8 @@
     if (shotType === 'pass'){
       // PASS con el interior del pie: tiro a RAS DE SUELO. Velocidad media-baja.
       // SIEMPRE raso: este finalY sobreescribe cualquier strikeBiasY o sY previo.
-      finalY = 36.5 + (Math.random() - 0.5) * 1.0;  // 36-37, pegado al cesped (bottom de la porteria=40)
+      // Bound estricto del gol exige finalY < 36.5; mantenemos margen para que SIEMPRE sea valido.
+      finalY = 34.8 + (Math.random() - 0.5) * 1.0;  // 34.3-35.3, raso pegado al cesped pero dentro del marco
       ballSpeedMs = Math.round(ballSpeedMs * 1.15);
       saveModifier += 0.05;
       spinDeg = Math.round(spinDeg * 0.8);
@@ -2947,8 +2969,8 @@
           shooting = false;
         }
       } else if (shotsTaken >= TOTAL_SHOTS){
-        // Comprobar bonus unlock
-        if (gameMode === 'shooter' && scoredRows.size >= 5){
+        // Comprobar bonus unlock segun dificultad
+        if (gameMode === 'shooter' && bicycleUnlocked()){
           bonusMode = true;
           bonusAttempts = 0;
           document.querySelectorAll('.shot-btn').forEach(b => {
@@ -2960,7 +2982,8 @@
           const isLefty = (selectedShooter && selectedShooter.foot === 'L');
           document.getElementById('shot-types').classList.toggle('bonus-lefty', isLefty);
           document.getElementById('bicycle-modal').classList.toggle('lefty-side', isLefty);
-          alert('🎉 BONUS UNLOCKED!\n\nYou scored from all 5 shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
+          const rule = BICYCLE_UNLOCK[difficulty] || BICYCLE_UNLOCK.intermediate;
+          alert('🎉 BONUS UNLOCKED!\n\nYou scored from ' + rule.requiredRows + ' different shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
           resetBall();
           shooting = false;
         } else {
