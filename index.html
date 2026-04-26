@@ -33,7 +33,7 @@
   input[type=text]::placeholder{color:#9aa3af;font-weight:500;opacity:1}
   input[type=text]::-webkit-input-placeholder{color:#9aa3af;font-weight:500;opacity:1}
   input:focus{outline:3px solid #FFD700}
-  .btn{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border:none;padding:18px 48px;font-size:1.2rem;font-weight:900;letter-spacing:0.1em;border-radius:10px;cursor:pointer;margin-top:24px;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
+  .btn{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border:none;padding:12px 32px;font-size:1rem;font-weight:900;letter-spacing:0.1em;border-radius:8px;cursor:pointer;margin-top:18px;text-transform:uppercase;box-shadow:0 4px 12px rgba(0,0,0,0.4)}
   .btn:active{transform:translateY(2px)}
   .btn-secondary{background:rgba(255,255,255,0.15);color:#fff;border:2px solid rgba(255,255,255,0.5)}
   .diff-btn{font-size:0.72rem!important;padding:8px 14px!important;letter-spacing:0.05em;cursor:pointer}
@@ -41,7 +41,7 @@
   /* Hero a pantalla completa del intro: el golpeo se ve entero detras de TODO el contenido (titulo, BERNABEU, input...) */
   #screen-intro{
     isolation:isolate; overflow:hidden;
-    padding-bottom:42px; /* espacio para el copyright */
+    padding-bottom:60px; /* espacio amplio para el copyright pegado al fondo, que no lo pise el SIGUIENTE */
     background:
       linear-gradient(180deg, rgba(0,5,15,0.45) 0%, rgba(0,5,15,0.55) 50%, rgba(0,5,15,0.85) 100%),
       url('hero.jpg') center top / cover no-repeat;
@@ -50,8 +50,8 @@
   .title-banner{display:contents}
   /* Asegurar que el contenido (titulo, input, etc) queda por encima del overlay del hero */
   #screen-intro > *{ position:relative; z-index:2; }
-  /* Pie de copyright pegado al borde inferior del stage */
-  .copyright-foot{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:0.6rem;color:rgba(255,255,255,0.55);letter-spacing:0.06em;font-family:'DM Sans',sans-serif;pointer-events:none;z-index:5}
+  /* Pie de copyright pegado al borde inferior del stage, con su propio fondo translucido para que se lea sobre el hero */
+  .copyright-foot{position:absolute;bottom:0;left:0;right:0;text-align:center;font-size:0.62rem;color:rgba(255,255,255,0.7);letter-spacing:0.06em;font-family:'DM Sans',sans-serif;pointer-events:none;z-index:5;padding:8px 12px;background:linear-gradient(180deg, transparent 0%, rgba(0,0,0,0.65) 60%)}
   /* Language picker: en flujo, encima del t&iacute;tulo, centrado. As&iacute; nunca pisa al H1 */
   .lang-picker{display:flex;gap:5px;justify-content:center;margin:0 0 16px;flex-wrap:wrap}
   .lang-flag{background:#001f3f;border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:6px 9px;font-size:0.72rem;color:#fff;cursor:pointer;line-height:1;transition:all 0.15s;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;min-width:34px;text-align:center}
