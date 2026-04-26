@@ -771,19 +771,17 @@
     if (!ball || !stage) return;
     const ballRect = ball.getBoundingClientRect();
     const stageRect = stage.getBoundingClientRect();
-    if (stageRect.width === 0) return;
-    const ballLeftPct = ((ballRect.left - stageRect.left) / stageRect.width) * 100;
-    const ballTopPct = ((ballRect.top - stageRect.top) / stageRect.height) * 100;
-    const ballWPct = (ballRect.width / stageRect.width) * 100;
-    const ballHPct = (ballRect.height / stageRect.height) * 100;
+    if (stageRect.width === 0 || ballRect.width === 0) return;
+    // Calculo en PIXELES (mas fiable que % cuando el aspect ratio puede fallar)
     const ss = getSweetSpot();
-    const cxPct = ballLeftPct + (ss.x / 100) * ballWPct;
-    const cyPct = ballTopPct + (ss.y / 100) * ballHPct;
-    const sizePct = ballWPct * 0.42;
-    circle.style.left = (cxPct - sizePct/2) + '%';
-    circle.style.top = (cyPct - sizePct/2) + '%';
-    circle.style.width = sizePct + '%';
-    circle.style.aspectRatio = '1';
+    const sizePx = ballRect.width * 0.45;
+    const cxPx = (ballRect.left - stageRect.left) + (ss.x / 100) * ballRect.width;
+    const cyPx = (ballRect.top  - stageRect.top)  + (ss.y / 100) * ballRect.height;
+    circle.style.left   = (cxPx - sizePx/2) + 'px';
+    circle.style.top    = (cyPx - sizePx/2) + 'px';
+    circle.style.width  = sizePx + 'px';
+    circle.style.height = sizePx + 'px';
+    circle.style.aspectRatio = '';   // limpiar por si quedaba
     circle.classList.add('show');
   }
 
@@ -1254,9 +1252,21 @@
     if (tutorialIdx >= getTutorialSlides().length) endTutorial();
     else renderTutorialSlide();
   }
+  let tutorialFromIntro = false;
   function endTutorial(){
     document.getElementById('tutorial-modal').classList.remove('show');
     try { localStorage.setItem('penalties_tutorial_seen', '1'); } catch(e){}
+    // Si veniamos de la portada (NEXT del intro), continuamos directo al flujo
+    if (tutorialFromIntro){
+      tutorialFromIntro = false;
+      _continueAfterIntro();
+    }
+  }
+  function _continueAfterIntro(){
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
+    renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
+    show('keepers-gallery');
   }
   // ====== BICYCLE KICK: balon al larguero -> rebota -> camara lenta + bicicleta en el aire ======
   let bicycleStage = 0;
@@ -1612,18 +1622,9 @@
     const v = document.getElementById('player-name').value.trim();
     playerName = v ? v.toUpperCase() : "CR7";
     try { localStorage.setItem('penalties_name', playerName); } catch(e){}
-    // Tutorial: la primera vez que sales de la portada, abrir el popup ANTES de seguir
-    let seenTut = false;
-    try { seenTut = !!localStorage.getItem('penalties_tutorial_seen'); } catch(e){}
-    if (!seenTut){
-      showTutorial();
-      // Marcar como visto al cerrar; cuando lo cierre, el usuario tendra que pulsar NEXT de nuevo
-      return;
-    }
-    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
-    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
-    renderGalleryCards('grid-k-gallery', poolKeepers, 'keeper');
-    show('keepers-gallery');
+    // Tras meter el nombre, el tutorial es OBLIGATORIO. Al cerrarlo, continua solo al flujo.
+    tutorialFromIntro = true;
+    showTutorial();
   }
   function goToShootersGallery(){
     renderGalleryCards('grid-s-gallery', poolShooters, 'shooter');
