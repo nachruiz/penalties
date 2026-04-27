@@ -2644,35 +2644,35 @@
       finalY += (Math.random() - 0.5) * noise * 0.9;
     }
 
-    // ====== REGLA DE LA ZONA DULCE ======
-    // Si el strike point cae FUERA del circulo de la zona dulce, el balon se va FUERA.
-    // Excepcion: curl/trivela con aim al lado contrario al strike pueden colar como fluke (descontrolado).
-    // Solo aplica a tiros "normales": instep/pass/curl/trivela/panenka.
+    // ====== MODO ASEQUIBLE (movil-friendly) ======
+    // Casi todos los tiros van a puerta. Solo se van fuera si:
+    //   - Potencia MUY alta (>0.85): la pelota se descontrola
+    //   - Aim claramente apuntado fuera (|sX|>0.85)
+    // PASS sigue siendo raso (su finalY ya esta forzado arriba). El resto: direccion aleatoria dentro del marco.
     const NORMAL_TYPES = ['pass','instep','curl','trivela','panenka'];
     if (NORMAL_TYPES.indexOf(shotType) >= 0){
-      const inSweet = strikeInSweetSpot();
-      if (!inSweet){
-        let flukeIn = false;
-        if ((shotType === 'curl' || shotType === 'trivela') &&
-            Math.sign(sX) !== 0 && Math.sign(sX) !== Math.sign(strikeRelX) && Math.abs(sX) > 0.3){
-          // Flecha apuntando a un lado y strike en el opuesto -> 30% de fluke goal pero direccion descontrolada
-          if (Math.random() < 0.3){
-            flukeIn = true;
-            finalX = 18 + Math.random() * 64;   // dentro del marco horizontalmente, posicion al azar
-            finalY = 24 + Math.random() * 12;   // dentro del marco vertical
+      const tooHard = power > 0.85;
+      const aimedOut = Math.abs(sX) > 0.85 || sY < -0.85;
+      if (!tooHard && !aimedOut){
+        // FORZAR dentro del marco con direccion semi-aleatoria
+        const goalSafeL = goalLeft + ballR + 1;   // ~7.5
+        const goalSafeR = goalRight - ballR - 1;  // ~92.5
+        const goalSafeT = goalTop + ballR + 1;    // ~23.5
+        const goalSafeB = goalBottom - ballR - 1; // ~35.5
+        if (shotType === 'pass'){
+          // PASS: solo random en X (Y queda raso del bloque pass de arriba)
+          finalX = goalSafeL + Math.random() * (goalSafeR - goalSafeL);
+        } else {
+          // Resto: si la posicion calculada se sale, randomizamos dentro
+          if (finalX < goalSafeL || finalX > goalSafeR){
+            finalX = goalSafeL + Math.random() * (goalSafeR - goalSafeL);
           }
-        }
-        if (!flukeIn){
-          // Forzado fuera: por arriba o por un lado
-          if (Math.random() < 0.5){
-            finalY = 8 + Math.random() * 8;     // < goalTop -> sale por arriba
-            finalX = 30 + Math.random() * 40;
-          } else {
-            finalX = Math.random() < 0.5 ? -3 + Math.random() * 4 : 97 + Math.random() * 4;
-            finalY = 22 + Math.random() * 12;
+          if (finalY < goalSafeT || finalY > goalSafeB){
+            finalY = goalSafeT + Math.random() * (goalSafeB - goalSafeT);
           }
         }
       }
+      // si tooHard o aimedOut: dejamos los valores calculados (probablemente fuera) y la fisica decide
     }
 
     // ---- Decidir RESULTADO antes de animar (para que la animacion sea coherente) ----
