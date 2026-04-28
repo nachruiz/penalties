@@ -293,6 +293,25 @@
   .keeper.dive-br .k-arm-l{transform:rotate(90deg)!important;animation:none!important}
   .keeper.dive-br .k-arm-r{transform:rotate(45deg)!important;animation:none!important}
   /* Shot type buttons (subidos para no tapar la cabeza del jugador) */
+  /* Anuncio de fase (pantalla full-stage que aparece al avanzar) */
+  .phase-modal{position:absolute;inset:0;background:rgba(0,0,0,0.85);z-index:80;display:none;align-items:center;justify-content:center;padding:18px;animation:phase-fade 0.35s ease-out}
+  .phase-modal.show{display:flex}
+  @keyframes phase-fade{from{opacity:0}to{opacity:1}}
+  .phase-content{text-align:center;max-width:380px;color:#fff}
+  .phase-eyebrow{font-size:13px;color:#FFD700;font-family:'Cinzel',serif;letter-spacing:0.3em;font-weight:700;margin-bottom:8px;text-transform:uppercase}
+  .phase-title{font-family:'Cinzel',serif;font-size:1.8rem;font-weight:900;color:#FFD700;letter-spacing:0.05em;margin-bottom:10px;line-height:1.1;text-shadow:0 2px 12px rgba(255,215,0,0.4)}
+  .phase-desc{font-size:0.95rem;line-height:1.4;color:#eee;margin-bottom:18px}
+  .phase-progress{font-size:11px;color:#A7F3D0;letter-spacing:0.15em;font-weight:600;margin-bottom:18px;text-transform:uppercase}
+  .phase-modal button{background:linear-gradient(135deg,#FFD700,#c9a000);color:#001f3f;border:none;padding:10px 28px;font-family:'Cinzel',serif;font-size:0.95rem;font-weight:900;letter-spacing:0.1em;border-radius:8px;cursor:pointer}
+  .phase-modal button:hover{filter:brightness(1.05)}
+  /* HUD de progreso de fase (esquina superior, compacto) */
+  .phase-hud{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,31,63,0.85);border:1.5px solid rgba(255,215,0,0.5);border-radius:6px;padding:4px 10px;z-index:25;display:flex;align-items:center;gap:8px;font-family:'Cinzel',serif}
+  .phase-hud-num{background:#FFD700;color:#001f3f;font-size:10px;font-weight:900;padding:1px 6px;border-radius:3px;letter-spacing:0.05em}
+  .phase-hud-name{color:#fff;font-size:0.7rem;font-weight:600;letter-spacing:0.06em}
+  .phase-hud-streak{color:#7CFC00;font-size:0.72rem;font-weight:700;letter-spacing:0.04em}
+  .phase-hud-streak.miss{color:#FF6B6B;animation:streak-miss 0.5s ease-out}
+  @keyframes streak-miss{0%{transform:scale(1.4);color:#fff}100%{transform:scale(1);color:#FF6B6B}}
+
   /* Asistente de golpeo: pegado al jugador (esquina inferior). Mismo lado que el lanzador */
   .assist-toggle{position:absolute;bottom:8px;left:8px;z-index:30;background:rgba(0,31,63,0.88);border:1.5px solid rgba(80,160,255,0.55);color:#7ec8ff;border-radius:6px;padding:5px 9px;font-size:0.62rem;font-family:'Cinzel',serif;font-weight:700;letter-spacing:0.08em;cursor:pointer;line-height:1}
   .assist-toggle.lefty-side{left:auto;right:8px}
@@ -615,12 +634,11 @@
       <button class="shot-btn" data-shot="paradinha" onclick="setShotType('paradinha')">PARADINHA<span class="shot-sub" data-i18n="subParadinha">stutter step</span></button>
       <button class="shot-btn" data-shot="fake" onclick="setShotType('fake')">FAKE<span class="shot-sub" data-i18n="subFake">feint, no shot</span></button>
       <button class="shot-btn" data-shot="jorginho" onclick="setShotType('jorginho')">JORGINHO<span class="shot-sub" data-i18n="subJorginho">stutter hop</span></button>
-    </div>
-    <div class="shot-types-special" id="shot-types-special">
-      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()" style="display:none">BICYCLE<span class="shot-sub" data-i18n="subBicycle">overhead bonus</span></button>
       <button class="shot-btn" data-shot="cr7" onclick="setShotType('cr7')" style="display:none">CR7<span class="shot-sub" data-i18n="subCr7">side-step + instep</span></button>
       <button class="shot-btn" data-shot="neymar" onclick="setShotType('neymar')" style="display:none">NEYMAR<span class="shot-sub" data-i18n="subNeymar">side-step + crazy stutter</span></button>
+      <button class="shot-btn" data-shot="bicycle" onclick="startBicycle()" style="display:none">BICYCLE<span class="shot-sub" data-i18n="subBicycle">overhead bonus</span></button>
     </div>
+    <div class="shot-types-special" id="shot-types-special" style="display:none"></div>
     <div class="crossbar"></div>
     <div class="goal" id="goal"></div>
     <div class="keeper" id="keeper">
@@ -681,6 +699,20 @@
       <div class="result-speed" id="result-speed"></div>
       <div class="result-why" id="result-why"></div>
     </div>
+    <div class="phase-hud" id="phase-hud" style="display:none">
+      <span class="phase-hud-num" id="phase-hud-num">F1</span>
+      <span class="phase-hud-name" id="phase-hud-name">PASS + INSTEP</span>
+      <span class="phase-hud-streak" id="phase-hud-streak">0/5</span>
+    </div>
+    <div class="phase-modal" id="phase-modal" onclick="closePhaseModal()">
+      <div class="phase-content">
+        <div class="phase-eyebrow" id="phase-modal-eyebrow">FASE DESBLOQUEADA</div>
+        <div class="phase-title" id="phase-modal-title">FASE 2</div>
+        <div class="phase-desc" id="phase-modal-desc">Tiros con efecto: rosca y exterior.</div>
+        <div class="phase-progress" id="phase-modal-progress">2 de 5 fases &mdash; falta 4 m&aacute;s</div>
+        <button onclick="closePhaseModal()">EMPEZAR</button>
+      </div>
+    </div>
   </div>
 
   <!-- Pantalla 3: Final -->
@@ -718,7 +750,23 @@
   let lastTapTime = 0;       // para detectar doble tap (tiro billar)
   let lastShotInfo = {};     // detalles del ultimo chute para explicar fueras
   let difficulty = 'beginner';   // 'beginner' | 'intermediate' | 'expert' (por defecto el m&aacute;s f&aacute;cil para no desmoralizar)
-  const DIFF_SAVE = {beginner:0.25, intermediate:0.45, expert:0.80};
+  const DIFF_SAVE = {beginner:0.05, intermediate:0.20, expert:0.30};
+  // ====== FASES PROGRESIVAS ======
+  // El juego se divide en fases. Cada fase muestra solo 2 botones (la fila de la antigua mecánica).
+  // Para avanzar: marcar 5 goles consecutivos con cualquiera de esas 2 opciones.
+  // Si fallas, contador a 0 (sigues en la misma fase).
+  // Tras la fase 5 se desbloquea CHILENAS (la fase final).
+  const PHASES = [
+    {n:1, shots:['pass','instep'],      name:'PASS + INSTEP',      desc:'Tiros b&aacute;sicos: interior raso o golpeo recto.'},
+    {n:2, shots:['curl','trivela'],     name:'CURL + TRIVELA',     desc:'Tiros con efecto: rosca con interior o exterior del pie.'},
+    {n:3, shots:['panenka','paradinha'],name:'PANENKA + PARADINHA',desc:'Tiros con enga&ntilde;o: vaselina o parada antes del chute.'},
+    {n:4, shots:['fake','jorginho'],    name:'FAKE + JORGINHO',    desc:'Tiros con truco: amago a la finta o saltito previo.'},
+    {n:5, shots:['cr7','neymar'],       name:'CR7 + NEYMAR',       desc:'Tiros de leyenda: paso lateral + zurriagazo o tartamudez.'},
+    {n:6, shots:['bicycle'],            name:'CHILENAS',           desc:'&iexcl;La fase final! Domina la chilena para ganar tarjetas top-20.'}
+  ];
+  const REQUIRED_CONSECUTIVE = 5;
+  let currentPhase = 0;
+  let consecutiveGoals = 0;
   // Tamano del balon segun perspectiva: cerca del jugador grande, lejos pequeno
   function ballSizeForY(y){
     // y=67 (jugador) -> 9%
@@ -1867,14 +1915,9 @@
     scoredRows = new Set();
     bonusMode = false;
     bonusAttempts = 0;
-    // Restaurar visibilidad shot-types
-    document.querySelectorAll('.shot-btn').forEach(b => {
-      if (b.dataset.shot === 'bicycle' || b.dataset.shot === 'cr7' || b.dataset.shot === 'neymar'){
-        b.style.display = 'none';
-      } else {
-        b.style.display = '';
-      }
-    });
+    // Reset fases
+    currentPhase = 0;
+    consecutiveGoals = 0;
     document.getElementById('shot-types').classList.remove('bonus-lefty');
     // Posicionar paneles de tiro al lado OPUESTO al lanzador (zurdos: izquierda; diestros: derecha)
     const isLeftyShooter = (selectedShooter && selectedShooter.foot === 'L');
@@ -1908,7 +1951,77 @@
       show('game');
       refreshAssistToggleUI();
       setTimeout(updateAssistCircle, 100);
+      // Mostrar la primera fase con anuncio
+      setTimeout(function(){ showPhaseAnnouncement(0, true); }, 350);
     }
+  }
+
+  // ====== FASES ======
+  function applyPhaseButtons(idx){
+    var phase = PHASES[idx]; if (!phase) return;
+    document.querySelectorAll('.shot-btn').forEach(function(b){
+      b.style.display = phase.shots.indexOf(b.dataset.shot) >= 0 ? '' : 'none';
+      b.classList.remove('active');
+    });
+    // Activa por defecto el primer disparo de la fase
+    var first = document.querySelector('.shot-btn[data-shot="' + phase.shots[0] + '"]');
+    if (first) first.classList.add('active');
+    shotType = phase.shots[0];
+    // Refrescar HUD de fase
+    var hud = document.getElementById('phase-hud');
+    document.getElementById('phase-hud-num').textContent = 'F' + phase.n;
+    document.getElementById('phase-hud-name').textContent = phase.name;
+    updatePhaseStreak();
+    hud.style.display = '';
+  }
+  function updatePhaseStreak(){
+    var el = document.getElementById('phase-hud-streak');
+    if (!el) return;
+    el.textContent = consecutiveGoals + '/' + REQUIRED_CONSECUTIVE;
+  }
+  function showPhaseAnnouncement(idx, isFirst){
+    var phase = PHASES[idx]; if (!phase) return;
+    document.getElementById('phase-modal-eyebrow').textContent = isFirst ? 'EMPIEZA EL DESAFÍO' : 'FASE DESBLOQUEADA';
+    document.getElementById('phase-modal-title').textContent = 'FASE ' + phase.n + ': ' + phase.name;
+    document.getElementById('phase-modal-desc').innerHTML = phase.desc + '<br><br><b>Marca 5 goles seguidos</b> para avanzar.';
+    var totalPhases = PHASES.length;
+    document.getElementById('phase-modal-progress').textContent = phase.n + ' de ' + totalPhases + ' fases';
+    document.getElementById('phase-modal').classList.add('show');
+  }
+  function closePhaseModal(){
+    document.getElementById('phase-modal').classList.remove('show');
+    applyPhaseButtons(currentPhase);
+    setTimeout(updateAssistCircle, 100);
+  }
+  function onGoalScoredForPhase(){
+    // Solo cuenta si el shotType actual está en la fase actual
+    var phase = PHASES[currentPhase]; if (!phase) return;
+    if (phase.shots.indexOf(shotType) < 0) return;
+    consecutiveGoals++;
+    updatePhaseStreak();
+    if (consecutiveGoals >= REQUIRED_CONSECUTIVE){
+      // ¡Avanzar de fase!
+      consecutiveGoals = 0;
+      currentPhase++;
+      if (currentPhase >= PHASES.length - 1){
+        // Llegamos a la última fase: CHILENAS — activar bonusMode
+        currentPhase = PHASES.length - 1;
+        bonusMode = true;
+        bonusAttempts = 0;
+        setTimeout(function(){ showPhaseAnnouncement(currentPhase, false); }, 700);
+      } else {
+        setTimeout(function(){ showPhaseAnnouncement(currentPhase, false); }, 700);
+      }
+    }
+  }
+  function onMissedForPhase(){
+    // Resetear racha al fallar (solo en modo shooter normal)
+    if (bonusMode) return;
+    if (consecutiveGoals === 0) return;
+    consecutiveGoals = 0;
+    var el = document.getElementById('phase-hud-streak');
+    if (el){ el.classList.add('miss'); setTimeout(function(){ el.classList.remove('miss'); }, 600); }
+    updatePhaseStreak();
   }
 
   // ====== MODO KEEPER ======
@@ -2048,7 +2161,13 @@
 
   function updateHud(){
     document.getElementById('hud-score').textContent = score;
-    document.getElementById('hud-shots').textContent = t('penalty') + ' ' + Math.min(shotsTaken+1, TOTAL_SHOTS) + ' / ' + TOTAL_SHOTS;
+    if (gameMode === 'keeper'){
+      // Modo keeper: formato clásico de 5 penaltis
+      document.getElementById('hud-shots').textContent = t('penalty') + ' ' + Math.min(shotsTaken+1, TOTAL_SHOTS) + ' / ' + TOTAL_SHOTS;
+    } else {
+      // Modo shooter con fases: número de tiros tomados (sin tope)
+      document.getElementById('hud-shots').textContent = t('penalty') + ' ' + (shotsTaken+1);
+    }
   }
 
   function resetBall(){
@@ -2244,6 +2363,14 @@
   }
 
   function startAim(ev){
+    // Watchdog defensivo: si shooting lleva demasiado tiempo activo (animacion colgada), resetea.
+    if (shooting && (Date.now() - (window._shootStart || 0)) > 8000){
+      console.warn('shooting stuck > 8s, forcing reset');
+      shooting = false;
+      aiming = false;
+      paradinhaDive = null;
+      try { resetBall(); } catch(e){}
+    }
     if (shooting) return;
     if (gameMode === 'keeper') return;   // En modo keeper el balon lo lanza la CPU
     ev.preventDefault();
@@ -2321,10 +2448,14 @@
       p3y = p.y - perpY * halfW;
     }
 
-    // El apex del triangulo va al PUNTO DE GOLPEO (donde esta el marcador rojo en el balon)
-    // Asi el triangulo toca visiblemente el balon en el punto exacto del strike.
-    const apexX = ((dragStartX - stage.left) / stage.width) * 100;
-    const apexY = ((dragStartY - stage.top) / stage.height) * 100;
+    // El apex del triangulo SIEMPRE en el centro actual del balon (independiente del punto de toque)
+    // Esto evita que el triangulo aparezca lejos del balon si hay desfases de coordenadas.
+    var ballEl = document.getElementById('ball');
+    var ballRect = ballEl.getBoundingClientRect();
+    var ballCx = ballRect.left + ballRect.width/2;
+    var ballCy = ballRect.top + ballRect.height/2;
+    const apexX = ((ballCx - stage.left) / stage.width) * 100;
+    const apexY = ((ballCy - stage.top) / stage.height) * 100;
     const tx2 = ((p2x - stage.left) / stage.width) * 100;
     const ty2 = ((p2y - stage.top) / stage.height) * 100;
     const tx3 = ((p3x - stage.left) / stage.width) * 100;
@@ -2363,6 +2494,7 @@
   function doShoot(sX, sY, power, opts){
     if (shooting) return;
     shooting = true;
+    window._shootStart = Date.now();
     opts = opts || {};
 
     // CR7: pasitos laterales lentos hasta la esquina + INSTEP normal (sin paradinha).
@@ -2893,9 +3025,13 @@
     if (kind === 'gol'){
       text.textContent = t('goal');
       if (gameMode !== 'keeper') score++;   // en keeper mode, gol del CPU NO suma al usuario
-      // Track row scored para bonus
+      // Track row scored para bonus (legado, ya no determina unlock)
       if (gameMode === 'shooter' && shotType in ROW_OF){
         scoredRows.add(ROW_OF[shotType]);
+      }
+      // FASES: cuenta goles consecutivos y avanza si llegas a 5
+      if (gameMode === 'shooter' && !bonusMode){
+        onGoalScoredForPhase();
       }
       // Award card si es bonus bicycle gol
       if (bonusMode && shotType === 'bicycle'){
@@ -2936,6 +3072,8 @@
         ball.style.left = (parseFloat(ball.style.left) + (Math.random()-0.5) * 20) + '%';
         ball.style.transform = 'rotate(900deg)';
       }, 350);
+      // Parada: en modo shooter cuenta como fallo para el contador de fase
+      if (gameMode === 'shooter' && !bonusMode) onMissedForPhase();
     }
     else {
       text.textContent = t('out');
@@ -2947,6 +3085,8 @@
       whyEl.innerHTML = '<div class="why-title">' + t('whyLabel') + '</div>' + why;
       whyEl.style.animation = 'none'; void whyEl.offsetWidth; whyEl.style.animation = '';
       whyEl.classList.add('show');
+      // Fuera: también cuenta como fallo de racha
+      if (gameMode === 'shooter' && !bonusMode) onMissedForPhase();
     }
     if (kind !== 'fuera'){
       const whyEl = document.getElementById('result-why');
@@ -2961,6 +3101,7 @@
     setTimeout(() => {
       overlay.classList.remove('show');
       if (bonusMode){
+        // Fase chilenas: 3 intentos como antes
         bonusAttempts++;
         if (bonusAttempts >= BONUS_TOTAL){
           bonusMode = false;
@@ -2969,28 +3110,12 @@
           resetBall();
           shooting = false;
         }
-      } else if (shotsTaken >= TOTAL_SHOTS){
-        // Comprobar bonus unlock segun dificultad
-        if (gameMode === 'shooter' && bicycleUnlocked()){
-          bonusMode = true;
-          bonusAttempts = 0;
-          document.querySelectorAll('.shot-btn').forEach(b => {
-            b.style.display = b.dataset.shot === 'bicycle' ? '' : 'none';
-          });
-          document.querySelector('.shot-btn[data-shot="bicycle"]').classList.add('active');
-          shotType = 'bicycle';
-          // Si el jugador es zurdo, mover el panel a la izquierda
-          const isLefty = (selectedShooter && selectedShooter.foot === 'L');
-          document.getElementById('shot-types').classList.toggle('bonus-lefty', isLefty);
-          document.getElementById('bicycle-modal').classList.toggle('lefty-side', isLefty);
-          const rule = BICYCLE_UNLOCK[difficulty] || BICYCLE_UNLOCK.intermediate;
-          alert('🎉 BONUS UNLOCKED!\n\nYou scored from ' + rule.requiredRows + ' different shot rows.\n3 bicycle-kick attempts await.\nEach goal earns you a top-20 player card.');
-          resetBall();
-          shooting = false;
-        } else {
-          endGame();
-        }
+      } else if (gameMode === 'keeper'){
+        // Modo keeper conserva el formato de 5 penaltis
+        if (shotsTaken >= TOTAL_SHOTS){ endGame(); } else { resetBall(); shooting = false; }
       } else {
+        // Modo shooter con fases: continuar siempre. La transición a chilenas la dispara onGoalScoredForPhase()
+        // que activa bonusMode tras la fase 5.
         resetBall();
         shooting = false;
       }
