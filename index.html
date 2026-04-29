@@ -526,7 +526,8 @@
       <button class="btn-secondary diff-btn" data-diff="intermediate" onclick="setDifficulty('intermediate')" data-i18n="intermediate">INTERMEDIATE</button>
       <button class="btn-secondary diff-btn" data-diff="expert" onclick="setDifficulty('expert')" data-i18n="expert">EXPERT</button>
     </div>
-    <button class="btn" onclick="goToKeepersGallery()" data-i18n="next">NEXT</button>
+    <button class="btn" onclick="quickPlay()" style="background:linear-gradient(180deg,#2ECC71,#1e9b58);border-color:#2ECC71;color:#fff;font-size:1.1rem;padding:14px 32px">PLAY</button>
+    <button class="btn-secondary" onclick="goToKeepersGallery()" data-i18n="next" style="margin-top:8px">NEXT (FULL DRAW)</button>
     <div class="copyright-foot">&copy; 2026 Khoru Creative S.L. &mdash; All rights reserved</div>
   </div>
 
@@ -741,6 +742,10 @@
   let dragStartX = 0, dragStartY = 0;
   let dragDx = 0, dragDy = 0;
   let dragDist = 0;
+  let dragStartTime = 0;
+  let dragLastSampleTime = 0, dragLastX = 0, dragLastY = 0;
+  let dragRecentVelocity = 0;   // px/ms, suavizado durante el gesto
+  let isTouchGesture = false;   // true => mobile swipe (direccion = dedo); false => desktop slingshot (direccion = inversa)
   const MAX_DRAG = 180;
   const MIN_DRAG = 12;   // bajado para evitar fallos en mobile
 
@@ -1712,6 +1717,23 @@
   }
   function shuffleArr(a){const b=[...a];for(let i=b.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[b[i],b[j]]=[b[j],b[i]]}return b}
 
+  function quickPlay(){
+    // PLAY rapido: salta tutorial, galerias y sorteo. Modo shooter con shooter+keeper aleatorios.
+    const v = document.getElementById('player-name').value.trim();
+    playerName = v ? v.toUpperCase() : "CR7";
+    try { localStorage.setItem('penalties_name', playerName); } catch(e){}
+    // Marca tutorial como visto para que no vuelva a aparecer
+    try { localStorage.setItem('penalties_tutorial_seen', '1'); } catch(e){}
+    try { localStorage.setItem('penalties_explain_seen', '1'); } catch(e){}
+    // Pools y eleccion al azar
+    poolShooters = shuffleArr(SHOOTERS).slice(0, 6);
+    poolKeepers  = shuffleArr(KEEPERS).slice(0, 6);
+    selectedShooter = poolShooters[Math.floor(Math.random() * poolShooters.length)];
+    selectedKeeper  = poolKeepers[Math.floor(Math.random() * poolKeepers.length)];
+    gameMode = 'shooter';
+    startMatch();
+  }
+
   function goToKeepersGallery(){
     // Llamado desde NEXT en la portada
     const v = document.getElementById('player-name').value.trim();
@@ -2364,11 +2386,22 @@
 
   function startAim(ev){
     // Watchdog defensivo: si shooting lleva demasiado tiempo activo (animacion colgada), resetea.
-    if (shooting && (Date.now() - (window._shootStart || 0)) > 8000){
-      console.warn('shooting stuck > 8s, forcing reset');
+    if (shooting && (Date.now() - (window._shootStart || 0)) > 4000){
+      console.warn('shooting stuck > 4s, forcing reset');
       shooting = false;
       aiming = false;
       paradinhaDive = null;
+      // Limpiar UI residual que pueda estar bloqueando interaccion
+      try {
+        document.getElementById('strike-marker').classList.remove('show');
+        document.getElementById('drag-svg').classList.remove('show');
+        document.getElementById('result-overlay').classList.remove('show');
+        const player = document.getElementById('player');
+        player.classList.remove('running','kicking','pausing');
+        document.querySelector('.stage').classList.remove('slowmo');
+        document.getElementById('fake-picker').classList.remove('show');
+        if (window.fakeCdTimer){ clearInterval(window.fakeCdTimer); window.fakeCdTimer = null; }
+      } catch(e){}
       try { resetBall(); } catch(e){}
     }
     if (shooting) return;
@@ -2407,6 +2440,11 @@
     strikeRelY = Math.max(-1, Math.min(1, strikeRelY));
     dragStartX = p.x; dragStartY = p.y;
     dragDx = 0; dragDy = 0; dragDist = 0;
+    dragStartTime = Date.now();
+    dragLastSampleTime = dragStartTime;
+    dragLastX = p.x; dragLastY = p.y;
+    dragRecentVelocity = 0;
+    isTouchGesture = !!(ev.touches && ev.touches.length > 0);
 
     // Mostrar marcador en el balon (corregido a coordenadas del stage)
     const stage = document.querySelector('.stage').getBoundingClientRect();
@@ -2430,6 +2468,14 @@
     dragDx = p.x - dragStartX;
     dragDy = p.y - dragStartY;
     dragDist = Math.sqrt(dragDx*dragDx + dragDy*dragDy);
+
+    // Velocidad reciente (px/ms) suavizada — usada para que un dedo rapido = chute mas rapido
+    const now = Date.now();
+    const dt = Math.max(1, now - dragLastSampleTime);
+    const sampleDx = p.x - dragLastX, sampleDy = p.y - dragLastY;
+    const sampleSpeed = Math.sqrt(sampleDx*sampleDx + sampleDy*sampleDy) / dt;
+    dragRecentVelocity = dragRecentVelocity * 0.6 + sampleSpeed * 0.4;
+    dragLastSampleTime = now; dragLastX = p.x; dragLastY = p.y;
 
     // FLECHA DE CHUTE: apex donde el dedo apunta (direccion del chute), base en el balon.
     // Visualmente el triangulo es una FLECHA que sale del balon hacia donde irá la pelota.
@@ -2455,9 +2501,13 @@
       bp2y = ballCy - perpY * halfW;
     }
 
-    // Apex en la posicion ACTUAL del dedo (hacia donde apunta el chute)
-    const apexX = ((p.x - stage.left) / stage.width) * 100;
-    const apexY = ((p.y - stage.top) / stage.height) * 100;
+    // Apex: en mobile (swipe) apunta hacia el dedo; en desktop (tirachinas) al lado opuesto
+    // (al tirar hacia atras la flecha visual marca por DONDE va a salir el balon).
+    const apexFingerX = p.x, apexFingerY = p.y;
+    const apexUseX = isTouchGesture ? apexFingerX : (ballCx - dragDx);
+    const apexUseY = isTouchGesture ? apexFingerY : (ballCy - dragDy);
+    const apexX = ((apexUseX - stage.left) / stage.width) * 100;
+    const apexY = ((apexUseY - stage.top) / stage.height) * 100;
     const tx1 = ((bp1x - stage.left) / stage.width) * 100;
     const ty1 = ((bp1y - stage.top) / stage.height) * 100;
     const tx2 = ((bp2x - stage.left) / stage.width) * 100;
@@ -2485,11 +2535,20 @@
     if (dragDist < MIN_DRAG){
       return;
     }
-    const power = Math.min(1, dragDist / MAX_DRAG);
-    // SWIPE-TO-SHOOT: el balon va EN LA DIRECCION del dedo (como si el dedo fuera el pie chutando).
-    // dragDy negativo = dedo arriba = balon arriba (sY negativo) -> sin inversion.
-    const aimX = Math.max(-1, Math.min(1, dragDx / MAX_DRAG));
-    const aimY = Math.max(-1, Math.min(1, dragDy / MAX_DRAG));
+    // POTENCIA: combinacion de distancia (cuanto se arrastra) + velocidad (cuan rapido).
+    // Un dedo rapido o un tirachinas largo = chute fuerte; un dedo lento = chute suave.
+    const distancePower = Math.min(1, dragDist / MAX_DRAG);
+    // dragRecentVelocity en px/ms; ~0.5 = movimiento normal, ~1.5+ = flick rapido
+    const velocityPower = Math.min(1, dragRecentVelocity / 1.4);
+    // 60% distancia + 40% velocidad — la velocidad puede acelerar pero no anular la distancia
+    const power = Math.max(0.1, Math.min(1, distancePower * 0.6 + velocityPower * 0.4));
+
+    // DIRECCION:
+    //   - Mobile (touch): swipe-to-shoot, balon va EN la direccion del dedo
+    //   - Desktop (mouse): tirachinas, balon va al OPUESTO del dedo (se tira para atras)
+    const dirMul = isTouchGesture ? 1 : -1;
+    const aimX = Math.max(-1, Math.min(1, dirMul * dragDx / MAX_DRAG));
+    const aimY = Math.max(-1, Math.min(1, dirMul * dragDy / MAX_DRAG));
     doShoot(aimX, aimY, power);
   }
 
@@ -2703,7 +2762,8 @@
     finalY += strikeBiasY;
 
     // ---- Velocidad / spin base por potencia ----
-    let ballSpeedMs = Math.round(900 - power * 580);
+    // Rango amplio: power 0 -> 1100ms (chute lento) // power 1 -> 240ms (zambombazo)
+    let ballSpeedMs = Math.round(1100 - power * 860);
     let spinDeg     = Math.round(540 + power * 540);
     let saveModifier = 0;          // ajuste adicional a la prob de parada
 
