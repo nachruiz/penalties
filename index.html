@@ -2535,13 +2535,21 @@
     if (dragDist < MIN_DRAG){
       return;
     }
-    // POTENCIA: combinacion de distancia (cuanto se arrastra) + velocidad (cuan rapido).
-    // Un dedo rapido o un tirachinas largo = chute fuerte; un dedo lento = chute suave.
+    // POTENCIA: depende del dispositivo.
+    //   - Desktop (tirachinas): la potencia es la DISTANCIA estirada. Como un tirachinas real:
+    //     da igual lo despacio que tires hacia atras, lo que cuenta es cuanto estiraste.
+    //   - Mobile (swipe): combinacion de distancia + velocidad del dedo (un flick rapido = mas fuerte).
     const distancePower = Math.min(1, dragDist / MAX_DRAG);
-    // dragRecentVelocity en px/ms; ~0.5 = movimiento normal, ~1.5+ = flick rapido
     const velocityPower = Math.min(1, dragRecentVelocity / 1.4);
-    // 60% distancia + 40% velocidad — la velocidad puede acelerar pero no anular la distancia
-    const power = Math.max(0.1, Math.min(1, distancePower * 0.6 + velocityPower * 0.4));
+    let power;
+    if (isTouchGesture){
+      // Movil: 60% distancia + 40% velocidad
+      power = distancePower * 0.6 + velocityPower * 0.4;
+    } else {
+      // Desktop tirachinas: 90% distancia + 10% velocidad (el flick final puede dar un extra)
+      power = distancePower * 0.9 + velocityPower * 0.1;
+    }
+    power = Math.max(0.1, Math.min(1, power));
 
     // DIRECCION:
     //   - Mobile (touch): swipe-to-shoot, balon va EN la direccion del dedo
