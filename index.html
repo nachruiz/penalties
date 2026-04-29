@@ -689,7 +689,7 @@
       </svg>
     </div>
     <button class="help-btn" onclick="toggleHelp()">?</button>
-    <div class="help-tooltip" id="help-tooltip">Touch the ball where you want to strike (top = low shot, bottom = high) and drag back like a slingshot — more drag = more power. Release to shoot. Double-tap = soft billiard shot (hit left = goes right).</div>
+    <div class="help-tooltip" id="help-tooltip">Touch the ball where you want to strike (top = low shot, bottom = high) and swipe your finger TOWARD the goal as if it were the foot kicking. Longer swipe = more power. Release to shoot. Double-tap = soft billiard shot.</div>
     <svg class="drag-svg" id="drag-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <polygon id="drag-poly" points="50,50 50,50 50,50" fill="#FFD700" fill-opacity="0.55" stroke="#FFD700" stroke-width="0.4" stroke-linejoin="round"/>
     </svg>
@@ -742,7 +742,7 @@
   let dragDx = 0, dragDy = 0;
   let dragDist = 0;
   const MAX_DRAG = 180;
-  const MIN_DRAG = 25;
+  const MIN_DRAG = 12;   // bajado para evitar fallos en mobile
 
   // Tipo de chute
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
@@ -1041,7 +1041,7 @@
       tutorial: [
         {icon:'⚽🥅', title:'WELCOME', body:'<p>This is <strong>LEGENDS PENALTIES</strong>. Pick a role from the start screen:</p><p><strong>SHOOTER</strong> — strike the ball against keepers.<br><strong>KEEPER</strong> — pick a zone to dive when the CPU shoots.</p><p>Choose your difficulty: Beginner (25% saves), Intermediate (45%), Expert (80%).</p>'},
         {icon:'⚽👆', title:'STRIKE POINT', body:'<p>Where you <strong>touch the ball</strong> determines where it goes — like billiards.</p><p>Want it to fly RIGHT? Touch the LEFT of the ball. Want it LOW? Touch the TOP. Touching BOTTOM lifts it (chip).</p>'},
-        {icon:'🎯💪', title:'SLINGSHOT &amp; POWER', body:'<p>After touching the ball, drag back like a slingshot.</p><p>The <strong>direction of the arrow</strong> is your aim. The <strong>length of the drag</strong> is power, slightly modulated by shot type.</p>'},
+        {icon:'🎯💪', title:'SWIPE TO SHOOT', body:'<p>Touch the ball and <strong>swipe your finger toward the goal</strong> as if it were the foot kicking.</p><p>The <strong>direction of the swipe</strong> is your aim. The <strong>length of the swipe</strong> is power.</p>'},
         {icon:'🚲⏱️', title:'BICYCLE KICK (BONUS)', body:'<p><strong>How to unlock:</strong> score with at least one shot from <strong>each of the 5 rows</strong> within a single match.</p><p>Then you get <strong>3 bonus bicycle attempts</strong>. Each goal adds a top-20 player <strong>card</strong> to your profile.</p><p>Time the JUMP and the KICK in slow motion. Miss either and no goal.</p>'},
         {icon:'🧲🔓', title:'DRAG TO UNLOCK', body:'<p><strong>Drag the player</strong> to reposition them. Drop in the <strong>center of the field</strong> and two new shot types unlock:</p><p><strong>CR7</strong> — side-step + classic instep.<br><strong>NEYMAR</strong> — side-step + crazy stutter steps.</p>'}
       ]
@@ -1067,7 +1067,7 @@
       celeShooterH:'Celebraci&oacute;n de gol (lanzador)', celeKeeperH:'Celebraci&oacute;n de parada (portero)',
       howToPlayH:'C&oacute;mo jugar', shotTypesH:'Tipos de disparo (columna dcha.)',
       hp1:'<strong>Toca el bal&oacute;n</strong> en el punto donde quieres golpear (arriba, abajo, lados).',
-      hp2:'<strong>Arrastra hacia atr&aacute;s</strong> como un tirachinas. El tri&aacute;ngulo marca la direcci&oacute;n; m&aacute;s largo = m&aacute;s potencia.',
+      hp2:'<strong>Desliza el dedo hacia la porter&iacute;a</strong>, como si fuera el pie chutando. El largo del deslizamiento es la potencia.',
       hp3:'<strong>Suelta</strong> para chutar. Tocar el lateral del bal&oacute;n abre el ángulo pero arriesga m&aacute;s irte fuera.',
       stInstep:'<strong>INSTEP</strong>: tiro recto, por defecto.',
       stCurl:'<strong>CURL</strong>: rosca hacia el lado del toque.',
@@ -1096,7 +1096,7 @@
       tutorial: [
         {icon:'⚽🥅', title:'BIENVENIDO', body:'<p>Esto es <strong>LOS PENALTIS DE LAS LEYENDAS</strong>. Elige un rol en la pantalla inicial:</p><p><strong>LANZADOR</strong> — chuta contra los porteros.<br><strong>PORTERO</strong> — elige una zona para tirarte cuando dispare la CPU.</p><p>Elige dificultad: Principiante (25% paradas), Intermedio (45%), Experto (80%).</p>'},
         {icon:'⚽👆', title:'PUNTO DE GOLPEO', body:'<p>El <strong>punto donde tocas el bal&oacute;n</strong> manda la trayectoria — como en el billar.</p><p>&iquest;Quieres que vaya a la DERECHA? Toca la IZQUIERDA del bal&oacute;n. &iquest;Que vaya BAJA? Toca ARRIBA. Tocar ABAJO la levanta (vaselina).</p>'},
-        {icon:'🎯💪', title:'TIRACHINAS &amp; POTENCIA', body:'<p>Tras tocar el bal&oacute;n, arrastra hacia atr&aacute;s como un tirachinas.</p><p>La <strong>direcci&oacute;n de la flecha</strong> es tu intenci&oacute;n. El <strong>largo del arrastre</strong> es la potencia, modulada por el tipo de disparo.</p>'},
+        {icon:'🎯💪', title:'DESLIZA PARA CHUTAR', body:'<p>Toca el bal&oacute;n y <strong>desliza el dedo hacia la porter&iacute;a</strong>, como si fuera el pie que chuta.</p><p>La <strong>direcci&oacute;n del deslizamiento</strong> es tu puntería. El <strong>largo</strong> es la potencia.</p>'},
         {icon:'🚲⏱️', title:'CHILENA (BONUS)', body:'<p><strong>C&oacute;mo se desbloquea:</strong> mete gol con al menos un disparo de <strong>cada una de las 5 filas</strong> en la misma partida.</p><p>Te dar&aacute;n <strong>3 chilenas extra</strong>. Cada gol a&ntilde;ade una <strong>tarjeta</strong> top-20 a tu perfil.</p><p>Temporiza el SALTO y el REMATE en c&aacute;mara lenta. Si fallas alguno, no es gol.</p>'},
         {icon:'🧲🔓', title:'ARRASTRA PARA DESBLOQUEAR', body:'<p><strong>Arrastra al jugador</strong> para reposicionarlo. Su&eacute;ltalo en el <strong>centro del campo</strong> y se desbloquean dos disparos:</p><p><strong>CR7</strong> — paso lateral + zurriagazo.<br><strong>NEYMAR</strong> — paso lateral + carrera tartamuda loca.</p>'}
       ]
@@ -2431,36 +2431,38 @@
     dragDy = p.y - dragStartY;
     dragDist = Math.sqrt(dragDx*dragDx + dragDy*dragDy);
 
-    // Triangulo de tirachinas: apex en el balon, base atras (perpendicular al arrastre)
+    // FLECHA DE CHUTE: apex donde el dedo apunta (direccion del chute), base en el balon.
+    // Visualmente el triangulo es una FLECHA que sale del balon hacia donde irá la pelota.
     const stage = document.querySelector('.stage').getBoundingClientRect();
     const dragSvg = document.getElementById('drag-svg');
     const dragPoly = document.getElementById('drag-poly');
 
-    let p2x = p.x, p2y = p.y, p3x = p.x, p3y = p.y;
-    if (dragDist > 1) {
-      const nx = dragDx / dragDist, ny = dragDy / dragDist;
-      const perpX = -ny, perpY = nx;
-      const t = Math.min(1, dragDist / MAX_DRAG);
-      const halfW = 8 + t * 22; // base de 16 a 60 px
-      p2x = p.x + perpX * halfW;
-      p2y = p.y + perpY * halfW;
-      p3x = p.x - perpX * halfW;
-      p3y = p.y - perpY * halfW;
-    }
-
-    // El apex del triangulo SIEMPRE en el centro actual del balon (independiente del punto de toque)
-    // Esto evita que el triangulo aparezca lejos del balon si hay desfases de coordenadas.
     var ballEl = document.getElementById('ball');
     var ballRect = ballEl.getBoundingClientRect();
     var ballCx = ballRect.left + ballRect.width/2;
     var ballCy = ballRect.top + ballRect.height/2;
-    const apexX = ((ballCx - stage.left) / stage.width) * 100;
-    const apexY = ((ballCy - stage.top) / stage.height) * 100;
-    const tx2 = ((p2x - stage.left) / stage.width) * 100;
-    const ty2 = ((p2y - stage.top) / stage.height) * 100;
-    const tx3 = ((p3x - stage.left) / stage.width) * 100;
-    const ty3 = ((p3y - stage.top) / stage.height) * 100;
-    dragPoly.setAttribute('points', apexX+','+apexY+' '+tx2+','+ty2+' '+tx3+','+ty3);
+
+    // Base del triangulo (en el balon, perpendicular a la direccion del dedo)
+    let bp1x = ballCx, bp1y = ballCy, bp2x = ballCx, bp2y = ballCy;
+    if (dragDist > 1) {
+      const nx = dragDx / dragDist, ny = dragDy / dragDist;
+      const perpX = -ny, perpY = nx;
+      const t = Math.min(1, dragDist / MAX_DRAG);
+      const halfW = 8 + t * 22;
+      bp1x = ballCx + perpX * halfW;
+      bp1y = ballCy + perpY * halfW;
+      bp2x = ballCx - perpX * halfW;
+      bp2y = ballCy - perpY * halfW;
+    }
+
+    // Apex en la posicion ACTUAL del dedo (hacia donde apunta el chute)
+    const apexX = ((p.x - stage.left) / stage.width) * 100;
+    const apexY = ((p.y - stage.top) / stage.height) * 100;
+    const tx1 = ((bp1x - stage.left) / stage.width) * 100;
+    const ty1 = ((bp1y - stage.top) / stage.height) * 100;
+    const tx2 = ((bp2x - stage.left) / stage.width) * 100;
+    const ty2 = ((bp2y - stage.top) / stage.height) * 100;
+    dragPoly.setAttribute('points', apexX+','+apexY+' '+tx1+','+ty1+' '+tx2+','+ty2);
 
     const tt = Math.min(1, dragDist / MAX_DRAG);
     // Baja potencia = amarillo/naranja, media = verde (zona dulce), alta = rojo (riesgo)
@@ -2484,9 +2486,10 @@
       return;
     }
     const power = Math.min(1, dragDist / MAX_DRAG);
-    // SLINGSHOT: direccion = OPUESTO al arrastre (sin normalizar -> magnitud del aim = magnitud del pull)
-    const aimX = Math.max(-1, Math.min(1, -dragDx / MAX_DRAG));
-    const aimY = Math.max(-1, Math.min(1, -dragDy / MAX_DRAG));
+    // SWIPE-TO-SHOOT: el balon va EN LA DIRECCION del dedo (como si el dedo fuera el pie chutando).
+    // dragDy negativo = dedo arriba = balon arriba (sY negativo) -> sin inversion.
+    const aimX = Math.max(-1, Math.min(1, dragDx / MAX_DRAG));
+    const aimY = Math.max(-1, Math.min(1, dragDy / MAX_DRAG));
     doShoot(aimX, aimY, power);
   }
 
