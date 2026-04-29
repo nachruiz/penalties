@@ -2856,7 +2856,12 @@
     let ballEndX = finalX, ballEndY = finalY;
     if (result === 'parada'){
       ballEndX = parseFloat(kLeft) + 8;   // centro del portero (width 16% / 2)
-      ballEndY = 26 + (Math.random()-0.5) * 4; // a la altura de las manos del portero
+      if (shotType === 'pass'){
+        // PASS raso: el portero hace una parada baja (a ras de cesped, no manos arriba)
+        ballEndY = 33 + (Math.random()-0.5) * 1.5;  // 32.25-33.75, mantiene el raso
+      } else {
+        ballEndY = 26 + (Math.random()-0.5) * 4; // a la altura de las manos del portero
+      }
     } else if (result === 'fuera'){
       // Forzar visualmente fuera del marco para que se vea fuera
       const overTop  = (finalY < goalTop + ballR);
@@ -2968,8 +2973,8 @@
         }, ballSpeedMs * 0.45);
       }
       else {
-        // Instep / Paradinha: linea recta
-        ball.style.transition = 'all ' + ballSpeedMs + 'ms cubic-bezier(0.5,0,0.75,0)';
+        // Instep / Paradinha / Pass: linea recta con desaceleracion al llegar
+        ball.style.transition = 'all ' + ballSpeedMs + 'ms cubic-bezier(0.4,0,0.7,1)';
         ball.style.left = (ballEndX - endSize/2) + '%';
         ball.style.top = (ballEndY - endSize/2) + '%';
         ball.style.width = endSize + '%';
