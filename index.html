@@ -819,27 +819,50 @@
   }
 
   // ====== ZOOM BALL: selector del punto de golpeo dentro del balon ======
-  // Toca el balon-zoom para fijar topspin / backspin / efecto. Default centro (0,0).
-  function onStrikeZoomTap(ev){
-    if (gameMode === 'keeper') return;
-    ev.preventDefault();
-    ev.stopPropagation();
+  // Toca o ARRASTRA el balon-zoom para fijar topspin / backspin / efecto. Default centro (0,0).
+  let strikeZoomDragging = false;
+  function getZoomEventXY(ev){
+    if (ev.touches && ev.touches.length) return {x:ev.touches[0].clientX, y:ev.touches[0].clientY};
+    if (ev.changedTouches && ev.changedTouches.length) return {x:ev.changedTouches[0].clientX, y:ev.changedTouches[0].clientY};
+    return {x:ev.clientX, y:ev.clientY};
+  }
+  function applyStrikeZoomFromEvent(ev){
     const el = document.getElementById('strike-zoom');
     const r = el.getBoundingClientRect();
-    let cx, cy;
-    if (ev.touches && ev.touches.length){
-      cx = ev.touches[0].clientX; cy = ev.touches[0].clientY;
-    } else {
-      cx = ev.clientX; cy = ev.clientY;
-    }
-    let rx = ((cx - r.left) / r.width) * 2 - 1;   // -1..+1
-    let ry = ((cy - r.top)  / r.height) * 2 - 1;
+    const p = getZoomEventXY(ev);
+    let rx = ((p.x - r.left) / r.width) * 2 - 1;   // -1..+1
+    let ry = ((p.y - r.top)  / r.height) * 2 - 1;
     // Clampar al circulo (no permitir tocar fuera del balon)
     const dist = Math.sqrt(rx*rx + ry*ry);
     if (dist > 1){ rx /= dist; ry /= dist; }
     strikeRelX = Math.max(-1, Math.min(1, rx));
     strikeRelY = Math.max(-1, Math.min(1, ry));
     updateStrikeZoomMarker();
+  }
+  function onStrikeZoomTap(ev){
+    if (gameMode === 'keeper') return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    strikeZoomDragging = true;
+    applyStrikeZoomFromEvent(ev);
+    document.addEventListener('mousemove', onStrikeZoomMove, {passive:false});
+    document.addEventListener('mouseup', endStrikeZoomDrag, {passive:false});
+    document.addEventListener('touchmove', onStrikeZoomMove, {passive:false});
+    document.addEventListener('touchend', endStrikeZoomDrag, {passive:false});
+    document.addEventListener('touchcancel', endStrikeZoomDrag, {passive:false});
+  }
+  function onStrikeZoomMove(ev){
+    if (!strikeZoomDragging) return;
+    ev.preventDefault();
+    applyStrikeZoomFromEvent(ev);
+  }
+  function endStrikeZoomDrag(ev){
+    strikeZoomDragging = false;
+    document.removeEventListener('mousemove', onStrikeZoomMove);
+    document.removeEventListener('mouseup', endStrikeZoomDrag);
+    document.removeEventListener('touchmove', onStrikeZoomMove);
+    document.removeEventListener('touchend', endStrikeZoomDrag);
+    document.removeEventListener('touchcancel', endStrikeZoomDrag);
   }
   function updateStrikeZoomMarker(){
     const marker = document.getElementById('strike-zoom-marker');
@@ -2943,7 +2966,9 @@
       } else {
         finalY = Math.max(22, Math.min(38, finalY));
       }
-      ballSpeedMs = Math.min(1300, Math.round(ballSpeedMs * 1.6));
+      // Panenka: vaselina lenta, NUNCA por encima de 40 km/h.
+      // kmh = 39600 / ballSpeedMs -> 40 km/h = 990 ms (cap inferior de tiempo de vuelo)
+      ballSpeedMs = Math.max(990, Math.min(1600, Math.round(ballSpeedMs * 1.6)));
       spinDeg = 360;
     }
     else if (shotType === 'paradinha'){
