@@ -776,7 +776,11 @@
   // Tipo de chute
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
   let paradinhaDive = null;
-  let lastTapTime = 0;       // para detectar doble tap (tiro billar)
+  let lastTapTime = 0;       // legado, ya no se usa para billar
+  // Tap / Double-tap: tap simple = chute suave; doble tap rapido = chute fuerte
+  let pendingSoftTapTimer = null;
+  let pendingDoubleTap = false;
+  const DOUBLE_TAP_WINDOW = 280;   // ms para detectar el segundo tap
   let lastShotInfo = {};     // detalles del ultimo chute para explicar fueras
   let difficulty = 'beginner';   // 'beginner' | 'intermediate' | 'expert' (por defecto el m&aacute;s f&aacute;cil para no desmoralizar)
   const DIFF_SAVE = {beginner:0.05, intermediate:0.20, expert:0.30};
@@ -2458,6 +2462,8 @@
       shooting = false;
       aiming = false;
       paradinhaDive = null;
+      if (pendingSoftTapTimer){ clearTimeout(pendingSoftTapTimer); pendingSoftTapTimer = null; }
+      pendingDoubleTap = false;
       // Limpiar UI residual que pueda estar bloqueando interaccion
       try {
         document.getElementById('strike-marker').classList.remove('show');
@@ -2474,14 +2480,13 @@
     if (shooting) return;
     if (gameMode === 'keeper') return;   // En modo keeper el balon lo lanza la CPU
     ev.preventDefault();
-    // Detectar doble tap -> tiro billar raso
-    const now = Date.now();
-    if (now - lastTapTime < 350){
-      lastTapTime = 0;
-      fireBilliard(ev);
-      return;
+    // DOUBLE-TAP: si habia un tap suave pendiente, este toque es el segundo —
+    // cancelamos el suave y marcamos que el siguiente release sera chute FUERTE.
+    if (pendingSoftTapTimer){
+      clearTimeout(pendingSoftTapTimer);
+      pendingSoftTapTimer = null;
+      pendingDoubleTap = true;
     }
-    lastTapTime = now;
     aiming = true;
     // PARADINHA: el portero se compromete antes del chute
     if (shotType === 'paradinha' && !paradinhaDive){
@@ -2607,6 +2612,30 @@
     aiming = false;
     // REGLA: el jugador SIEMPRE chuta. Aunque no se haya arrastrado nada (tap),
     // se dispara un toque suave al centro de la porteria.
+    // TAP / DOUBLE-TAP: si fue un tap (drag insignificante), aplicamos una de dos:
+    //   - 1er tap solo: chute SUAVE al centro tras DOUBLE_TAP_WINDOW (cancelable)
+    //   - 2o tap dentro del window: chute FUERTE al centro inmediato
+    //   - Si arrastras significativamente, ignora la logica de tap y va a swipe normal
+    const TAP_THRESHOLD = 8;  // px
+    if (dragDist < TAP_THRESHOLD){
+      if (pendingDoubleTap){
+        pendingDoubleTap = false;
+        // Chute FUERTE al centro-arriba (zambombazo recto)
+        doShoot(0, -0.45, 0.95);
+        return;
+      }
+      // Tap simple: programa el chute suave; un segundo tap dentro del window lo cancela
+      const ev0 = ev;  // capturado por si hace falta
+      pendingSoftTapTimer = setTimeout(function(){
+        pendingSoftTapTimer = null;
+        if (shooting) return;   // por si algo cambio en el medio
+        // Chute SUAVE al centro
+        doShoot(0, 0, 0.18);
+      }, DOUBLE_TAP_WINDOW);
+      return;
+    }
+    // Reset del flag por si hubo un tap previo y ahora hicimos un swipe
+    pendingDoubleTap = false;
     // POTENCIA: depende del dispositivo.
     //   - Desktop (tirachinas): la potencia es la DISTANCIA estirada. Como un tirachinas real:
     //     da igual lo despacio que tires hacia atras, lo que cuenta es cuanto estiraste.
@@ -3302,6 +3331,8 @@
     aiming = false;
     paradinhaDive = null;
     lastTapTime = 0;
+    if (pendingSoftTapTimer){ clearTimeout(pendingSoftTapTimer); pendingSoftTapTimer = null; }
+    pendingDoubleTap = false;
     shotType = 'instep';
     document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === 'instep'));
     document.getElementById('strike-marker').classList.remove('show');
