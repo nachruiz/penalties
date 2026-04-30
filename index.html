@@ -290,6 +290,12 @@
   /* Tirachinas (triangulo) */
   .drag-svg{position:absolute;inset:0;pointer-events:none;z-index:12;display:none}
   .drag-svg.show{display:block}
+  /* Preview de trayectoria: linea entre balon y punto de impacto en la porteria */
+  .preview-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:7;display:none}
+  .preview-svg.show{display:block}
+  .preview-svg .preview-line{stroke:#FFD700;stroke-width:0.4;stroke-dasharray:1.4,1;opacity:0.85;filter:drop-shadow(0 0 1px rgba(255,215,0,0.7))}
+  .preview-svg .preview-target{fill:rgba(255,215,0,0.55);stroke:#FFD700;stroke-width:0.5;filter:drop-shadow(0 0 2px rgba(255,215,0,0.9))}
+  .preview-svg .preview-cross{stroke:#FFD700;stroke-width:0.5;opacity:0.9}
   /* Zonas del portero (modo keeper) */
   .keeper-zones{position:absolute;right:8px;top:46%;display:none;grid-template-columns:repeat(3,56px);gap:5px;z-index:10}
   .keeper-zones.show{display:grid}
@@ -369,13 +375,13 @@
   /* ZOOM BALL: punto de golpeo. Va encima de shot-types (default centro).
      z-index 8 para que la trayectoria del balon (z-index 11) pase POR ENCIMA y no se tape.
      display:none por defecto; aparece solo cuando ASSIST esta ON. */
-  .strike-zoom{position:absolute;right:60px;bottom:46%;width:90px;height:90px;z-index:8;
+  .strike-zoom{position:absolute;left:3%;bottom:24%;width:80px;height:80px;z-index:8;
     background:radial-gradient(circle at 32% 28%, #fff 0%, #f4f4f4 30%, #cfcfcf 65%, #888 100%);
     border-radius:50%;border:3px solid rgba(255,215,0,0.9);cursor:crosshair;
     box-shadow:0 6px 16px rgba(0,0,0,0.45),inset 0 0 20px rgba(0,0,0,0.15);
     touch-action:none;user-select:none;display:none}
   .strike-zoom.show{display:block}
-  .strike-zoom.lefty-side{right:auto;left:60px}
+  .strike-zoom.lefty-side{left:auto;right:3%}
   .strike-zoom .pattern{position:absolute;inset:0;border-radius:50%;pointer-events:none;
     background:
       radial-gradient(circle at 50% 50%, transparent 38%, rgba(0,0,0,0.10) 39%, rgba(0,0,0,0.10) 41%, transparent 42%),
@@ -756,6 +762,12 @@
     <svg class="drag-svg" id="drag-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
       <polygon id="drag-poly" points="50,50 50,50 50,50" fill="#FFD700" fill-opacity="0.55" stroke="#FFD700" stroke-width="0.4" stroke-linejoin="round"/>
     </svg>
+    <svg class="preview-svg" id="preview-svg" viewBox="0 0 100 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <line id="preview-line" class="preview-line" x1="49.5" y1="67" x2="50" y2="31"/>
+      <line id="preview-cross-h" class="preview-cross" x1="48" y1="31" x2="52" y2="31"/>
+      <line id="preview-cross-v" class="preview-cross" x1="50" y1="29" x2="50" y2="33"/>
+      <circle id="preview-target" class="preview-target" cx="50" cy="31" r="1.4"/>
+    </svg>
     <div class="strike-marker" id="strike-marker"></div>
     <div class="result-overlay" id="result-overlay">
       <div class="result-text" id="result-text">GOL!</div>
@@ -852,6 +864,70 @@
     difficulty = d;
     document.querySelectorAll('.diff-btn').forEach(b => b.classList.toggle('active-diff', b.dataset.diff === d));
     try { localStorage.setItem('penalties_diff', d); } catch(e){}
+  }
+
+  // ====== PREVIEW DE TRAYECTORIA: linea + punto de impacto en la porteria ======
+  // Se actualiza durante el drag para que el usuario vea hacia donde va el chute.
+  // Para tipos curvos (curl/trivela) muestra el punto final estimado (no la curva).
+  // Para panenka se oculta (la trayectoria es muy distinta a una recta).
+  function showPreviewLine(){
+    document.getElementById('preview-svg').classList.add('show');
+  }
+  function hidePreviewLine(){
+    document.getElementById('preview-svg').classList.remove('show');
+  }
+  function updatePreviewLine(){
+    if (shotType === 'panenka' || shotType === 'fake' || shotType === 'paradinha' || shotType === 'jorginho'){
+      hidePreviewLine();
+      return;
+    }
+    // Direccion segun gesture (mobile swipe vs desktop tirachinas)
+    const dirMul = isTouchGesture ? 1 : -1;
+    const aimX = Math.max(-1, Math.min(1, dirMul * dragDx / MAX_DRAG));
+    const aimY = Math.max(-1, Math.min(1, dirMul * dragDy / MAX_DRAG));
+    // Aproximacion de potencia (suficiente para preview; sin velocidad)
+    const power = Math.max(0.1, Math.min(1, dragDist / MAX_DRAG));
+    // Mismo mapeo base que doShoot
+    const goalCx = 50, goalCy = 31, halfW = 47, halfH = 6;
+    let finalX = goalCx + aimX * halfW;
+    let finalY = goalCy + aimY * halfH;
+    // Strike-bias por punto de golpeo (zoom ball)
+    finalY += -strikeRelY * (5 + power * 9);
+    // Ajustes por shotType
+    if (shotType === 'pass'){
+      finalY = 34.8;   // siempre raso
+    } else if (shotType === 'curl'){
+      const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+      finalX += (isLefty ? +1 : -1) * (8 + power * 4);
+    } else if (shotType === 'trivela'){
+      const isLefty = (selectedShooter && selectedShooter.foot === 'L');
+      finalX += (isLefty ? -1 : +1) * (8 + power * 4);
+    }
+    // Clamp dentro del marco para que el preview no salga (es preview, no realidad)
+    finalX = Math.max(5, Math.min(95, finalX));
+    finalY = Math.max(20, Math.min(40, finalY));
+    // Posicion de origen del balon (centro actual)
+    const ballEl = document.getElementById('ball');
+    const stage = document.querySelector('.stage').getBoundingClientRect();
+    const br = ballEl.getBoundingClientRect();
+    const ballPctX = ((br.left + br.width/2 - stage.left) / stage.width) * 100;
+    const ballPctY = ((br.top  + br.height/2 - stage.top)  / stage.height) * 100;
+    // Pintar
+    const line = document.getElementById('preview-line');
+    const target = document.getElementById('preview-target');
+    const ch = document.getElementById('preview-cross-h');
+    const cv = document.getElementById('preview-cross-v');
+    line.setAttribute('x1', ballPctX);
+    line.setAttribute('y1', ballPctY);
+    line.setAttribute('x2', finalX);
+    line.setAttribute('y2', finalY);
+    target.setAttribute('cx', finalX);
+    target.setAttribute('cy', finalY);
+    ch.setAttribute('x1', finalX - 2.5); ch.setAttribute('x2', finalX + 2.5);
+    ch.setAttribute('y1', finalY); ch.setAttribute('y2', finalY);
+    cv.setAttribute('x1', finalX); cv.setAttribute('x2', finalX);
+    cv.setAttribute('y1', finalY - 2.5); cv.setAttribute('y2', finalY + 2.5);
+    showPreviewLine();
   }
 
   // ====== ZOOM BALL: selector del punto de golpeo dentro del balon ======
@@ -2618,6 +2694,8 @@
     document.addEventListener('touchcancel', endAim, {passive:false});
     // Ocultar el circulo del asistente mientras se apunta
     document.getElementById('assist-circle').classList.remove('show');
+    // Mostrar preview de trayectoria desde el primer touch (con drag = 0 sale al centro)
+    updatePreviewLine();
   }
 
   function onAimMove(ev){
@@ -2680,6 +2758,8 @@
     dragPoly.setAttribute('stroke', color);
     dragPoly.setAttribute('fill-opacity', 0.45 + tt * 0.4);
     dragSvg.classList.add('show');
+    // Actualizar la linea de preview en tiempo real
+    updatePreviewLine();
   }
 
   function endAim(ev){
@@ -2690,6 +2770,7 @@
     document.removeEventListener('touchcancel', endAim);
     document.getElementById('drag-svg').classList.remove('show');
     document.getElementById('strike-marker').classList.remove('show');
+    hidePreviewLine();
     if (!aiming) return;
     aiming = false;
     // REGLA: el jugador SIEMPRE chuta. Aunque no se haya arrastrado nada (tap),
