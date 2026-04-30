@@ -19,7 +19,33 @@
   html,body{height:100%;overflow:hidden;background:#04060a;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none}
   /* Fondo oscuro tipo letterbox para desktop: la zona fuera del stage queda en negro mate */
   body{display:flex;flex-direction:column;align-items:center;justify-content:center;background:radial-gradient(ellipse at center,#0e1320 0%,#04060a 100%)}
-  .stage{position:relative;width:100vw;height:100vh;max-width:560px;background:linear-gradient(180deg,#001f3f 0%,#0a3d1f 35%,#0a5d2f 100%);overflow:hidden;border:0;box-shadow:0 0 60px rgba(0,0,0,0.85),0 0 0 1px rgba(255,215,0,0.08)}
+  .stage{position:relative;width:100vw;height:100vh;max-width:560px;overflow:hidden;border:0;
+    background:
+      /* vignette de las esquinas */
+      radial-gradient(ellipse 130% 95% at 50% 55%, transparent 55%, rgba(0,0,0,0.55) 100%),
+      /* rayas de cesped en el cuadrante de juego (40%-100%) */
+      repeating-linear-gradient(180deg,
+        transparent 40%, transparent 46%,
+        rgba(0,0,0,0.10) 46%, rgba(0,0,0,0.10) 52%,
+        transparent 52%, transparent 58%,
+        rgba(0,0,0,0.10) 58%, rgba(0,0,0,0.10) 64%,
+        transparent 64%, transparent 70%,
+        rgba(0,0,0,0.10) 70%, rgba(0,0,0,0.10) 76%,
+        transparent 76%, transparent 82%,
+        rgba(0,0,0,0.10) 82%, rgba(0,0,0,0.10) 88%,
+        transparent 88%, transparent 94%,
+        rgba(0,0,0,0.10) 94%, rgba(0,0,0,0.10) 100%
+      ),
+      /* cielo nocturno + horizonte + cesped */
+      linear-gradient(180deg,
+        #020816 0%,
+        #04122a 14%,
+        #052342 19%,
+        #082b1c 22%,
+        #0c4623 50%,
+        #11622f 100%
+      );
+    box-shadow:0 0 80px rgba(0,0,0,0.92),0 0 0 1px rgba(255,215,0,0.18)}
   /* En desktop/landscape capamos por ratio 9:16 para que no quede deformado horizontalmente */
   @media (min-aspect-ratio: 9/16){
     .stage{aspect-ratio:9/16;height:auto;max-height:100vh}
@@ -72,8 +98,17 @@
   .hud .score{font-size:1.4rem;color:#FFD700}
   .hud .shots{font-size:0.85rem;color:#fff;opacity:0.8}
   /* Goal area: rectangular, bajada un poco para no chocar con la match-hud */
-  .goal{position:absolute;top:19%;left:3%;right:3%;height:21%;border:7px solid #fff;border-bottom:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,0.04),rgba(255,255,255,0.04) 10px,rgba(255,255,255,0.08) 10px,rgba(255,255,255,0.08) 20px);box-shadow:0 0 0 3px rgba(0,0,0,0.3) inset;cursor:crosshair}
-  .crossbar{position:absolute;top:19%;left:3%;right:3%;height:7px;background:#fff;z-index:5}
+  .goal{position:absolute;top:19%;left:3%;right:3%;height:21%;
+    border:5px solid;border-color:#f5f5f5 #f5f5f5 transparent #f5f5f5;border-bottom:none;
+    background:
+      /* malla de la red estilo rombo (dos diagonales finas) */
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 7px, rgba(255,255,255,0.10) 7px, rgba(255,255,255,0.10) 8px),
+      repeating-linear-gradient(-45deg, rgba(255,255,255,0.03) 0, rgba(255,255,255,0.03) 7px, rgba(255,255,255,0.10) 7px, rgba(255,255,255,0.10) 8px);
+    box-shadow:inset 0 0 0 1px rgba(0,0,0,0.35),inset 0 6px 16px rgba(0,0,0,0.25),0 8px 24px rgba(0,0,0,0.55);
+    cursor:crosshair}
+  .crossbar{position:absolute;top:19%;left:3%;right:3%;height:5px;
+    background:linear-gradient(180deg, #ffffff 0%, #e8e8e8 50%, #b8b8b8 100%);
+    z-index:5;box-shadow:0 3px 10px rgba(0,0,0,0.55);border-radius:0 0 2px 2px}
   /* Goalkeeper (svg) */
   .keeper{position:absolute;width:14%;height:18%;left:43%;top:23%;transform-origin:bottom center;transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1),left 0.4s cubic-bezier(0.34,1.56,0.64,1);z-index:6}
   .keeper svg{width:100%;height:100%;display:block;overflow:visible}
@@ -800,9 +835,10 @@
     {n:5, shots:['cr7','neymar'],       name:'CR7 + NEYMAR',       desc:'Tiros de leyenda: paso lateral + zurriagazo o tartamudez.'},
     {n:6, shots:['bicycle'],            name:'CHILENAS',           desc:'&iexcl;La fase final! Domina la chilena para ganar tarjetas top-20.'}
   ];
-  const REQUIRED_CONSECUTIVE = 2;   // 2 goles seguidos para avanzar de fase y desbloquear los siguientes botones
   let currentPhase = 0;
-  let consecutiveGoals = 0;
+  let consecutiveGoals = 0;   // legado, ya no controla progresion
+  // Nueva regla: para avanzar hay que MARCAR GOL con CADA boton de la fase actual al menos una vez.
+  let phaseScoredTypes = new Set();
   // Tamano del balon segun perspectiva: cerca del jugador grande, lejos pequeno
   function ballSizeForY(y){
     // y=67 (jugador) -> 9%
@@ -2043,6 +2079,8 @@
     // Reset fases
     currentPhase = 0;
     consecutiveGoals = 0;
+    phaseScoredTypes = new Set();
+    window._shotTypeForPhase = null;
     document.getElementById('shot-types').classList.remove('bonus-lefty');
     // Posicionar paneles de tiro al lado OPUESTO al lanzador (zurdos: izquierda; diestros: derecha)
     const isLeftyShooter = (selectedShooter && selectedShooter.foot === 'L');
@@ -2112,13 +2150,15 @@
   function updatePhaseStreak(){
     var el = document.getElementById('phase-hud-streak');
     if (!el) return;
-    el.textContent = consecutiveGoals + '/' + REQUIRED_CONSECUTIVE;
+    var phase = PHASES[currentPhase];
+    if (!phase){ el.textContent = ''; return; }
+    el.textContent = phaseScoredTypes.size + '/' + phase.shots.length;
   }
   function showPhaseAnnouncement(idx, isFirst){
     var phase = PHASES[idx]; if (!phase) return;
     document.getElementById('phase-modal-eyebrow').textContent = isFirst ? 'EMPIEZA EL DESAFÍO' : 'FASE DESBLOQUEADA';
     document.getElementById('phase-modal-title').textContent = 'FASE ' + phase.n + ': ' + phase.name;
-    document.getElementById('phase-modal-desc').innerHTML = phase.desc + '<br><br><b>Marca 5 goles seguidos</b> para avanzar.';
+    document.getElementById('phase-modal-desc').innerHTML = phase.desc + '<br><br><b>Marca un gol con cada bot&oacute;n</b> para avanzar a la siguiente fase.';
     var totalPhases = PHASES.length;
     document.getElementById('phase-modal-progress').textContent = phase.n + ' de ' + totalPhases + ' fases';
     document.getElementById('phase-modal').classList.add('show');
@@ -2129,34 +2169,32 @@
     setTimeout(updateAssistCircle, 100);
   }
   function onGoalScoredForPhase(){
-    // Solo cuenta si el shotType actual está en la fase actual
+    // Regla: hay que marcar con CADA boton de la fase al menos una vez para desbloquear la siguiente.
     var phase = PHASES[currentPhase]; if (!phase) return;
-    if (phase.shots.indexOf(shotType) < 0) return;
-    consecutiveGoals++;
+    // Algunos chutes "compuestos" (FAKE, JORGINHO, CR7, NEYMAR) cambian shotType a media animacion.
+    // Si el codigo del chute marco un intent persistente, lo usamos para contabilizar fase.
+    var intent = window._shotTypeForPhase || shotType;
+    window._shotTypeForPhase = null;   // consumir
+    if (phase.shots.indexOf(intent) < 0) return;
+    phaseScoredTypes.add(intent);
     updatePhaseStreak();
-    if (consecutiveGoals >= REQUIRED_CONSECUTIVE){
-      // ¡Avanzar de fase!
-      consecutiveGoals = 0;
+    // ¿Hemos marcado con todos los botones de la fase?
+    var allDone = phase.shots.every(function(s){ return phaseScoredTypes.has(s); });
+    if (allDone){
+      phaseScoredTypes = new Set();
       currentPhase++;
       if (currentPhase >= PHASES.length - 1){
-        // Llegamos a la última fase: CHILENAS — activar bonusMode
+        // Llegamos a la ultima fase: CHILENAS — activar bonusMode
         currentPhase = PHASES.length - 1;
         bonusMode = true;
         bonusAttempts = 0;
-        setTimeout(function(){ showPhaseAnnouncement(currentPhase, false); }, 700);
-      } else {
-        setTimeout(function(){ showPhaseAnnouncement(currentPhase, false); }, 700);
       }
+      setTimeout(function(){ showPhaseAnnouncement(currentPhase, false); }, 700);
     }
   }
   function onMissedForPhase(){
-    // Resetear racha al fallar (solo en modo shooter normal)
-    if (bonusMode) return;
-    if (consecutiveGoals === 0) return;
-    consecutiveGoals = 0;
-    var el = document.getElementById('phase-hud-streak');
-    if (el){ el.classList.add('miss'); setTimeout(function(){ el.classList.remove('miss'); }, 600); }
-    updatePhaseStreak();
+    // Con la nueva regla un fallo NO resetea — los goles ya marcados con cada boton se mantienen.
+    // (Si quisieras endurecerlo, aqui se podria volver a un Set vacio.)
   }
 
   // ====== MODO KEEPER ======
@@ -2391,6 +2429,9 @@
     const player = document.getElementById('player');
     player.classList.remove('pausing');
     shooting = false;
+    // Preserva el intent "fake" para que la progresion de fase cuente este chute como fake
+    // aunque internamente la animacion use 'instep' / 'curl' / etc.
+    window._shotTypeForPhase = 'fake';
     shotType = type;
     doShoot(fakePickerData.sX, fakePickerData.sY, fakePickerData.power, {skipRun: true});
     setTimeout(() => {
