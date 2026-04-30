@@ -747,7 +747,7 @@
   let dragRecentVelocity = 0;   // px/ms, suavizado durante el gesto
   let isTouchGesture = false;   // true => mobile swipe (direccion = dedo); false => desktop slingshot (direccion = inversa)
   const MAX_DRAG = 180;
-  const MIN_DRAG = 5;    // muy bajo: cualquier intencion de drag dispara (con poca potencia)
+  const MIN_DRAG = 2;    // minimo absoluto: cualquier toque-arrastre dispara (con la potencia que toque)
 
   // Tipo de chute
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
@@ -2202,23 +2202,22 @@
     ball.style.transform = 'rotate(0deg)';
     // Force reflow
     void ball.offsetWidth;
-    ball.style.transition = 'all 0.5s cubic-bezier(0.5,0,0.75,0)';
-    // Reset keeper to center
+    ball.style.transition = 'all 0.5s linear';
+    // Reset keeper a posicion y transform iniciales — y QUITAR todas las clases que lo hacen flotar
     const keeper = document.getElementById('keeper');
+    keeper.classList.remove('k-cele','k-cele-1','k-cele-2','k-cele-3','k-cele-4','k-cele-5');
+    keeper.classList.remove('dive-l','dive-c','dive-r','dive-tl','dive-tc','dive-tr','dive-ml','dive-mc','dive-mr','dive-bl','dive-bc','dive-br');
+    keeper.style.transition = 'transform 0.3s ease-out, left 0.3s ease-out';
     keeper.style.left = '43%';
     keeper.style.transform = 'rotate(0deg) translateY(0)';
-    // Reset transition speed of ball
-    ball.style.transition = 'all 0.5s cubic-bezier(0.5,0,0.75,0)';
     // Reset player position and animations
     const player = document.getElementById('player');
-    player.classList.remove('running','kicking','pausing','celebrate','cele-cr7','cele-mortal','cele-arquero');
+    player.classList.remove('running','kicking','pausing','celebrate','cele-cr7','cele-mortal','cele-arquero','cele-knee-slide','cele-shirt');
     const isLefty = (selectedShooter && selectedShooter.foot === 'L');
     player.classList.toggle('lefty', isLefty);
     player.style.left = isLefty ? '60%' : '24%';
     player.style.bottom = '0';
     paradinhaDive = null;
-    // Reset keeper celebration state (keeper ya declarado arriba)
-    keeper.classList.remove('k-cele','dive-l','dive-c','dive-r');
     // Refrescar el circulo del asistente al reposicionar el balon
     setTimeout(updateAssistCircle, 50);
   }
@@ -2453,10 +2452,18 @@
     m.style.top  = (p.y - stage.top)  + 'px';
     m.classList.add('show');
 
+    // Idempotente: si un gesto previo no cerro limpio (touchcancel del SO, scroll, etc.)
+    // los listeners pueden estar duplicados. Quitamos antes de anadir.
+    document.removeEventListener('mousemove', onAimMove);
+    document.removeEventListener('mouseup', endAim);
+    document.removeEventListener('touchmove', onAimMove);
+    document.removeEventListener('touchend', endAim);
+    document.removeEventListener('touchcancel', endAim);
     document.addEventListener('mousemove', onAimMove, {passive:false});
     document.addEventListener('mouseup', endAim, {passive:false});
     document.addEventListener('touchmove', onAimMove, {passive:false});
     document.addEventListener('touchend', endAim, {passive:false});
+    document.addEventListener('touchcancel', endAim, {passive:false});
     // Ocultar el circulo del asistente mientras se apunta
     document.getElementById('assist-circle').classList.remove('show');
   }
@@ -2528,13 +2535,13 @@
     document.removeEventListener('mouseup', endAim);
     document.removeEventListener('touchmove', onAimMove);
     document.removeEventListener('touchend', endAim);
+    document.removeEventListener('touchcancel', endAim);
     document.getElementById('drag-svg').classList.remove('show');
     document.getElementById('strike-marker').classList.remove('show');
     if (!aiming) return;
     aiming = false;
-    if (dragDist < MIN_DRAG){
-      return;
-    }
+    // REGLA: el jugador SIEMPRE chuta. Aunque no se haya arrastrado nada (tap),
+    // se dispara un toque suave al centro de la porteria.
     // POTENCIA: depende del dispositivo.
     //   - Desktop (tirachinas): la potencia es la DISTANCIA estirada. Como un tirachinas real:
     //     da igual lo despacio que tires hacia atras, lo que cuenta es cuanto estiraste.
@@ -2761,7 +2768,7 @@
     // halfW=47 -> swipe horizontal manda el aim left/right
     // halfH=4 -> swipe vertical solo mueve un poco; el ANGULO arriba/abajo lo da el strikeRelY (donde tocas el balon)
     //           Asi el INSTEP no se va siempre al techo cuando subes el dedo en movil.
-    let halfW = 47, halfH = 4;
+    let halfW = 47, halfH = 6;
     let finalX = goalCx + sX * halfW;
     let finalY = goalCy + sY * halfH;
 
@@ -3044,8 +3051,8 @@
         }, ballSpeedMs * 0.45);
       }
       else {
-        // Instep / Paradinha / Pass: linea recta con desaceleracion al llegar
-        ball.style.transition = 'all ' + ballSpeedMs + 'ms cubic-bezier(0.4,0,0.7,1)';
+        // Instep / Paradinha / Pass: linea recta a velocidad constante (linear) — visible toda la trayectoria
+        ball.style.transition = 'all ' + ballSpeedMs + 'ms linear';
         ball.style.left = (ballEndX - endSize/2) + '%';
         ball.style.top = (ballEndY - endSize/2) + '%';
         ball.style.width = endSize + '%';
