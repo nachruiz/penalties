@@ -331,6 +331,25 @@
   /* Cuando el lanzador es ZURDO, los paneles van al lado izquierdo */
   .shot-types.lefty-side{right:auto;left:4px}
   .shot-types-special.lefty-side{right:auto;left:4px}
+  /* ZOOM BALL: punto de golpeo. Va encima de shot-types (default centro) */
+  .strike-zoom{position:absolute;right:60px;bottom:46%;width:90px;height:90px;z-index:11;
+    background:radial-gradient(circle at 32% 28%, #fff 0%, #f4f4f4 30%, #cfcfcf 65%, #888 100%);
+    border-radius:50%;border:3px solid rgba(255,215,0,0.9);cursor:crosshair;
+    box-shadow:0 6px 16px rgba(0,0,0,0.45),inset 0 0 20px rgba(0,0,0,0.15);
+    touch-action:none;user-select:none}
+  .strike-zoom.lefty-side{right:auto;left:60px}
+  .strike-zoom .pattern{position:absolute;inset:0;border-radius:50%;pointer-events:none;
+    background:
+      radial-gradient(circle at 50% 50%, transparent 38%, rgba(0,0,0,0.10) 39%, rgba(0,0,0,0.10) 41%, transparent 42%),
+      radial-gradient(circle at 50% 50%, transparent 70%, rgba(0,0,0,0.08) 71%, rgba(0,0,0,0.08) 73%, transparent 74%)}
+  .strike-zoom-label{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:9px;
+    color:#FFD700;letter-spacing:0.15em;font-family:'Cinzel',serif;white-space:nowrap;
+    text-shadow:0 1px 2px rgba(0,0,0,0.85);font-weight:700;pointer-events:none}
+  .strike-zoom-marker{position:absolute;width:18px;height:18px;border-radius:50%;
+    border:3px solid #FF3030;background:rgba(255,48,48,0.35);pointer-events:none;
+    transform:translate(-50%,-50%);left:50%;top:50%;
+    transition:left 0.12s ease-out, top 0.12s ease-out;
+    box-shadow:0 0 8px rgba(255,48,48,0.7)}
   /* En modo bonus + zurdo, el bicycle se mueve a la IZQUIERDA para no tapar al jugador (que esta a la dcha) */
   .shot-types.bonus-lefty{right:auto;left:4px}
   .shot-btn{background:rgba(0,31,63,0.85);border:2px solid rgba(255,215,0,0.4);color:#fff;padding:6px 9px;font-family:'Cinzel',serif;font-size:0.92rem;font-weight:700;letter-spacing:0.05em;border-radius:7px;cursor:pointer;text-align:center;transition:all 0.15s}
@@ -626,6 +645,11 @@
       <button data-zone="bc" onclick="keeperDive('bc')">↓</button>
       <button data-zone="br" onclick="keeperDive('br')">↘</button>
     </div>
+    <div class="strike-zoom" id="strike-zoom" onmousedown="onStrikeZoomTap(event)" ontouchstart="onStrikeZoomTap(event)">
+      <div class="strike-zoom-label">STRIKE</div>
+      <div class="pattern"></div>
+      <div class="strike-zoom-marker" id="strike-zoom-marker"></div>
+    </div>
     <div class="shot-types" id="shot-types">
       <button class="shot-btn" data-shot="pass" onclick="setShotType('pass')">PASS<span class="shot-sub" data-i18n="subPass">inside foot, low</span></button>
       <button class="shot-btn active" data-shot="instep" onclick="setShotType('instep')">INSTEP<span class="shot-sub" data-i18n="subInstep">straight</span></button>
@@ -769,7 +793,7 @@
     {n:5, shots:['cr7','neymar'],       name:'CR7 + NEYMAR',       desc:'Tiros de leyenda: paso lateral + zurriagazo o tartamudez.'},
     {n:6, shots:['bicycle'],            name:'CHILENAS',           desc:'&iexcl;La fase final! Domina la chilena para ganar tarjetas top-20.'}
   ];
-  const REQUIRED_CONSECUTIVE = 5;
+  const REQUIRED_CONSECUTIVE = 2;   // 2 goles seguidos para avanzar de fase y desbloquear los siguientes botones
   let currentPhase = 0;
   let consecutiveGoals = 0;
   // Tamano del balon segun perspectiva: cerca del jugador grande, lejos pequeno
@@ -787,8 +811,45 @@
     try { localStorage.setItem('penalties_diff', d); } catch(e){}
   }
 
+  // ====== ZOOM BALL: selector del punto de golpeo dentro del balon ======
+  // Toca el balon-zoom para fijar topspin / backspin / efecto. Default centro (0,0).
+  function onStrikeZoomTap(ev){
+    if (gameMode === 'keeper') return;
+    ev.preventDefault();
+    ev.stopPropagation();
+    const el = document.getElementById('strike-zoom');
+    const r = el.getBoundingClientRect();
+    let cx, cy;
+    if (ev.touches && ev.touches.length){
+      cx = ev.touches[0].clientX; cy = ev.touches[0].clientY;
+    } else {
+      cx = ev.clientX; cy = ev.clientY;
+    }
+    let rx = ((cx - r.left) / r.width) * 2 - 1;   // -1..+1
+    let ry = ((cy - r.top)  / r.height) * 2 - 1;
+    // Clampar al circulo (no permitir tocar fuera del balon)
+    const dist = Math.sqrt(rx*rx + ry*ry);
+    if (dist > 1){ rx /= dist; ry /= dist; }
+    strikeRelX = Math.max(-1, Math.min(1, rx));
+    strikeRelY = Math.max(-1, Math.min(1, ry));
+    updateStrikeZoomMarker();
+  }
+  function updateStrikeZoomMarker(){
+    const marker = document.getElementById('strike-zoom-marker');
+    if (!marker) return;
+    marker.style.left = ((strikeRelX + 1) * 50) + '%';
+    marker.style.top  = ((strikeRelY + 1) * 50) + '%';
+  }
+  function resetStrikeZoom(){
+    strikeRelX = 0; strikeRelY = 0;
+    updateStrikeZoomMarker();
+  }
+
   function setShotType(t){
-    if (shooting) return;
+    // Permitir cambiar entre tiros sin bloqueo: si shooting esta activo pero lleva mas
+    // de 1.5s (animacion casi acabada o colgada), igualmente dejamos cambiar para
+    // evitar que el boton parezca muerto.
+    if (shooting && (Date.now() - (window._shootStart || 0)) < 1500) return;
     shotType = t;
     document.querySelectorAll('.shot-btn').forEach(b => b.classList.toggle('active', b.dataset.shot === t));
     updateAssistCircle();
@@ -1945,6 +2006,9 @@
     const isLeftyShooter = (selectedShooter && selectedShooter.foot === 'L');
     document.getElementById('shot-types').classList.toggle('lefty-side', isLeftyShooter);
     document.getElementById('shot-types-special').classList.toggle('lefty-side', isLeftyShooter);
+    // El balon-zoom acompana al panel de tiros (mismo lado opuesto al lanzador)
+    const sz = document.getElementById('strike-zoom');
+    if (sz) sz.classList.toggle('lefty-side', isLeftyShooter);
     // El toggle del asistente va PEGADO AL JUGADOR (mismo lado que el lanzador)
     document.getElementById('assist-toggle').classList.toggle('lefty-side', isLeftyShooter);
     document.getElementById('hud-name').textContent = playerName;
@@ -1963,6 +2027,7 @@
       document.getElementById('assist-toggle').style.display = 'none';
       document.getElementById('assist-circle').classList.remove('show');
       document.getElementById('keeper-zones').classList.add('show');
+      const sz = document.getElementById('strike-zoom'); if (sz) sz.style.display = 'none';
       show('game');
       setTimeout(triggerCpuShot, 1400);
     } else {
@@ -1970,6 +2035,9 @@
       document.getElementById('shot-types-special').style.display = '';
       document.getElementById('assist-toggle').style.display = '';
       document.getElementById('keeper-zones').classList.remove('show');
+      const sz2 = document.getElementById('strike-zoom');
+      if (sz2){ sz2.style.display = ''; }
+      resetStrikeZoom();
       show('game');
       refreshAssistToggleUI();
       setTimeout(updateAssistCircle, 100);
@@ -2432,11 +2500,8 @@
     const ball = document.getElementById('ball');
     const r = ball.getBoundingClientRect();
     const p = getEventXY(ev);
-    // Punto de golpeo relativo al centro del balon (-1..+1 en cada eje)
-    strikeRelX = ((p.x - (r.left + r.width/2)) / (r.width/2));
-    strikeRelY = ((p.y - (r.top + r.height/2)) / (r.height/2));
-    strikeRelX = Math.max(-1, Math.min(1, strikeRelX));
-    strikeRelY = Math.max(-1, Math.min(1, strikeRelY));
+    // El punto de golpeo (strikeRelX/Y) lo dicta el balon-zoom encima de los botones.
+    // El toque en el balon principal solo registra la POSICION DE INICIO del drag (direccion+potencia).
     dragStartX = p.x; dragStartY = p.y;
     dragDx = 0; dragDy = 0; dragDist = 0;
     dragStartTime = Date.now();
