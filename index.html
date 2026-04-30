@@ -747,7 +747,7 @@
   let dragRecentVelocity = 0;   // px/ms, suavizado durante el gesto
   let isTouchGesture = false;   // true => mobile swipe (direccion = dedo); false => desktop slingshot (direccion = inversa)
   const MAX_DRAG = 180;
-  const MIN_DRAG = 12;   // bajado para evitar fallos en mobile
+  const MIN_DRAG = 5;    // muy bajo: cualquier intencion de drag dispara (con poca potencia)
 
   // Tipo de chute
   let shotType = 'instep';   // 'instep' | 'curl' | 'panenka' | 'paradinha'
@@ -2757,8 +2757,11 @@
     // ---- Mapeo base ----
     // Coords del gol (top:19% height:21% -> 19..40)
     const goalLeft = 3, goalRight = 97, goalTop = 19, goalBottom = 40;
-    const goalCx = 50, goalCy = 30;
-    let halfW = 47, halfH = 10;
+    const goalCx = 50, goalCy = 31;   // Cy ligeramente bajo para que el centro tienda al cuerpo del portero
+    // halfW=47 -> swipe horizontal manda el aim left/right
+    // halfH=4 -> swipe vertical solo mueve un poco; el ANGULO arriba/abajo lo da el strikeRelY (donde tocas el balon)
+    //           Asi el INSTEP no se va siempre al techo cuando subes el dedo en movil.
+    let halfW = 47, halfH = 4;
     let finalX = goalCx + sX * halfW;
     let finalY = goalCy + sY * halfH;
 
