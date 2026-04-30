@@ -2894,12 +2894,9 @@
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
       const curlDir = isLefty ? +1 : -1;
       finalX += curlDir * (8 + power * 4);
-      // Tolerancia: si el strike point esta muy al borde pero apuntabas al medio, sigue siendo gol curvado al lado
-      // (clamp dentro del marco salvo que el aim original ya fuera muy desviado)
-      if (Math.abs(sX) < 0.4){
-        const goalSafeL = 8, goalSafeR = 92;
-        finalX = Math.max(goalSafeL, Math.min(goalSafeR, finalX));
-      }
+      // Clamp SIEMPRE dentro del marco: el offset de curl no debe sacar la pelota nunca.
+      // Si apuntabas hacia el lado de la curva, te queda al palo en vez de fuera.
+      finalX = Math.max(8, Math.min(92, finalX));
       saveModifier -= 0.10;
     }
     else if (shotType === 'trivela'){
@@ -2907,11 +2904,8 @@
       const isLefty = (selectedShooter && selectedShooter.foot === 'L');
       const triDir = isLefty ? -1 : +1;
       finalX += triDir * (8 + power * 4);
-      // Misma tolerancia que curl
-      if (Math.abs(sX) < 0.4){
-        const goalSafeL = 8, goalSafeR = 92;
-        finalX = Math.max(goalSafeL, Math.min(goalSafeR, finalX));
-      }
+      // Clamp SIEMPRE dentro del marco (mismo razonamiento que curl)
+      finalX = Math.max(8, Math.min(92, finalX));
       saveModifier -= 0.08;
     }
     else if (shotType === 'panenka'){
