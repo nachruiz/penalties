@@ -331,12 +331,15 @@
   /* Cuando el lanzador es ZURDO, los paneles van al lado izquierdo */
   .shot-types.lefty-side{right:auto;left:4px}
   .shot-types-special.lefty-side{right:auto;left:4px}
-  /* ZOOM BALL: punto de golpeo. Va encima de shot-types (default centro) */
-  .strike-zoom{position:absolute;right:60px;bottom:46%;width:90px;height:90px;z-index:11;
+  /* ZOOM BALL: punto de golpeo. Va encima de shot-types (default centro).
+     z-index 8 para que la trayectoria del balon (z-index 11) pase POR ENCIMA y no se tape.
+     display:none por defecto; aparece solo cuando ASSIST esta ON. */
+  .strike-zoom{position:absolute;right:60px;bottom:46%;width:90px;height:90px;z-index:8;
     background:radial-gradient(circle at 32% 28%, #fff 0%, #f4f4f4 30%, #cfcfcf 65%, #888 100%);
     border-radius:50%;border:3px solid rgba(255,215,0,0.9);cursor:crosshair;
     box-shadow:0 6px 16px rgba(0,0,0,0.45),inset 0 0 20px rgba(0,0,0,0.15);
-    touch-action:none;user-select:none}
+    touch-action:none;user-select:none;display:none}
+  .strike-zoom.show{display:block}
   .strike-zoom.lefty-side{right:auto;left:60px}
   .strike-zoom .pattern{position:absolute;inset:0;border-radius:50%;pointer-events:none;
     background:
@@ -867,6 +870,18 @@
     try { localStorage.setItem('penalties_assist', assistOn ? '1' : '0'); } catch(e){}
     refreshAssistToggleUI();
     updateAssistCircle();
+    updateStrikeZoomVisibility();
+  }
+  function updateStrikeZoomVisibility(){
+    const sz = document.getElementById('strike-zoom');
+    if (!sz) return;
+    if (assistOn && gameMode !== 'keeper'){
+      sz.classList.add('show');
+    } else {
+      sz.classList.remove('show');
+      // Al ocultarlo, devolvemos el strike point al centro para que el chute sea limpio.
+      resetStrikeZoom();
+    }
   }
   function refreshAssistToggleUI(){
     const btn = document.getElementById('assist-toggle');
@@ -2031,7 +2046,8 @@
       document.getElementById('assist-toggle').style.display = 'none';
       document.getElementById('assist-circle').classList.remove('show');
       document.getElementById('keeper-zones').classList.add('show');
-      const sz = document.getElementById('strike-zoom'); if (sz) sz.style.display = 'none';
+      // Modo keeper: zoom oculto siempre
+      const sz = document.getElementById('strike-zoom'); if (sz){ sz.classList.remove('show'); sz.style.display = 'none'; }
       show('game');
       setTimeout(triggerCpuShot, 1400);
     } else {
@@ -2039,9 +2055,11 @@
       document.getElementById('shot-types-special').style.display = '';
       document.getElementById('assist-toggle').style.display = '';
       document.getElementById('keeper-zones').classList.remove('show');
+      // Reset strike point al centro y aplicamos visibilidad del zoom segun ASSIST
       const sz2 = document.getElementById('strike-zoom');
-      if (sz2){ sz2.style.display = ''; }
+      if (sz2) sz2.style.display = '';   // Quitar el display:none inline si venia de keeper
       resetStrikeZoom();
+      updateStrikeZoomVisibility();
       show('game');
       refreshAssistToggleUI();
       setTimeout(updateAssistCircle, 100);
