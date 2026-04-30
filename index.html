@@ -1999,6 +1999,10 @@
   let bonusMode = false;
   let bonusAttempts = 0;
   const BONUS_TOTAL = 3;
+  // Bonus aleatorio: 1 de cada 10 chutes en juego regular abre 3 intentos de chilena
+  let bonusFromRandom = false;
+  const RANDOM_BONUS_CHANCE = 0.10;
+  const RANDOM_BONUS_MIN_SHOTS = 3;   // saltar primeros chutes para que no salte al inicio
   // Reglas de desbloqueo de la chilena segun dificultad.
   // Siempre OBLIGATORIO marcar gol con cr7 o neymar (fila r5) para activar el bonus.
   // requiredRows: total de filas distintas a tocar (incluyendo r5).
@@ -2152,6 +2156,7 @@
     scoredRows = new Set();
     bonusMode = false;
     bonusAttempts = 0;
+    bonusFromRandom = false;
     // Reset fases
     currentPhase = 0;
     consecutiveGoals = 0;
@@ -2271,6 +2276,34 @@
   function onMissedForPhase(){
     // Con la nueva regla un fallo NO resetea — los goles ya marcados con cada boton se mantienen.
     // (Si quisieras endurecerlo, aqui se podria volver a un Set vacio.)
+  }
+
+  // ====== BONUS RANDOM: 1 de cada 10 chutes regulares abre 3 intentos de chilena ======
+  function maybeTriggerRandomBonus(){
+    if (gameMode !== 'shooter') return false;
+    if (bonusMode) return false;             // ya estamos en bonus, no anidar
+    if (currentPhase >= PHASES.length - 1) return false;  // ya en fase final, no tiene sentido
+    if (shotsTaken < RANDOM_BONUS_MIN_SHOTS) return false;
+    if (Math.random() >= RANDOM_BONUS_CHANCE) return false;
+    // ¡Activar!
+    bonusMode = true;
+    bonusAttempts = 0;
+    bonusFromRandom = true;
+    // Solo el boton bicycle visible (oculta los de la fase actual durante el bonus)
+    document.querySelectorAll('.shot-btn').forEach(function(b){
+      b.style.display = (b.dataset.shot === 'bicycle') ? '' : 'none';
+      b.classList.remove('active');
+    });
+    var bb = document.querySelector('.shot-btn[data-shot="bicycle"]');
+    if (bb) bb.classList.add('active');
+    shotType = 'bicycle';
+    // Anuncio rapido reusando el phase-modal
+    document.getElementById('phase-modal-eyebrow').textContent = '🚲 BONUS RANDOM';
+    document.getElementById('phase-modal-title').textContent = '¡CHILENA!';
+    document.getElementById('phase-modal-desc').innerHTML = 'La suerte te abre un bonus.<br><b>3 intentos de chilena</b> — cada gol te da una carta top-20.';
+    document.getElementById('phase-modal-progress').textContent = 'Bonus inesperado';
+    document.getElementById('phase-modal').classList.add('show');
+    return true;
   }
 
   // ====== MODO KEEPER ======
@@ -3440,11 +3473,20 @@
     setTimeout(() => {
       overlay.classList.remove('show');
       if (bonusMode){
-        // Fase chilenas: 3 intentos como antes
+        // Fase chilenas: 3 intentos
         bonusAttempts++;
         if (bonusAttempts >= BONUS_TOTAL){
           bonusMode = false;
-          endGame();
+          if (bonusFromRandom){
+            // Bonus salio de la suerte: vuelve al juego regular sin terminar partida
+            bonusFromRandom = false;
+            applyPhaseButtons(currentPhase);
+            resetBall();
+            shooting = false;
+          } else {
+            // Bonus de fin-de-juego (post fase 5): terminar partida
+            endGame();
+          }
         } else {
           resetBall();
           shooting = false;
@@ -3453,8 +3495,8 @@
         // Modo keeper conserva el formato de 5 penaltis
         if (shotsTaken >= TOTAL_SHOTS){ endGame(); } else { resetBall(); shooting = false; }
       } else {
-        // Modo shooter con fases: continuar siempre. La transición a chilenas la dispara onGoalScoredForPhase()
-        // que activa bonusMode tras la fase 5.
+        // Modo shooter con fases: continuar. Tirar el dado del bonus aleatorio (1/10).
+        maybeTriggerRandomBonus();
         resetBall();
         shooting = false;
       }
